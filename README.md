@@ -50,18 +50,21 @@ Server install: see [deploy/README.md](deploy/README.md).
 
 ## Revive your Mila from an archive
 
-A Mila's memory (chat cards, agreements, access list, skills learned from real mistakes, spend log)
-exists nowhere else, so it can be exported:
+A Mila belongs to her owner, 100%. Everything you taught her - instructions, skills, memory, crons, settings - exports to one
+archive, and this open core plus that archive brings her back on any machine.
 
 ```sh
-mila backup status                 # what is saved, when, what is missing
-mila backup run                    # export an archive (secrets are filtered out)
-mila backup run --to user@host:<archives>   # and ship a copy over ssh
+mila export --out ~/mila-backups     # archive without passwords and keys (a secret scanner runs on every file)
+mila export verify <archive>         # manifest + sha256 check
+# on a clean machine, after install/install.sh or deploy/bootstrap.sh:
+mila restore <archive> --dry-run     # see what goes where
+mila restore <archive>               # existing files are never overwritten; differences go to ~/.claude/mila-restore/
 ```
 
-The archive never contains bot tokens or API keys - on a new machine you install the kit, configure a
-fresh token, and unpack the archive over `~/.claude` and the Telegram state directory.
-A guided one-command restore is not in this repository yet - **coming soon**; today the restore is manual.
+The archive has `manifest.json` (format 1, sha256 of each file, core version) and `RESTORE.md`; secrets are never in it.
+After the restore you re-enter by hand: the bot token, your Claude login, service keys (the checklist is printed).
+Chat history and transcripts are exported only with `--with-history` (other people's data - keep it closed).
+Details: [skills/mila-export](skills/mila-export/SKILL.md). To save the memory on a schedule, use `mila backup` (see above in the reference).
 
 ## Safety
 
