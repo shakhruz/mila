@@ -7,6 +7,11 @@ mkdir -p "$CLAUDE_CONFIG_DIR/skills/moy-lichny" "$MILA_WORK/memory" "$HOME/secre
 echo "мой навык" > "$CLAUDE_CONFIG_DIR/skills/moy-lichny/SKILL.md"; echo "NOW хозяина" > "$MILA_WORK/NOW.md"; echo "память" > "$MILA_WORK/memory/a.md"
 echo '{"x":1}' > "$CLAUDE_CONFIG_DIR/settings.json"; echo KEY > "$HOME/secrets/k.key"
 cp -R "$REPO" "$T/rel"; rm -rf "$T/rel/.git"
+# базовая версия песочницы — 1.0.0, что бы ни стояло в release.json репо
+python3 - "$T/rel/release.json" <<'PY'
+import json, sys; p = sys.argv[1]; d = json.load(open(p))
+d["version"], d["tag"] = "1.0.0", "v1.0"; open(p, "w").write(json.dumps(d, ensure_ascii=False, indent=2))
+PY
 mkdir -p "$CLAUDE_CONFIG_DIR/hooks"; echo "# мой хук новее релиза" > "$CLAUDE_CONFIG_DIR/hooks/chat_note.py"
 mkdir -p "$MILA_WORK/rituals"; echo "мой ритуал" > "$MILA_WORK/rituals/WAKE.md"
 U="python3 $HERE/update.py"; ok=0; n=0
@@ -32,7 +37,7 @@ echo "моя правка" >> "$CLAUDE_CONFIG_DIR/skills/naglyadno/SKILL.md"
 echo "# v1.1" >> "$T/rel/skills/naglyadno/SKILL.md"; echo "# v1.1" >> "$T/rel/install/doctor.py"
 python3 - "$T/rel/release.json" <<'PY'   # портативно: sed -i у GNU и BSD разный
 import sys; p = sys.argv[1]; s = open(p).read()
-open(p, "w").write(s.replace('"version": "1.0.0"', '"version": "1.1.0"').replace('"tag": "v1.0"', '"tag": "v1.1"'))
+import json; d = json.loads(s); d["version"], d["tag"] = "1.1.0", "v1.1"; open(p, "w").write(json.dumps(d, ensure_ascii=False, indent=2))
 PY
 $U diff --src "$T/rel" > "$T/d3.json"
 chk "diff: правка хозяина видна, хук обновится" "grep -A3 vasha_pravka $T/d3.json | grep -q naglyadno && grep -A3 obnovitsya $T/d3.json | grep -q doctor.py"
