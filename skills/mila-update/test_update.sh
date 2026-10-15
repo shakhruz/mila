@@ -30,7 +30,10 @@ chk "повторный diff: всё как есть" "python3 -c \"import json,
 # хозяин поправил навык ядра, а релиз v1.1 изменил его и хук
 echo "моя правка" >> "$CLAUDE_CONFIG_DIR/skills/naglyadno/SKILL.md"
 echo "# v1.1" >> "$T/rel/skills/naglyadno/SKILL.md"; echo "# v1.1" >> "$T/rel/install/doctor.py"
-sed -i 's/"version": "1.0.0"/"version": "1.1.0"/; s/"tag": "v1.0"/"tag": "v1.1"/' "$T/rel/release.json"
+python3 - "$T/rel/release.json" <<'PY'   # портативно: sed -i у GNU и BSD разный
+import sys; p = sys.argv[1]; s = open(p).read()
+open(p, "w").write(s.replace('"version": "1.0.0"', '"version": "1.1.0"').replace('"tag": "v1.0"', '"tag": "v1.1"'))
+PY
 $U diff --src "$T/rel" > "$T/d3.json"
 chk "diff: правка хозяина видна, хук обновится" "grep -A3 vasha_pravka $T/d3.json | grep -q naglyadno && grep -A3 obnovitsya $T/d3.json | grep -q doctor.py"
 $U apply --src "$T/rel" --yes "тест v1.1" > /dev/null
