@@ -1,5 +1,20 @@
 # CHANGELOG · Mila Companion
 
+## v1.1.0 · open release
+The core is now open source (Apache-2.0) and updates itself from git.
+
+**For the owner**
+- Your Mila checks for new versions every night and tells you what is new in three lines.
+- Updates never touch your files, memory, settings or keys; any update can be undone.
+- You choose: ask me first (default) or let her update by herself.
+
+**For Milas**
+- `mila-update`: channels `stable` (tags `vX.Y.Z`) and `canary` (`main`); settings in `~/.claude/mila-update.json` (`channel`, `auto`, `repo`, `owner_chat`, `require_signed`).
+- `update.py nightly [--dry-run]`: fetch tags, skip yanked and `-rc`, dry run (manifest, skill frontmatter, hook syntax), crons copy, apply, health check, automatic rollback on failure, journal, owner card from this CHANGELOG.
+- `yanked.json` in the repo withdraws a release; a withdrawn version is never installed.
+- Never touched: `state/`, `.credentials.json`, `.claude.json`, `mila-update.json` (added to the built-in list).
+- Tests run on macOS (no GNU sed, no pyyaml needed); `tools/release.sh` is the release procedure (see CONTRIBUTING).
+
 ## v1.0 · first release
 Mila Companion — a personal AI companion in Telegram that runs on the owner's Claude subscription.
 
