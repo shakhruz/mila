@@ -16,7 +16,7 @@ if [ -n "$last" ] && [ "$(printf '%s\nv%s\n' "$last" "$V" | sort -V | tail -1)" 
 python3 - "$V" <<'PY' || exit 1
 import re, sys
 v = sys.argv[1]; t = open("CHANGELOG.md", encoding="utf-8").read()
-m = re.search(r"^## v%s(?:\s.*)?\n(.*?)(?=^## |\Z)" % re.escape(v), t, re.S | re.M)
+m = re.search(r"^## v%s(?:[ \t][^\n]*)?\n(.*?)(?=^## |\Z)" % re.escape(v), t, re.S | re.M)
 if not m: sys.exit("в CHANGELOG.md нет раздела '## v%s'" % v)
 if not re.search(r"Для хозяина|For the owner", m.group(1), re.I): sys.exit("в разделе v%s нет блока «Для хозяина»/«For the owner» (карточка «Что нового»)" % v)
 PY
