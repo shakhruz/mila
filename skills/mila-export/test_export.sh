@@ -19,7 +19,7 @@ J
 echo '{"plugins":{"mila-telegram@mila":{"version":"1.0.0"}}}' > "$C/plugins/installed_plugins.json"
 echo '{"dmPolicy":"allowlist","allowFrom":["123456789"],"groups":{"-100123":{"requireMention":true}}}' > "$C/channels/telegram/access.json"
 echo 'TELEGRAM_BOT_TOKEN=notreallyatoken' > "$C/channels/telegram/.env"
-echo 'ELEVENLABS_API_KEY=hidden' > "$W/.env"
+echo 'ELEVENLABS_API_KEY=qzv9wxfake' > "$W/.env"
 echo "сообщение гостя" > "$C/channels/telegram/inbound/events.jsonl"
 echo "карточка чата" > "$C/channels/telegram/chats/c1.md"
 echo '{"x":1}' > "$C/projects/p/session.jsonl"
@@ -56,7 +56,7 @@ chk "взято: инструкции, canon, навыки (личные), ху�
 chk "settings.json: хуки есть, секретный env пуст" "grep -q hooks $F/claude/settings.json && ! grep -q zzz-not-for $F/claude/settings.json"
 chk "access: только шаблон, без id" "[ -f $F/claude/channels/telegram/access.template.json ] && ! grep -rq 123456789 $F && ! grep -rq 100123 $F && grep -q allowlist $F/claude/channels/telegram/access.template.json"
 chk "не взято: .env, токены, ключ-файлы, secrets/, inbound, сессии, journal, inbox, карточки чатов" "[ ! -e $F/work/.env ] && [ ! -e $F/claude/.claude.json ] && [ ! -e $F/claude/channels/telegram/.env ] && [ ! -e $F/work/my_api_key.txt ] && [ ! -e $F/work/secrets ] && [ ! -e $F/claude/channels/telegram/inbound ] && [ ! -e $F/claude/projects ] && [ ! -e $F/work/journal ] && [ ! -e $F/work/inbox ] && [ ! -e $F/claude/channels/telegram/chats ]"
-chk "ни одного значения секрета в архиве" "! grep -rq -e notreallyatoken -e hidden -e zzz-not $R --include='*' -l"
+chk "ни одного значения секрета в архиве" "! grep -rq -e notreallyatoken -e qzv9wxfake -e zzz-not $R --include='*' -l"
 chk "сканер по распакованному: 0" "$X scan $R >/dev/null"
 chk "verify проходит" "$X verify $A >/dev/null"
 
