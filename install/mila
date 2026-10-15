@@ -251,6 +251,13 @@ case "${1:-continue}" in
                  [ -f "$c" ] && exec python3 "$c" "$@"
                done
                echo "backup.py not found — reinstall the kit" >&2; exit 1 ;;
+  export|restore) cmd="$1"; shift
+               case "${1:-}" in verify|scan|restore|export) cmd="$1"; shift ;; esac
+               for c in "$HOME/.claude/skills/mila-export/mila_export.py" \
+                        "$(dirname "$0")/../skills/mila-export/mila_export.py"; do
+                 [ -f "$c" ] && exec python3 "$c" "$cmd" "$@"
+               done
+               echo "mila-export skill not found — reinstall the kit" >&2; exit 1 ;;
   fix)         launchctl kickstart -k "gui/$(id -u)/$DAEMON_UNIT" 2>/dev/null
                launchctl kickstart -k "gui/$(id -u)/$SENDER_UNIT" 2>/dev/null
                sleep 2; status ;;
@@ -272,6 +279,8 @@ mila chats      rebuild the chat registry (--stale 14 lists quiet ones)
 mila owe        every open promise across all chats
 mila when       what time it is for each client, and who is in quiet hours
 mila backup     status | run | list — archive what cannot be recovered
+mila export     [--out DIR] [--with-history] — export this Mila (no secrets) · mila export verify <archive>
+mila restore    <archive> [--dry-run] [--overwrite] — revive a Mila from an export archive
 mila note <id>  write to a chat card (--purpose --member --promise --done --note)
 
 Anything after the command is passed to claude as-is:  mila new --model opus

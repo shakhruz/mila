@@ -1,5 +1,8 @@
 # CHANGELOG · Mila Companion
 
+## Unreleased
+- `mila-export` — `mila export` / `mila restore`: the whole Mila (instructions, skills, memory, crons, settings, plugin list) in one `tar.gz` with `manifest.json` (format 1, sha256) and `RESTORE.md`; built-in secret scanner, the export fails on a hit; restore verifies, never overwrites, prints a re-enter checklist. `release.json` gets `genes` (every Mila carries mila-export and mila-update).
+
 ## v1.0 · first release
 Mila Companion — a personal AI companion in Telegram that runs on the owner's Claude subscription.
 

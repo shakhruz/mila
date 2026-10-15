@@ -69,5 +69,11 @@
     "{work}/.env",
     "{work}/rituals",
     "{work}/canon/TEAM-CONTACTS.md"
-  ]
+  ],
+  "genes": [
+    "skills/mila-export",
+    "skills/mila-update",
+    "install/mila"
+  ],
+  "genes_note": "every Mila carries these: she can update herself and export herself (owner owns the archive)"
 }
