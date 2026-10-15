@@ -185,6 +185,8 @@ def collect(a):
     for name in sorted(os.listdir(claude)) if os.path.isdir(claude) else []:
         full = os.path.join(claude, name)
         if name in ("settings.json", "settings.local.json"): continue
+        if name.startswith(".") and os.path.isfile(full):
+            c.skip("claude/" + name, "hidden state file of Claude Code (account data), not part of the Mila"); continue
         if name in cskip:
             c.skip("claude/%s%s" % (name, "/" if os.path.isdir(full) else ""),
                    "transcripts/history (use --with-history)" if name in HISTORY_CLAUDE else "handled separately or not part of the Mila")
