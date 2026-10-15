@@ -12,7 +12,8 @@ description: Выгрузка Милы в архив и возрождение �
 ```
 mila export [--name NAME] [--out DIR]          # выгрузка → <DIR>/mila-export-<name>-<дата>.tar.gz
 mila export --dry-run                          # сколько файлов и байт, архив не пишет
-mila export --with-history                     # + транскрипты сессий, journal/, карточки чатов (чужие данные!)
+mila export --with-history                     # + транскрипты сессий и карточки чатов (данные других людей!)
+mila export --no-people                        # без папок students/, clients/, people/, contacts/
 mila export --allow 'work/путь/*'              # ложное срабатывание сканера — явное исключение
 mila export verify <архив>                     # манифест, формат, sha256, повторный скан
 mila restore <архив> [--dry-run] [--overwrite] # раскладка в ~/.claude и ~/work
@@ -23,7 +24,7 @@ mila export scan <папка>                       # только сканер 
 (`CLAUDE_CONFIG_DIR`, `MILA_WORK`). Только стандартная библиотека, Python 3.10+.
 
 ## Что внутри
-`work/` — CLAUDE.md, CONSTITUTION, canon/, память (memory/), ритуалы, `state/crons.*`, знания, документы;
+`work/` — CLAUDE.md, CONSTITUTION, canon/, память (memory/), дневник (journal/), ритуалы, `state/crons.*`, знания, документы;
 `claude/` — навыки (ядра и личные), хуки, команды, `settings.json` без секретов, список плагинов и версии,
 шаблон `channels/telegram/access.template.json` (без id людей), `mila-update/version.json`.
 `manifest.json` — формат (`format=1`), дата, версия ядра, каждый файл с sha256, что не вошло и почему.
@@ -31,8 +32,9 @@ mila export scan <папка>                       # только сканер 
 
 ## Чего не берём
 `.env*`, имена с token/key/secret/credential/passw, `.pem`, `secrets/`, `.ssh/`, симлинки, файлы > 5 МБ, медиа и архивы
-(`--with-media`), `inbox/`, `outbox/`, `channels/*/inbound`. Транскрипты сессий, `journal/` и карточки чатов — только
-по `--with-history`: в них другие люди; архив с историей хранить закрыто.
+(`--with-media`), `inbox/`, `outbox/`, `channels/*/inbound`. Транскрипты сессий и карточки чатов — только
+по `--with-history`: в них другие люди. `journal/` (дневник — память самой Милы) берётся по умолчанию.
+**Внимание: архив содержит записи о ваших людях (карточки в навыках и памяти) — не передавайте его третьим лицам**; `--no-people` исключает такие папки.
 Сканер читает **каждый** взятый файл: `sk-…`, `sk-ant-…`, токен бота `\d{8,10}:AA…`, `ghp_`, `AKIA`, `re_`,
 `-----BEGIN … PRIVATE KEY`, `password=…` и подобные присвоения. Находка → export падает со списком файлов
 (значения не печатаются), архив не создаётся.

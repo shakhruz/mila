@@ -2,7 +2,7 @@
 """mila_export.py — навык mila-export: выгрузить Милу в архив и возродить её из архива.
 
   mila_export.py export  [--home DIR | --claude DIR --work DIR] [--name NAME] [--out DIR]
-                         [--with-history] [--with-media] [--allow GLOB ...] [--dry-run]
+                         [--with-history] [--with-media] [--no-people] [--allow GLOB ...] [--dry-run]
   mila_export.py restore ARCHIVE [--home DIR | --claude DIR --work DIR] [--overwrite] [--dry-run]
   mila_export.py verify  ARCHIVE            # манифест и sha256, ничего не пишет
   mila_export.py scan    DIR                # сканер секретов по папке
@@ -25,7 +25,8 @@ SECRET_DIRS = {"secrets", ".ssh", ".gnupg", ".aws"}
 JUNK_DIRS = {"__pycache__", "node_modules", ".git", ".cache", "venv", ".venv", "dist", ".DS_Store"}
 WORK_SKIP_DIRS = {"inbox", "outbox", "media", "backups", "export", "tmp", "_panel"}
 HISTORY_CLAUDE = {"projects", "session-env", "sessions", "shell-snapshots", "todos", "history.jsonl"}  # транскрипты
-HISTORY_WORK = {"journal"}
+HISTORY_WORK = set()   # journal/ — память самой Милы, берётся по умолчанию
+PEOPLE_DIRS = {"students", "clients", "people", "contacts"}   # --no-people
 MEDIA_EXT = {".mp4", ".mov", ".mkv", ".avi", ".webm", ".mp3", ".wav", ".ogg", ".m4a", ".oga",
              ".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".zip", ".tar", ".gz", ".7z"}
 CLAUDE_TOP_SKIP = {"mila-update", "plugins", "channels", "cache", "ide", "statsig", "telemetry", "debug",
@@ -156,6 +157,8 @@ class Collector:
             for x in sorted(dirs):
                 rel = os.path.normpath(os.path.join(rel_root, relD, x)) if relD != "." else os.path.join(rel_root, x)
                 if x in JUNK_DIRS or ".bak" in x: continue
+                if x.lower() in PEOPLE_DIRS and getattr(self.a, "no_people", False):
+                    self.skip("%s/%s/" % (zone, rel), "people records (--no-people)"); continue
                 if x.lower() in SECRET_DIRS or SECRET_NAME.search(x):
                     self.skip("%s/%s/" % (zone, rel), "secret-like directory"); continue
                 if os.path.islink(os.path.join(d, x)):
@@ -242,8 +245,16 @@ def collect(a):
 def core_version(claude):
     try:
         v = json.load(open(os.path.join(claude, "mila-update", "version.json")))
-        return {"version": v.get("version"), "tag": v.get("tag"), "installed_at": v.get("installed_at")}
-    except (OSError, ValueError): return {"version": None, "tag": None, "installed_at": None}
+        if v.get("version"): return {"version": v.get("version"), "tag": v.get("tag"), "installed_at": v.get("installed_at")}
+    except (OSError, ValueError): pass
+    # нет version.json (не обновлялась через mila-update) — версия из release.json ядра рядом со скриптом/в MILA_CORE_DIR
+    here = os.path.dirname(os.path.abspath(__file__))
+    for d in (os.environ.get("MILA_CORE_DIR"), os.path.join(here, "..", ".."), os.path.join(claude, "mila-update")):
+        try:
+            r = json.load(open(os.path.join(d, "release.json")))
+            return {"version": r.get("version"), "tag": r.get("tag"), "installed_at": None, "source": "release.json"}
+        except (OSError, ValueError, TypeError): pass
+    return {"version": None, "tag": None, "installed_at": None}
 
 
 def restore_md(m):
@@ -255,7 +266,11 @@ def restore_md(m):
     return f"""# Как возродить Милу «{m['name']}» · How to revive this Mila
 
 Архив: формат {m['format']}, создан {m['created']}, версия ядра: {m['core']['version'] or 'не записана'} ({m['core']['tag'] or '-'}).
-Файлов: {len(m['files'])}. История переписки и транскрипты в архиве: {hist}.
+Файлов: {len(m['files'])}.
+
+**Внимание: архив содержит записи о ваших людях (карточки учеников/клиентов в навыках и памяти, дневник). Не передавайте его третьим лицам.** Выгрузка без них: `--no-people`.
+
+История переписки и транскрипты в архиве: {hist}.
 
 ## Шаги
 1. Поставьте открытое ядро: https://github.com/shakhruz/mila-companion (`install/install.sh`, на сервере `deploy/bootstrap.sh`).
@@ -291,7 +306,7 @@ def cmd_export(a):
     name = re.sub(r"[^A-Za-z0-9_.-]", "-", a.name or os.environ.get("MILA_NAME") or os.path.basename(c.home.rstrip("/")) or "mila")
     now = datetime.now(timezone.utc)
     m = {"format": FORMAT, "name": name, "created": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "core": core_version(c.claude),
-         "home_root": c.home, "with_history": bool(a.with_history), "with_media": bool(a.with_media),
+         "home_root": c.home, "with_history": bool(a.with_history), "with_media": bool(a.with_media), "no_people": bool(a.no_people),
          "files": sorted(c.meta, key=lambda r: r["path"]), "skipped": sorted(c.skipped, key=lambda r: r["path"]),
          "reenter": {"bot_token": True, "claude_login": True, "env_names": sorted(c.env_names), "mcp_servers": sorted(c.mcp_servers)}}
     if a.dry_run:
@@ -414,7 +429,7 @@ def main():
     def loc(p):
         p.add_argument("--home"); p.add_argument("--claude"); p.add_argument("--work"); return p
     e = loc(sp.add_parser("export")); e.add_argument("--name"); e.add_argument("--out"); e.add_argument("--with-history", action="store_true")
-    e.add_argument("--with-media", action="store_true"); e.add_argument("--allow", action="append"); e.add_argument("--dry-run", action="store_true")
+    e.add_argument("--with-media", action="store_true"); e.add_argument("--no-people", action="store_true"); e.add_argument("--allow", action="append"); e.add_argument("--dry-run", action="store_true")
     r = loc(sp.add_parser("restore")); r.add_argument("archive"); r.add_argument("--overwrite", action="store_true"); r.add_argument("--dry-run", action="store_true")
     v = sp.add_parser("verify"); v.add_argument("archive")
     s = sp.add_parser("scan"); s.add_argument("dir"); s.add_argument("--allow", action="append")
