@@ -1,9 +1,9 @@
 {
   "product": "Мила Компаньон",
-  "version": "1.0.0",
-  "tag": "v1.0",
-  "date": "2026-10-12",
-  "notes": "CHANGELOG.md — раздел v1.0",
+  "version": "1.1.0",
+  "tag": "v1.1.0",
+  "date": "2026-10-15",
+  "notes": "CHANGELOG.md - section v1.1.0",
   "zones": [
     {
       "what": "навыки ядра",
