@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+"""bot_send.py — Мила пишет человеку от СВОЕГО бота и делает рассылку (владелец 13.10).
+Модуль для движка агента (factory_launch.py): инструменты bot_send, bot_broadcast (превью → «✅» владельца → отправка).
+Только stdlib. Включатель — env BOT_SEND=1 (по умолчанию выключено).
+
+Правила (не обходятся параметрами):
+- Писать можно только тому, кто сам хоть раз писал боту (known(user_id) — из conversations/dialogs движка).
+- Вызов — только по слову владельца в его личке (owner_gate — проверяет движок: инструмент доступен только в сессии хозяина).
+- Рассылка: сначала превью «N человек, текст» владельцу с кнопкой ✅; отправка — только confirm(preview_id) после нажатия.
+- Не больше 20 сообщений в секунду; заблокировавшие бота (403) и сказавшие «стоп» — в стоп-лист, им больше не пишем.
+- Тихие часы 22:00–08:00 по Ташкенту: рассылка встаёт в очередь на 08:00 (личное сообщение по прямому слову владельца уходит сразу).
+- Каждое отправленное — в журнал (кому, когда, message_id) и в диалог человека как исходящее (record_outgoing), чтобы dialogs видел «наш ход закрыт».
+"""
+import json, os, re, time, urllib.request, urllib.error, uuid
+from datetime import datetime, timedelta, timezone
+
+TZ = timezone(timedelta(hours=5))
+QUIET = (22, 8)            # с 22:00 до 08:00 по Ташкенту
+RATE = 20                  # сообщений в секунду, не больше
+PREVIEW_TTL = 3600         # превью рассылки живёт час
+
+
+class BotSend:
+    def __init__(self, token, state_dir, known, record_outgoing=lambda uid, text, mid: None, api=None, now=lambda: datetime.now(TZ), sleep=time.sleep):
+        """known(uid) -> bool: человек писал боту; record_outgoing — запись исходящего в диалог (движок); api(method, payload) -> dict — для тестов."""
+        self.token, self.dir, self.known, self.record = token, state_dir, known, record_outgoing
+        self.now, self.sleep = now, sleep
+        self.api = api or self._api
+        os.makedirs(state_dir, exist_ok=True)
+        self.journal = os.path.join(state_dir, "bot_send.jsonl")
+        self.stop_f = os.path.join(state_dir, "stoplist.json")
+        self.prev_f = os.path.join(state_dir, "broadcast_previews.json")
+        self.queue_f = os.path.join(state_dir, "broadcast_queue.json")
+
+    # ── Telegram ──
+    def _api(self, method, payload):
+        r = urllib.request.Request(f"https://api.telegram.org/bot{self.token}/{method}", data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
+        try: return json.load(urllib.request.urlopen(r, timeout=20))
+        except urllib.error.HTTPError as e:
+            try: return json.loads(e.read())
+            except Exception: return {"ok": False, "error_code": e.code, "description": str(e)}
+
+    # ── файлы ──
+    def _rj(self, p, d):
+        try: return json.load(open(p))
+        except Exception: return d
+
+    def _wj(self, p, v):
+        tmp = p + ".tmp"; json.dump(v, open(tmp, "w"), ensure_ascii=False); os.replace(tmp, p)
+
+    def _log(self, rec):
+        open(self.journal, "a").write(json.dumps(dict({"t": self.now().isoformat(timespec="seconds")}, **rec), ensure_ascii=False) + "\n")
+
+    def stoplist(self): return set(self._rj(self.stop_f, []))
+
+    def stop_add(self, uid, why):
+        s = self.stoplist(); s.add(str(uid)); self._wj(self.stop_f, sorted(s)); self._log({"stop": str(uid), "why": why})
+
+    def quiet(self):
+        h = self.now().hour; return h >= QUIET[0] or h < QUIET[1]
+
+    # ── одно сообщение ──
+    def _markup(self, buttons):
+        if not buttons: return {}
+        rows = []
+        for row in buttons[:6]:
+            r = []
+            for b in row[:3]:
+                if b.get("url", "").startswith("https://"): r.append({"text": str(b["label"])[:40], "url": b["url"]})
+            if r: rows.append(r)
+        return {"reply_markup": {"inline_keyboard": rows}} if rows else {}
+
+    def send(self, user, text, buttons=None, kind="personal"):
+        """bot_send: человеку, который писал боту. user — id (число) или @username (ищется движком в known)."""
+        uid = str(user).lstrip("@")
+        text = str(text or "").strip()
+        if not text: return {"ok": False, "error": "пустой текст"}
+        if len(text) > 4096: return {"ok": False, "error": "текст длиннее 4096 знаков"}
+        if not self.known(uid): return {"ok": False, "error": "этот человек не писал боту — первым писать нельзя"}
+        if uid in self.stoplist(): return {"ok": False, "error": "человек отписался или заблокировал бота"}
+        r = self.api("sendMessage", dict({"chat_id": uid, "text": text, "disable_web_page_preview": True}, **self._markup(buttons)))
+        if r.get("ok"):
+            mid = r["result"]["message_id"]; self.record(uid, text, mid); self._log({"kind": kind, "to": uid, "mid": mid})
+            return {"ok": True, "message_id": mid}
+        code, desc = r.get("error_code"), str(r.get("description", ""))
+        if code == 403 or re.search(r"blocked|deactivated|chat not found", desc, re.I): self.stop_add(uid, "403: " + desc[:80])
+        if code == 429: return {"ok": False, "retry_after": (r.get("parameters") or {}).get("retry_after", 5), "error": "лимит Telegram"}
+        self._log({"kind": kind, "to": uid, "error": f"{code} {desc[:120]}"})
+        return {"ok": False, "error": f"{code} {desc[:120]}"}
+
+    # ── рассылка ──
+    def preview(self, user_ids, text, segment=""):
+        """Шаг 1: превью владельцу. Возвращает preview_id и N (без стоп-листа и незнакомых)."""
+        stop = self.stoplist()
+        to = [str(u) for u in dict.fromkeys(user_ids) if self.known(str(u)) and str(u) not in stop]
+        pid = uuid.uuid4().hex[:10]
+        pv = self._rj(self.prev_f, {}); now = time.time()
+        pv = {k: v for k, v in pv.items() if now - v["t"] < PREVIEW_TTL}
+        pv[pid] = {"t": now, "to": to, "text": str(text), "segment": segment}; self._wj(self.prev_f, pv)
+        return {"preview_id": pid, "n": len(to), "segment": segment, "text": str(text),
+                "card": f"Рассылка: {len(to)} человек{'' if not segment else ' · ' + segment}.\n\n{text}",
+                "buttons": [[{"label": f"✅ Отправить {len(to)}", "choice": "bc_ok_" + pid}, {"label": "Отмена", "choice": "bc_no_" + pid}]]}
+
+    def confirm(self, pid):
+        """Шаг 2: после «✅» владельца. В тихие часы — в очередь на 08:00."""
+        pv = self._rj(self.prev_f, {}); p = pv.pop(pid, None); self._wj(self.prev_f, pv)
+        if not p or time.time() - p["t"] > PREVIEW_TTL: return {"ok": False, "error": "превью нет или устарело — сделайте новое"}
+        if self.quiet():
+            q = self._rj(self.queue_f, []); q.append(p); self._wj(self.queue_f, q)
+            self._log({"kind": "broadcast", "queued": len(p["to"]), "segment": p["segment"]})
+            return {"ok": True, "queued": len(p["to"]), "note": "тихие часы — уйдёт в 08:00 по Ташкенту"}
+        return self._run(p)
+
+    def _run(self, p):
+        sent = failed = 0; t0 = time.time(); k = 0
+        for uid in p["to"]:
+            r = self.send(uid, p["text"], kind="broadcast")
+            while r.get("retry_after"): self.sleep(float(r["retry_after"])); r = self.send(uid, p["text"], kind="broadcast")
+            sent += bool(r.get("ok")); failed += not r.get("ok"); k += 1
+            if k % RATE == 0:
+                el = time.time() - t0
+                if el < 1: self.sleep(1 - el)
+                t0 = time.time()
+        self._log({"kind": "broadcast", "segment": p["segment"], "sent": sent, "failed": failed})
+        return {"ok": True, "sent": sent, "failed": failed}
+
+    def flush_queue(self):
+        """Вызывать кроном каждые 10 мин: вне тихих часов отправляет отложенные рассылки."""
+        if self.quiet(): return {"ok": True, "waiting": len(self._rj(self.queue_f, []))}
+        q = self._rj(self.queue_f, []); self._wj(self.queue_f, [])
+        return {"ok": True, "flushed": [self._run(p) for p in q]}
+
+    def unsubscribe_text(self, uid, text):
+        """Входящее «стоп / отписаться / to'xtat» — в стоп-лист (движок зовёт на каждом входящем)."""
+        if re.fullmatch(r"\s*(стоп|stop|отписаться|отписка|to['ʻ’]?xtat|bekor)\s*[.!]?\s*", str(text or ""), re.I): self.stop_add(uid, "сам: " + text.strip()[:20]); return True
+        return False

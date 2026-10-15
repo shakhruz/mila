@@ -1,0 +1,22 @@
+Mila Companion
+Copyright 2026 MILAGPT cooperative / Shakhruz Ashirov
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+The license covers the source code and documentation in this repository.
+It does not grant any rights to the names "Mila" and "MILAGPT" or to the
+MILAGPT logo - see TRADEMARKS.md.
+
+To use a different license, replace the LICENSE file (and the license line in
+README.md / README.ru.md); the code carries no per-file license headers.
+
+Bundled third-party components keep their own licenses:
+- Fonts: Montserrat, Noto Sans (skills/video-overview/fonts/*.woff2) and Caveat, PT Sans
+  (embedded as base64 in skills/flashcards/assets/fonts.css) are licensed under the
+  SIL Open Font License 1.1. Copyright notices and the license text are in
+  skills/video-overview/fonts/OFL.txt and skills/flashcards/assets/OFL.txt.
+  PT Sans has Reserved Font Names "PT Sans" and "ParaType".
+
+Not bundled: GSAP (https://gsap.com) is proprietary software under the GreenSock Standard
+License (free to use, but not an open-source license, and not redistributable as part of
+this repository). The video-overview skill downloads it from the npm CDN on first run into
+skills/video-overview/vendor/ (git-ignored); by running it you accept that license.

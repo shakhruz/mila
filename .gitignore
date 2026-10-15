@@ -1,0 +1,8 @@
+.DS_Store
+*.bak-*
+node_modules/
+
+our-bots.json
+__pycache__/
+*.pyc
+FLEET-MOVE.md

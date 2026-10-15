@@ -1,0 +1,13 @@
+name: skills-frontmatter
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pyyaml
+      - run: python tools/check_frontmatter.py skills templates   # «: » в description без кавычек ломает разбор навыка
+      - run: python templates/home/.claude/hooks/test_send_guard.py   # сторож отправки с onFailure: block — падение = немота Милы
+      - run: python tools/check_comments.py $(git ls-files '*.js' '*.mjs' '*.html' | grep -v -e vendor/ -e '\.min\.js$')   # код после «//» в одной строке

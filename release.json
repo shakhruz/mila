@@ -1,0 +1,73 @@
+{
+  "product": "Мила Компаньон",
+  "version": "1.0.0",
+  "tag": "v1.0",
+  "date": "2026-10-12",
+  "notes": "CHANGELOG.md — раздел v1.0",
+  "zones": [
+    {
+      "what": "навыки ядра",
+      "src": "skills/*",
+      "dst": "{claude}/skills/*",
+      "kind": "dir"
+    },
+    {
+      "what": "хуки и инструменты",
+      "src": "install/*.py",
+      "dst": "{claude}/hooks/*",
+      "kind": "file",
+      "skip": [
+        "test_*.py"
+      ]
+    },
+    {
+      "what": "запускатель",
+      "src": "install/mila",
+      "dst": "{home}/.local/bin/mila",
+      "kind": "file"
+    },
+    {
+      "what": "конституция",
+      "src": "CONSTITUTION.md",
+      "dst": "{work}/CONSTITUTION.md",
+      "kind": "file"
+    },
+    {
+      "what": "хуки шаблона",
+      "src": "templates/home/.claude/hooks/*.py",
+      "dst": "{claude}/hooks/*",
+      "kind": "file",
+      "skip": [
+        "test_*.py"
+      ]
+    },
+    {
+      "what": "каноны",
+      "src": "canon/*.md",
+      "dst": "{work}/canon/*",
+      "kind": "file",
+      "skip": [
+        "TEAM-CONTACTS*"
+      ]
+    }
+  ],
+  "never": [
+    "{work}/NOW.md",
+    "{work}/USER.md",
+    "{work}/CLIENTS.md",
+    "{work}/DECISIONS.md",
+    "{work}/CLAUDE.md",
+    "{work}/memory",
+    "{work}/journal",
+    "{work}/BACKLOG.md",
+    "{work}/AUTO-POOL.md",
+    "{work}/PERMISSIONS.md",
+    "{claude}/settings.json",
+    "{claude}/channels",
+    "{claude}/projects",
+    "{home}/secrets",
+    "{work}/.env",
+    "{work}/rituals",
+    "{work}/canon/TEAM-CONTACTS.md"
+  ]
+}
