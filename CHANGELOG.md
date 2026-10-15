@@ -1,7 +1,21 @@
 # CHANGELOG · Mila Companion
 
-## Unreleased
+## v1.1.0 · open release
+The core is now open source (Apache-2.0) and updates itself from git.
+
+**For the owner**
+- Your Mila checks for new versions every night and tells you what is new in three lines.
+- Updates never touch your files, memory, settings or keys; any update can be undone.
+- You choose: ask me first (default) or let her update by herself.
+- Your Mila belongs to you: `mila export` packs her into one archive (no keys), `mila restore` brings her back on any machine.
+
+**For Milas**
 - `mila-export` — `mila export` / `mila restore`: the whole Mila (instructions, skills, memory, crons, settings, plugin list) in one `tar.gz` with `manifest.json` (format 1, sha256) and `RESTORE.md`; built-in secret scanner, the export fails on a hit; restore verifies, never overwrites, prints a re-enter checklist. `release.json` gets `genes` (every Mila carries mila-export and mila-update).
+- `mila-update`: channels `stable` (tags `vX.Y.Z`) and `canary` (`main`); settings in `~/.claude/mila-update.json` (`channel`, `auto`, `repo`, `owner_chat`, `require_signed`).
+- `update.py nightly [--dry-run]`: fetch tags, skip yanked and `-rc`, dry run (manifest, skill frontmatter, hook syntax), crons copy, apply, health check, automatic rollback on failure, journal, owner card from this CHANGELOG.
+- `yanked.json` in the repo withdraws a release; a withdrawn version is never installed.
+- Never touched: `state/`, `.credentials.json`, `.claude.json`, `mila-update.json` (added to the built-in list).
+- Tests run on macOS (no GNU sed, no pyyaml needed); `tools/release.sh` is the release procedure (see CONTRIBUTING).
 
 ## v1.0 · first release
 Mila Companion — a personal AI companion in Telegram that runs on the owner's Claude subscription.

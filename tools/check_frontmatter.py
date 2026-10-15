@@ -4,7 +4,10 @@
 в двойные кавычки с JSON-экранированием. Код выхода 1 — есть ошибки (для тестов репо).
   check_frontmatter.py <папка с навыками|SKILL.md …> [--fix]"""
 import json, os, re, sys
-import yaml
+try:
+    import yaml
+except ImportError:   # macOS без pyyaml: упрощённая проверка того, что ломает Claude Code («: » в значении без кавычек)
+    yaml = None
 
 def files(args):
     for a in args:
@@ -22,6 +25,14 @@ def split(t):
 def check(p):
     fm, _ = split(open(p, encoding="utf-8").read())
     if fm is None: return "нет заголовка --- … ---"
+    if yaml is None:
+        keys = {}
+        for line in fm.split("\n"):
+            k = re.match(r"^([A-Za-z][\w-]*):[ \t]*(.*)$", line)
+            if not k: continue
+            v = k.group(2).strip(); keys[k.group(1)] = v
+            if v[:1] not in "\"'|>[{" and (": " in v or v.endswith(":")): return "значение с «: » без кавычек: " + k.group(1)
+        return "" if keys.get("name") and keys.get("description") else "нет name или description"
     try:
         d = yaml.safe_load(fm)
         if not isinstance(d, dict): return "заголовок не словарь"
