@@ -13,8 +13,13 @@ V="${1:-}"; NOTAG="${2:-}"
 git rev-parse "v$V" >/dev/null 2>&1 && { echo "тег v$V уже есть" >&2; exit 1; }
 last="$(git tag -l 'v[0-9]*' | grep -Ev -- '-' | sort -V | tail -1 || true)"
 if [ -n "$last" ] && [ "$(printf '%s\nv%s\n' "$last" "$V" | sort -V | tail -1)" != "v$V" ]; then echo "v$V не новее $last" >&2; exit 1; fi
-grep -Eq "^## v$V\b" CHANGELOG.md || { echo "в CHANGELOG.md нет раздела '## v$V'" >&2; exit 1; }
-awk "/^## v$V\\b/{f=1;next} /^## /{f=0} f" CHANGELOG.md | grep -Eqi 'Для хозяина|For the owner' || { echo "в разделе v$V нет блока «Для хозяина»/«For the owner» (карточка «Что нового»)" >&2; exit 1; }
+python3 - "$V" <<'PY' || exit 1
+import re, sys
+v = sys.argv[1]; t = open("CHANGELOG.md", encoding="utf-8").read()
+m = re.search(r"^## v%s(?:\s.*)?\n(.*?)(?=^## |\Z)" % re.escape(v), t, re.S | re.M)
+if not m: sys.exit("в CHANGELOG.md нет раздела '## v%s'" % v)
+if not re.search(r"Для хозяина|For the owner", m.group(1), re.I): sys.exit("в разделе v%s нет блока «Для хозяина»/«For the owner» (карточка «Что нового»)" % v)
+PY
 bash skills/mila-update/test_update.sh | tail -1 | grep -Eq 'итог ([0-9]+)/\1$' || { echo "test_update.sh не зелёный" >&2; exit 1; }
 bash skills/mila-update/test_nightly.sh | tail -1 | grep -Eq 'итог ([0-9]+)/\1$' || { echo "test_nightly.sh не зелёный" >&2; exit 1; }
 python3 tools/check_frontmatter.py skills templates >/dev/null || { echo "frontmatter: есть ошибки" >&2; exit 1; }
