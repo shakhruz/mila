@@ -107,6 +107,12 @@ say "hook → $HOOK_DIR/telegram-inbox-feed.py"
 install_file "$HERE/crons-keeper.py" "$HOOK_DIR/crons-keeper.py" "crons-keeper.py"
 run chmod 755 "$HOOK_DIR/crons-keeper.py"
 say "hook → $HOOK_DIR/crons-keeper.py"
+# Хуки, которые установщик регистрирует в settings.json, обязаны лежать в $HOOK_DIR: Stop-хук без файла даёт код 2 = «не останавливаться»
+for f in reply-required.py pd-mask.py; do
+  install_file "$HERE/$f" "$HOOK_DIR/$f" "$f"
+  run chmod 755 "$HOOK_DIR/$f"
+  say "hook → $HOOK_DIR/$f"
+done
 echo
 
 # ── tools the launcher calls ──────────────────────────────────────────────
@@ -241,7 +247,8 @@ fi
 
 if [[ $DRY -eq 1 ]]; then
   say "would check $CLAUDE_DIR/settings.json — register hooks (backup first if it changes):"
-  say "  UserPromptSubmit: telegram-inbox-feed.py · SessionStart + PostToolUse(CronCreate|CronDelete): crons-keeper.py · Stop: reply-required.py"
+  say "  UserPromptSubmit: telegram-inbox-feed.py · SessionStart + PostToolUse(CronCreate|CronDelete): crons-keeper.py · Stop: reply-required.py · PostToolUse(Write|Edit): pd-mask.py"
+  say "would create the personal data vault key ~/.config/mila/pd.key (600) if missing"
 else
   SETTINGS_OUT="$(python3 - "$CLAUDE_DIR" << 'PY'
 import json, os, sys, datetime
@@ -269,6 +276,10 @@ ck_want = [('SessionStart', {'hooks': [{'type': 'command', 'command': ck}]}),
 ck_missing = [(ev, e) for ev, e in ck_want if not any('crons-keeper.py' in json.dumps(x) for x in hooks.get(ev, []))]
 # Stop — reply-required: ход не кончается, пока на сообщение из Telegram не ушёл ответ инструментом reply (README/REFERENCE обещают его; план 17.10 п.3)
 rr = 'python3 ' + os.path.join(cfg_dir, 'hooks', 'reply-required.py')
+# PostToolUse(Write|Edit|MultiEdit) — pd-mask: личные данные в том, что Мила хранит, → ярлыки хранилища (слой 2а, по умолчанию; PD_MASK=0 — выкл.)
+pm = 'python3 ' + os.path.join(cfg_dir, 'hooks', 'pd-mask.py')
+if not any('pd-mask.py' in json.dumps(x) for x in hooks.get('PostToolUse', [])):
+    ck_missing.append(('PostToolUse', {'matcher': 'Write|Edit|MultiEdit', 'hooks': [{'type': 'command', 'command': pm}]}))
 if not any('reply-required.py' in json.dumps(x) for x in hooks.get('Stop', [])):
     ck_missing.append(('Stop', {'hooks': [{'type': 'command', 'command': rr}]}))
 if already and not ck_missing:
@@ -311,6 +322,11 @@ if [[ ${#BACKUPS[@]} -gt 0 ]]; then
     say "$b"
   done
   echo
+fi
+# PD-VAULT-1017: ключ хранилища личных данных — по умолчанию (слой 2а); уже есть — не трогаем
+if [[ $DRY -eq 0 && -f "$CLAUDE_DIR/skills/pd-vault/pd_vault.py" ]]; then
+  r="$(python3 "$CLAUDE_DIR/skills/pd-vault/pd_vault.py" init 2>/dev/null || true)"
+  [[ "$r" == created ]] && say "personal data vault: key ~/.config/mila/pd.key created (600)" || say "personal data vault: key already there"
 fi
 echo "Done. Next, inside Claude Code:"
 echo "  /plugin marketplace add shakhruz/mila-telegram"
