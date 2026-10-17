@@ -1,5 +1,8 @@
 # CHANGELOG · Mila Companion
 
+## v1.4.0-rc2 · bilingual skill descriptions (candidate)
+- 46 skills: `description` = English first (what + when + English triggers), then `RU:` with the original Russian — English-speaking owners' models find the skills, Russian triggers keep working. `mila-session` was already English.
+
 ## v1.4.0-rc1 · international names (candidate)
 Skills get English names; old names keep working until v1.6.0. Owner 17.10 (33645).
 
