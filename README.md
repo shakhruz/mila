@@ -35,7 +35,6 @@ Mila Companion takes a narrower job: a digital employee for a business, in Teleg
 |---|---|---|---|---|
 | What it is | digital employee for a business | universal personal agent | personal agent in containers | personal agent that grows with you |
 | Engine | Claude Code | own agent loop, models as plugins | Claude Agent SDK | own agent loop, any model |
-| Runs on your Claude subscription | yes (Claude Code) | no, since 04.04.2026 extra usage or API key | no data | no data |
 | Channels | Telegram: DMs, groups, your public bot | 20+ (WhatsApp, Telegram, Slack...) | many, each added by a skill | Telegram, Discord, Slack, WhatsApp... |
 | Business skills out of the box | CRM of dialogs, promises and tasks, owner cards, weekly rhythm, mailings | general skills (ClawHub) | general skills | self-written skills |
 | Nothing goes out without the owner's yes | yes, by design (constitution + send-guard) | exec approvals, Team preset | enterprise version | no data |
@@ -45,7 +44,7 @@ Mila Companion takes a narrower job: a digital employee for a business, in Teleg
 | Price | free to self-host; hosted from $50/month | free, self-host only | free; enterprise on request | free; Nous Portal $0-200/month |
 
 Facts about other projects: their READMEs and docs, checked 17.10.2026 -
-[OpenClaw](https://github.com/openclaw/openclaw) ([Claude subscription change](https://techcrunch.com/2026/04/04/anthropic-says-claude-code-subscribers-will-need-to-pay-extra-for-openclaw-support/)),
+[OpenClaw](https://github.com/openclaw/openclaw),
 [NanoClaw](https://github.com/nanocoai/nanoclaw), [Hermes Agent](https://github.com/NousResearch/hermes-agent).
 Something wrong or out of date? Open an issue - we fix it the same day.
 
