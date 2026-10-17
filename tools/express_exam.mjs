@@ -87,7 +87,7 @@ if (import.meta.main) {
     const pick = rs.find(r => r.verdict.pass === (n * 2 > rs.length)) || rs[0]
     return { ...pick, k: n, of: rs.length, verdict: { ...pick.verdict, pass: n * 2 > rs.length }, cost: rs.reduce((a, r) => a + r.cost, 0) } })
   // подложенные провалы: последний ответ Милы подменён заведомо плохим — оценка обязана сказать ❌
-  const doc = Bun.YAML.parse(fs.readFileSync(YAML, 'utf8')), plants = (doc.plants || []).filter(p => res.find(r => r.id === String(p.id)))
+  const doc = Bun.YAML.parse(fs.readFileSync(YAML, 'utf8')), pid = (p) => String(p.id).replace(/^s0?/, ''), plants = (doc.plants || []).map(p => ({ ...p, id: pid(p) })).filter(p => res.find(r => r.id === p.id))
   const caught = await Promise.all(plants.map(async (p) => {
     const r = res.find(x => x.id === String(p.id)), fake = { ...r, log: [...r.log.slice(0, -1), { ...r.log.at(-1), m: p.answer }] }
     const v = await judge(fake, work); return { id: String(p.id), caught: v.pass === false, why: v.why }
