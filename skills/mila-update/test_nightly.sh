@@ -3,6 +3,7 @@
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
+unset TELEGRAM_STATE_DIR MILA_OUTBOX MILA_OWNER_CHAT   # тест не трогает настоящую очередь отправки (17.10: карточки ушли в outbox сессии)
 export GIT_CONFIG_GLOBAL="$T/gitconfig" GIT_CONFIG_SYSTEM=/dev/null
 git config --global user.email t@t; git config --global user.name t; git config --global init.defaultBranch main
 mkdir -p "$CLAUDE_CONFIG_DIR/skills/moy-lichny" "$MILA_WORK/state" "$MILA_WORK/memory"
