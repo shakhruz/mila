@@ -107,6 +107,12 @@ say "hook → $HOOK_DIR/telegram-inbox-feed.py"
 install_file "$HERE/crons-keeper.py" "$HOOK_DIR/crons-keeper.py" "crons-keeper.py"
 run chmod 755 "$HOOK_DIR/crons-keeper.py"
 say "hook → $HOOK_DIR/crons-keeper.py"
+# Хуки, которые установщик регистрирует в settings.json, обязаны лежать в $HOOK_DIR: Stop-хук без файла даёт код 2 = «не останавливаться»
+for f in reply-required.py; do
+  install_file "$HERE/$f" "$HOOK_DIR/$f" "$f"
+  run chmod 755 "$HOOK_DIR/$f"
+  say "hook → $HOOK_DIR/$f"
+done
 echo
 
 # ── tools the launcher calls ──────────────────────────────────────────────
