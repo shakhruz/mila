@@ -103,7 +103,8 @@ if (import.meta.main) {
     ...(caught.some(c => !c.caught) ? ['**Оценка пропустила подложенный провал:** ' + caught.filter(c => !c.caught).map(c => c.id + ' (' + c.why + ')').join('; '), ''] : []),
     ...res.map(r => `## ${r.id}. ${r.name}\n` + r.log.map(x => `> ${x.g}\n\n${seen(x.m)}`).join('\n\n'))].join('\n')
   fs.mkdirSync(OUT, { recursive: true })
-  const f = join(OUT, `express-${stamp.replace(/[ :]/g, '')}${new Date().toISOString().slice(17, 19)}-${process.pid}.md`)   // секунды и pid: два прогона в одну минуту не затирают друг друга; fs.writeFileSync(f, md)
+  const f = join(OUT, `express-${stamp.replace(/[ :]/g, '')}${new Date().toISOString().slice(17, 19)}-${process.pid}.md`)   // секунды и pid: два прогона в одну минуту не затирают друг друга
+  fs.writeFileSync(f, md)
   fs.writeFileSync(f.replace(/\.md$/, '.json'), JSON.stringify(res, null, 1))
   console.log(md.split('\n').slice(0, res.length + 7).join('\n')); console.log('\n→ ' + f)
 }
