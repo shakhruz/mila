@@ -23,6 +23,7 @@ PY
 bash skills/mila-update/test_update.sh | tail -1 | grep -Eq 'итог ([0-9]+)/\1$' || { echo "test_update.sh не зелёный" >&2; exit 1; }
 bash skills/mila-update/test_nightly.sh | tail -1 | grep -Eq 'итог ([0-9]+)/\1$' || { echo "test_nightly.sh не зелёный" >&2; exit 1; }
 bash skills/mila-update/test_renamed.sh | tail -1 | grep -Eq 'итог ([0-9]+)/\1$' || { echo "test_renamed.sh не зелёный" >&2; exit 1; }
+bash tests/run_all.sh >/dev/null || { echo "tests/run_all.sh: есть упавшие (bash tests/run_all.sh)" >&2; exit 1; }
 python3 tools/check_frontmatter.py skills templates >/dev/null || { echo "frontmatter: есть ошибки" >&2; exit 1; }
 python3 - "$V" <<'PY'
 import json, sys, time

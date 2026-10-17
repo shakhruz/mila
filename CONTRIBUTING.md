@@ -31,6 +31,10 @@ comments in English are welcome. Translations of skills are welcome as `SKILL.<l
 ## License
 By contributing you agree your work is licensed under Apache-2.0 (see LICENSE).
 
+## Tests
+
+`bash tests/run_all.sh` runs every test in the repo (sandboxed) plus the frontmatter check — all green before a pull request.
+
 ## Releases
 - Channels: `stable` = tags `vX.Y.Z` (no `-rc`), `canary` = `main`. Milas update themselves from the channel they are set to (`~/.claude/mila-update.json`).
 - Before a release: add `## vX.Y.Z` to `CHANGELOG.md` with a **For the owner** block (up to 3 plain lines: it becomes the "What is new" card) and a **For Milas** block.
