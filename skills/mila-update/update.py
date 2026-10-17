@@ -534,6 +534,20 @@ def cmd_install_skill(a):
     print(json.dumps({"ok": True, "skill": name, "zamena": existed, "backup": b}, ensure_ascii=False))
 
 
+def cmd_remove_skill(a):
+    """REMOVE-SKILL-1017 (Сила, пакеты коробок): снять навык, поставленный install-skill. Навыки ядра не снимает (их ведёт обновление);
+    перед удалением — бэкап (вернуть: rollback или распаковать бэкап). Нужно «--from» (кто велел) и «--yes» (слово хозяина)."""
+    name = os.path.basename(a.name.rstrip("/"))
+    dst = os.path.join(CLAUDE, "skills", name)
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", name) or not os.path.isdir(dst): sys.exit(json.dumps({"error": "нет такого навыка: " + name}, ensure_ascii=False))
+    if dst in load_version().get("files", {}): sys.exit(json.dumps({"error": "это навык ядра — его ведёт mila-update, снимать нельзя"}, ensure_ascii=False))
+    if not a.sender or not a.yes: sys.exit(json.dumps({"error": "нужно --from (кто велел) и --yes (слово хозяина)"}, ensure_ascii=False))
+    b = backup([dst], "remove-" + name)
+    shutil.rmtree(dst)
+    jlog({"event": "remove-skill", "skill": name, "from": a.sender, "yes": a.yes, "backup": b, "touched": [dst]})
+    print(json.dumps({"ok": True, "skill": name, "backup": b}, ensure_ascii=False))
+
+
 def cmd_installed(a):
     files = load_version().get("files", {})
     sk = sorted(os.listdir(os.path.join(CLAUDE, "skills"))) if os.path.isdir(os.path.join(CLAUDE, "skills")) else []
@@ -553,9 +567,10 @@ def main():
         p.add_argument("--take", help="через запятую: что из «отличается» взять из релиза")
         p.add_argument("--newborn-ok", action="store_true", help="обновить новорождённую до конца знакомства (только по слову администратора)")
     p = sp.add_parser("install-skill"); p.add_argument("dir"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
+    p = sp.add_parser("remove-skill"); p.add_argument("name"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     a = ap.parse_args()
     {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "rollback": cmd_rollback,
-     "install-skill": cmd_install_skill, "installed": cmd_installed, "nightly": cmd_nightly,
+     "install-skill": cmd_install_skill, "remove-skill": cmd_remove_skill, "installed": cmd_installed, "nightly": cmd_nightly,
      "config": cmd_config, "health": cmd_health, "slot": cmd_slot}[a.cmd.replace("_", "-")](a)
 
 

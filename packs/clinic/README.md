@@ -6,6 +6,7 @@ Optional: not installed with the core. Install for a clinic's Mila:
 ```sh
 python3 ~/.claude/skills/mila-update/update.py install-skill packs/clinic/clinic-booking --from "<admin>"
 python3 ~/.claude/skills/mila-update/update.py install-skill packs/clinic/clinic-prices  --from "<admin>"
+# remove (backup first, needs the owner's yes): update.py remove-skill clinic-booking --from "<admin>" --yes "<owner's words>"
 ```
 
 | skill | what it gives the owner |

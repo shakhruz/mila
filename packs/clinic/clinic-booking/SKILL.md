@@ -5,7 +5,7 @@ description: "Clinic booking in Telegram: patient picks doctor, service and time
 
 # Clinic booking
 
-## Data (owner gives once, I keep in `work/clinic/`)
+## Data (owner gives once, I keep in `~/work/clinic/`)
 - `doctors.md` — doctor · specialty · days and hours · cabinet.
 - `bookings.jsonl` — one line per visit: id, patient (name + Telegram id), doctor, service, start, status (booked / confirmed / moved / cancelled / no-show).
 - The clinic's own booking system, if it has one, is the source of truth: I read free slots from it (owner connects it) and never double-book.
