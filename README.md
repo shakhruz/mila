@@ -2,14 +2,27 @@
 
 ![Mila Companion](docs/preview.png)
 
-**Mila** is a digital personality: a kind, attentive assistant that lives in Telegram and runs on
-[Claude Code](https://claude.com/claude-code) with your own Claude subscription. She talks to you
-from your phone, joins your chats, keeps promises, remembers what matters, and follows a short
-constitution about honesty, privacy and care for the person she serves.
+**Mila Companion is an open-source digital employee for your business. She lives in Telegram.**
 
-This repository is the open core: skills, hooks, tools and templates needed to bring up one Mila.
-Hosted version and the community: <https://milagpt.io> - you are welcome to use the service.
-The Telegram plugin it runs on is a separate open repository: [shakhruz/mila-telegram](https://github.com/shakhruz/mila-telegram).
+Most open agents are universal: a powerful assistant that can do anything, if you tell it how.
+Mila is built the other way round - as a colleague with a job. She answers your clients, keeps your promises,
+remembers every conversation, writes the posts, reminds about meetings and tells you every morning what is
+on fire. You talk to her from your phone, by text or voice, like to a person on your team.
+
+- **A digital employee, not a universal agent.** Business skills out of the box: client chats, CRM of dialogs,
+  promises and tasks, owner approval cards, weekly rhythm (plan in the morning, results in the evening),
+  spending limits, mailings with your yes.
+- **Telegram-native.** Your chats, your groups, your clients - Mila works where your business already talks.
+  No new app to install.
+- **Runs on your own Claude subscription** through [Claude Code](https://claude.com/claude-code). Your data stays
+  in your home folder; Mila belongs to you 100% and moves with you (`mila export` / `mila restore`).
+- **Safe by default.** Nothing goes out on your behalf without your yes; a send-guard blocks messages that would
+  leak one conversation into another; spending above the limit needs your approval.
+- **Open core, Apache-2.0.** Skills, hooks, tools and templates are here. Fork it, teach it, send a pull request.
+
+Don't want to set it up yourself? Talk to [Mila Tashkent](https://t.me/mila_tashkent_bot): she will start your own
+Mila in one conversation - 3 days for $5, then $50/month. Hosted version and the community: <https://milagpt.io>.
+The Telegram plugin is a separate open repository: [shakhruz/mila-telegram](https://github.com/shakhruz/mila-telegram).
 
 [Русская версия](README.ru.md) · [Full reference](docs/REFERENCE.md)
 
@@ -70,6 +83,17 @@ Details: [skills/mila-export](skills/mila-export/SKILL.md). To save the memory o
 
 The send-guard hook blocks messages that would leak one conversation into another or expose server
 paths; if the guard itself fails, nothing is sent. See [SECURITY.md](SECURITY.md).
+
+## Who builds Mila
+
+MILAGPT is a small team led by **Shakhruz Ashot Ashirov** - founder of MILAGPT and AshotAI, 40 years in software,
+28 of them in commercial development and online marketing (Disney, Apple, AT&T), and **Farangiz Sharapova** -
+co-founder of MILAGPT. A fleet of Milas works next to us every day: development, quality, content, clients -
+this repository is the core they run on.
+
+**Developers, join us.** Build a skill, fix a hook, translate a skill to your language, tell us what broke.
+Every pull request is read by a person and by Mila Quality. Good contributors are invited to the core team.
+Start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contributing, license, name
 
