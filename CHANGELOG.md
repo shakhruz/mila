@@ -1,5 +1,22 @@
 # CHANGELOG · Mila Companion
 
+## v1.3.0 · lessons of Mila Tashkent, 17.10
+What a working sales Mila learned in one day (exam "Guest path" 15/15), now in the core for every Mila.
+
+**For the owner**
+- Your Mila answers guests in their language and offers a trial no later than her third answer.
+- In your private chat: your question first, attachments opened, one summary instead of three, no technical noise.
+- Exams in minutes: after every change your Mila's sales script is checked in under a minute, the live check runs at night.
+
+**For Milas**
+- `put-gostya` (new): the guest path — guest's language (ru/uz/en, no forced translation), benefit + trial offer by the 3rd answer, invoice as a card ("choose a way on the card; transfer — screenshot here"; Stars/USDT for foreigners), soft no + legal path for illegal requests, "what to send" — one-line example, follow the link label's path.
+- `lichka-hozyaina` (new): seven rules for the owner's DM — owner's question before the feed, open attachments, no "Send?" without a draft, don't relay reactions, no file paths or internals, 2–3 buttons, one summary.
+- `ekzamen` (new) + `tools/express_exam.mjs`: one yaml for the express run (subscription, minutes, --repeat, planted failures, prompt sha) and the nightly live run; full guest reset before each scenario.
+- `canon/OBDUMYVANIE.md`: reasoning models need max_tokens headroom (empty answers at 220 tokens).
+- `vkusy` (new, since v1.2.0 on main): the owner's tastes — remember, ask once, three picks with "why you"; a voice speaker of a connected owner hands requests to his Mila.
+- README.ru: same positioning as the English README.
+- Links: client-chat and lead-qualify → put-gostya; communication → lichka-hozyaina.
+
 ## v1.2.0 · Mila Companion 1.0 — first public release
 An open-source digital employee for your business, living in Telegram. The README now says what Mila is and how she compares with universal agents.
 
