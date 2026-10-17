@@ -55,7 +55,8 @@ async function judge(s, work) { return (await judgeRaw(s, fs.mkdtempSync(join(wo
 function langGuess(t) {
   const u = String(t || '').replace(/^\[кнопка\][^]*$/, '').replace(/^\/\w+/, '').trim(); if (!u) return null
   if (/[а-яё]/i.test(u)) return 'ru'
-  if (/[oOgG][ʻ'`’]|\b(kerak|men|siz|qanday|salom|rahmat|ko'r|bilan|uchun)\b/i.test(u)) return 'uz'
+  // узбекская латиница: oʻ/gʻ, частые слова и окончания (-man, -ing, -lar) — иначе «Ertaga kelolmayman» уходило в en
+  if (/[oOgG][ʻ'`’]|\b(kerak|men|siz|qanday|salom|rahmat|ko'r|bilan|uchun|ertaga|bugun|qabul|bekor|iltimos|qancha|turadi|tish|yo'q|bor|emas|kerakmi|qiling|bo'ladimi|yozilsam|uchrashuv)\b|\w+(man|ing|lar|ning|dagi)\b/i.test(u)) return 'uz'
   return /[a-z]/i.test(u) ? 'en' : null
 }
 async function scenario(s, pf, work) {
