@@ -240,7 +240,8 @@ elif [[ -f "$HERE/permissions.example.json" ]]; then
 fi
 
 if [[ $DRY -eq 1 ]]; then
-  say "would check $CLAUDE_DIR/settings.json — register the hook, backing up first if it changes"
+  say "would check $CLAUDE_DIR/settings.json — register hooks (backup first if it changes):"
+  say "  UserPromptSubmit: telegram-inbox-feed.py · SessionStart + PostToolUse(CronCreate|CronDelete): crons-keeper.py · Stop: reply-required.py"
 else
   SETTINGS_OUT="$(python3 - "$CLAUDE_DIR" << 'PY'
 import json, os, sys, datetime
@@ -266,6 +267,10 @@ ck = 'python3 ' + os.path.join(cfg_dir, 'hooks', 'crons-keeper.py')
 ck_want = [('SessionStart', {'hooks': [{'type': 'command', 'command': ck}]}),
            ('PostToolUse', {'matcher': 'CronCreate|CronDelete', 'hooks': [{'type': 'command', 'command': ck}]})]
 ck_missing = [(ev, e) for ev, e in ck_want if not any('crons-keeper.py' in json.dumps(x) for x in hooks.get(ev, []))]
+# Stop — reply-required: ход не кончается, пока на сообщение из Telegram не ушёл ответ инструментом reply (README/REFERENCE обещают его; план 17.10 п.3)
+rr = 'python3 ' + os.path.join(cfg_dir, 'hooks', 'reply-required.py')
+if not any('reply-required.py' in json.dumps(x) for x in hooks.get('Stop', [])):
+    ck_missing.append(('Stop', {'hooks': [{'type': 'command', 'command': rr}]}))
 if already and not ck_missing:
     print('  already registered in settings.json')
 else:
