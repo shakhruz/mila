@@ -1,6 +1,6 @@
 ---
 name: youtube-research
-description: "YouTube через сервис сбора: одно видео с транскриптом (youtube_video), поиск (youtube_search), канал (youtube_channel). Триггеры — «что в этом видео», «разбери выступление», «найди видео про», «что выкладывает канал», «сделай конспект ролика», «цитаты с таймкодами»."
+description: "YouTube via the scraping service: one video with transcript (youtube_video), search (youtube_search), channel (youtube_channel). Triggers: \"what's in this video\", \"break down the talk\", \"find videos about\", \"what does the channel post\", \"summarize the video\", \"quotes with timestamps\". RU: YouTube через сервис сбора: одно видео с транскриптом (youtube_video), поиск (youtube_search), канал (youtube_channel). Триггеры — «что в этом видео», «разбери выступление», «найди видео про», «что выкладывает канал», «сделай конспект ролика», «цитаты с таймкодами»."
 ---
 
 # YouTube — читать видео, а не пересказывать по памяти

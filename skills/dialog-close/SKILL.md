@@ -1,6 +1,6 @@
 ---
 name: dialog-close
-description: "Закрытие диалога с записью: сделка, отказ или 14 дней тишины после нашего касания. Итог + причина + перенос в CRM + снятие обещаний."
+description: "Close a dialog with a record: a deal, a refusal, or 14 days of silence after our last touch. Outcome + reason + move to CRM + clearing promises. Triggers: \"close the dialog\", \"deal done\", \"client said no\". RU: Закрытие диалога с записью: сделка, отказ или 14 дней тишины после нашего касания. Итог + причина + перенос в CRM + снятие обещаний."
 metadata: {"nanobot":{"emoji":"✅"}}
 ---
 # ✅ Закрытие диалога

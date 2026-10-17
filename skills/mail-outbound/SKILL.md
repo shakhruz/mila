@@ -1,6 +1,6 @@
 ---
 name: mail-outbound
-description: "Письма наружу от имени хозяина: два состояния письма, проверка адреса, честный отчёт, обезличенный первый контакт. Применять при любом «напиши письмо», «разошли запрос», «отправь коммерческое», работе с почтой и рассылках."
+description: "Outbound email on the owner's behalf: two states of a letter, address check, honest report, anonymized first contact. Use on any \"write an email\", \"send out a request\", \"send a commercial offer\", work with mail and mailings. RU: Письма наружу от имени хозяина: два состояния письма, проверка адреса, честный отчёт, обезличенный первый контакт. Применять при любом «напиши письмо», «разошли запрос», «отправь коммерческое», работе с почтой и рассылках."
 ---
 
 # mail-outbound — письмо уходит от имени человека

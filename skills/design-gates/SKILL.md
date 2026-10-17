@@ -1,6 +1,6 @@
 ---
 name: design-gates
-description: Механические гейты вёрстки — что проверяется числом перед сдачей страницы клиенту. Использовать перед публикацией любой страницы, отчёта, лендинга или артефакта.
+description: "Mechanical layout gates: what is checked by numbers before a page goes to the client. Use before publishing any page, report, landing page or artifact. Triggers: \"check the layout\", \"ready to publish?\", \"design check\". RU: Механические гейты вёрстки — что проверяется числом перед сдачей страницы клиенту. Использовать перед публикацией любой страницы, отчёта, лендинга или артефакта."
 ---
 
 # Гейты вёрстки

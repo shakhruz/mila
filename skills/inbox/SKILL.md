@@ -1,6 +1,6 @@
 ---
 name: inbox
-description: "Входящие — вопросы, которые ждут слова владельца, по одной карточке. Применять, когда владелец пишет «входящие», «inbox», «вопросы ко мне», «что ждёт меня», «что от меня нужно»."
+description: "Inbox: questions waiting for the owner's word, one card at a time. Use when the owner writes \"inbox\", \"questions for me\", \"what is waiting for me\", \"what do you need from me\". RU: Входящие — вопросы, которые ждут слова владельца, по одной карточке. Применять, когда владелец пишет «входящие», «inbox», «вопросы ко мне», «что ждёт меня», «что от меня нужно»."
 ---
 # Входящие · вопросы ко мне по одной
 

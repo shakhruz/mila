@@ -1,6 +1,6 @@
 ---
 name: video-overview
-description: Видеопрезентация из сценария — как Video Overview в NotebookLM, только лучше. Озвученные сцены, карандашный скетч или фирменный стиль, 16:9 для уроков и 9:16 для рилсов из одного сценария, субтитры в кадре и .srt, главы для YouTube, обложка. ru, uz (кириллица и латиница), en. Использовать при «сделай видео-объяснение», «ролик по документу», «видеоурок», «рилс с объяснением», «видеообзор как в NotebookLM».
+description: "Video presentation from a script, like NotebookLM Video Overview but better: voiced scenes, sketch or brand style, 16:9 and 9:16 from one script, subtitles and .srt, YouTube chapters, cover; ru, uz, en. Use on \"make an explainer video\", \"video from a document\", \"video lesson\", \"explainer reel\". RU: Видеопрезентация из сценария — как Video Overview в NotebookLM, только лучше. Озвученные сцены, карандашный скетч или фирменный стиль, 16:9 для уроков и 9:16 для рилсов из одного сценария, субтитры в кадре и .srt, главы для YouTube, обложка. ru, uz (кириллица и латиница), en. Использовать при «сделай видео-объяснение», «ролик по документу», «видеоурок», «рилс с объяснением», «видеообзор как в NotebookLM»."
 ---
 
 # video-overview — видеопрезентация как в NotebookLM, только лучше

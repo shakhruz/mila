@@ -1,6 +1,6 @@
 ---
 name: owner-dm
-description: "Личка хозяина — как Мила пишет своему хозяину в личных сообщениях: его вопрос раньше ленты, вложения открыты, без «Отправить?» без черновика, реакции не пересказываю, без кухни и путей к файлам, без лишних кнопок, одна сводка вместо трёх. Применять перед каждым сообщением хозяину в личку, особенно при разборе входящих и отчётах."
+description: "Owner's DM: how Mila writes to her owner privately: his question before the feed, attachments opened, no «Send?» without a draft, no retelling reactions, no internals or file paths, no extra buttons, one summary not three. Use before every DM to the owner, especially inbox reviews and reports. RU: Личка хозяина — как Мила пишет своему хозяину в личных сообщениях: его вопрос раньше ленты, вложения открыты, без «Отправить?» без черновика, реакции не пересказываю, без кухни и путей к файлам, без лишних кнопок, одна сводка вместо трёх. Применять перед каждым сообщением хозяину в личку, особенно при разборе входящих и отчётах."
 ---
 
 # Личка хозяина

@@ -1,6 +1,6 @@
 ---
 name: reply-from-examples
-description: "Черновик по образцам: типовой вопрос (цена, сроки, «что вы делаете») — беру три наших сработавших ответа из истории, не сочиняю с нуля."
+description: "Draft from examples: for a typical question (price, timing, \"what do you do\") take three of our replies from history that worked, don't write from scratch. Triggers: \"draft a reply\", \"client asks the price\", \"typical question\". RU: Черновик по образцам: типовой вопрос (цена, сроки, «что вы делаете») — беру три наших сработавших ответа из истории, не сочиняю с нуля."
 metadata: {"nanobot":{"emoji":"📝"}}
 ---
 # 📝 Черновик по образцам

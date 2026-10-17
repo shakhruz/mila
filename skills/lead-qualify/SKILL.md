@@ -1,6 +1,6 @@
 ---
 name: lead-qualify
-description: "Квалификация лида: сработал сигнал «цена» или «намерение» — довожу карточку до четырёх полей, один вопрос за раз."
+description: "Lead qualification: when a \"price\" or \"intent\" signal fires, fill the lead card up to four fields, one question at a time. Triggers: \"qualify the lead\", \"client asked the price\", \"wants to buy\". RU: Квалификация лида: сработал сигнал «цена» или «намерение» — довожу карточку до четырёх полей, один вопрос за раз."
 metadata: {"nanobot":{"emoji":"🎯"}}
 ---
 # 🎯 Квалификация лида

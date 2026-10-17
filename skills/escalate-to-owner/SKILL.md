@@ -1,6 +1,6 @@
 ---
 name: escalate-to-owner
-description: "Эскалация владельцу ОДНОЙ карточкой: деньги, юридическое, недовольство, персональные данные, просьба о владельце, три «нет» подряд."
+description: "Escalate to the owner with ONE card: money, legal matters, dissatisfaction, personal data, a request for the owner himself, three \"no\" in a row. Triggers: \"escalate\", \"ask the owner\", \"needs the owner's decision\". RU: Эскалация владельцу ОДНОЙ карточкой: деньги, юридическое, недовольство, персональные данные, просьба о владельце, три «нет» подряд."
 metadata: {"nanobot":{"emoji":"🚨"}}
 ---
 # 🚨 Эскалация владельцу

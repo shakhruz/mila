@@ -1,6 +1,6 @@
 ---
 name: polite-no
-description: "Вежливый отказ: вне зоны, нет мощности, не наш клиент, скидка ниже дна. Граница + что можем + открытая дверь. 🔴 Внешней причиной отсутствие возможности НЕ объясняю."
+description: "Polite refusal: out of scope, no capacity, not our client, discount below the floor. Boundary + what we can do + an open door. Never blame an external reason for not being able to help. Triggers: \"say no politely\", \"decline the client\", \"refuse the discount\". RU: Вежливый отказ: вне зоны, нет мощности, не наш клиент, скидка ниже дна. Граница + что можем + открытая дверь. 🔴 Внешней причиной отсутствие возможности НЕ объясняю."
 metadata: {"nanobot":{"emoji":"🙅"}}
 ---
 # 🙅 Вежливый отказ

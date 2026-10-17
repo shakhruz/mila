@@ -1,6 +1,6 @@
 ---
 name: crm-dialogs
-description: "CRM диалогов: приёмный журнал, чей ход, обещания, остывшие, напоминания, отчёт. Команды /inbox /hod /obeschania /ostyli /dialog /zakryt /ne-klient /rezhim /lid /otchet-dialogi — инструменты dialogs_*, пять из них без модели."
+description: "Dialog CRM: intake log, whose turn, promises, gone-cold conversations, reminders, report. Commands /inbox /hod /obeschania /ostyli /dialog /zakryt /ne-klient /rezhim /lid /otchet-dialogi via dialogs_* tools, five of them run without the model. Triggers: \"whose turn\", \"open promises\", \"cold leads\". RU: CRM диалогов: приёмный журнал, чей ход, обещания, остывшие, напоминания, отчёт. Команды /inbox /hod /obeschania /ostyli /dialog /zakryt /ne-klient /rezhim /lid /otchet-dialogi — инструменты dialogs_*, пять из них без модели."
 metadata: {"nanobot":{"emoji":"🗂","always":true}}
 commands:
   - cmd: inbox
