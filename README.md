@@ -26,6 +26,29 @@ The Telegram plugin is a separate open repository: [shakhruz/mila-telegram](http
 
 [Русская версия](README.ru.md) · [Full reference](docs/REFERENCE.md)
 
+## How Mila compares
+
+OpenClaw, NanoClaw and Hermes Agent are excellent open agents - universal assistants for a person.
+Mila Companion takes a narrower job: a digital employee for a business, in Telegram.
+
+| | **Mila Companion** | OpenClaw | NanoClaw | Hermes Agent |
+|---|---|---|---|---|
+| What it is | digital employee for a business | universal personal agent | personal agent in containers | personal agent that grows with you |
+| Engine | Claude Code | own agent loop, models as plugins | Claude Agent SDK | own agent loop, any model |
+| Runs on your Claude subscription | yes (Claude Code) | no, since 04.04.2026 extra usage or API key | no data | no data |
+| Channels | Telegram: DMs, groups, your public bot | 20+ (WhatsApp, Telegram, Slack...) | many, each added by a skill | Telegram, Discord, Slack, WhatsApp... |
+| Business skills out of the box | CRM of dialogs, promises and tasks, owner cards, weekly rhythm, mailings | general skills (ClawHub) | general skills | self-written skills |
+| Nothing goes out without the owner's yes | yes, by design (constitution + send-guard) | exec approvals, Team preset | enterprise version | no data |
+| Spending limits | yes (`rashod` skill: forecast, approval above the limit) | no data | no data | per-employee limit (Business plan) |
+| Your Mila moves with you | `mila export` / `mila restore` | Markdown memory files | per-group folders | own memory store |
+| License | Apache-2.0 | MIT | MIT | MIT |
+| Price | free to self-host; hosted from $50/month | free, self-host only | free; enterprise on request | free; Nous Portal $0-200/month |
+
+Facts about other projects: their READMEs and docs, checked 17.10.2026 -
+[OpenClaw](https://github.com/openclaw/openclaw) ([Claude subscription change](https://techcrunch.com/2026/04/04/anthropic-says-claude-code-subscribers-will-need-to-pay-extra-for-openclaw-support/)),
+[NanoClaw](https://github.com/nanocoai/nanoclaw), [Hermes Agent](https://github.com/NousResearch/hermes-agent).
+Something wrong or out of date? Open an issue - we fix it the same day.
+
 ## What is inside
 
 | Path | What |
