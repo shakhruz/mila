@@ -1,0 +1,66 @@
+"""Тест «Входящие/Задачи» (cards.py) по контракту miniapp-kontrakt v0. Запуск: python3 test_cards.py"""
+import json, os, subprocess, sys, tempfile, datetime as dt
+HERE = os.path.dirname(os.path.abspath(__file__)); K = os.path.join(HERE, "cards.py")
+ok = tot = 0
+def check(n, c, x=""):
+    global ok, tot; tot += 1; ok += bool(c); print(("✅ " if c else "❌ ") + n, x)
+root = tempfile.mkdtemp(); W = os.path.join(root, "razrabotka", "work"); T = os.path.join(root, "kontent", "work"); os.makedirs(W); os.makedirs(T)
+env = dict(os.environ, MILA_WORK=W, MILA_SLUG="razrabotka")
+def k(*a, e=None):
+    p = subprocess.run([sys.executable, K, *a], env=e or env, capture_output=True, text=True)
+    try: return json.loads(p.stdout), p.returncode
+    except ValueError: return {"raw": p.stdout + p.stderr}, p.returncode
+lines = lambda f: [json.loads(l) for l in open(f, encoding="utf-8")]
+soon = (dt.datetime.now(dt.timezone(dt.timedelta(hours=5))) + dt.timedelta(hours=3)).replace(microsecond=0).isoformat()
+r1, rc = k("ask", "--q", "Выкладываем партию сайта сейчас?", "--why", "Пять готовых дел ждут одного «да».", "--opt", "a|Да, выкладывай|Через 5 минут на сайте",
+           "--opt", "b|Подожди|Партия ждёт", "--rec", "a")
+check("1 вопрос записан по контракту (id q-, status open, options с key/label/result, rec)", rc == 0 and r1["id"].startswith("q-") and lines(os.path.join(W, "inbox.jsonl"))[0]["options"][0] == {"key": "a", "label": "Да, выкладывай", "result": "Через 5 минут на сайте"}, r1)
+r2, _ = k("ask", "--q", "Платим за домен?", "--why", "Срок продления истекает сегодня.", "--opt", "a|Да|Домен наш", "--opt", "b|Нет|Сайт ляжет", "--rec", "a", "--urgent")
+r3, _ = k("ask", "--q", "Какой цвет кнопки?", "--why", "Вебмастер ждёт решения.", "--opt", "a|Зелёный|как сейчас", "--opt", "b|Синий|как бренд", "--due", soon)
+n, _ = k("next", "inbox")
+check("2 колода: срочный первым", n["card"]["id"] == r2["id"] and n["left"] == 3 and n["text"].startswith("🔴 Срочно"), n.get("text", "")[:30])
+btn = n["buttons"]
+check("3 кнопки ≤6, рекомендация ⭐ зелёная, Поясни/До завтра/Реши сама", sum(len(r) for r in btn) <= 6 and btn[0][0]["label"].startswith("⭐") and btn[0][0].get("style") == "success" and [b["label"] for b in btn[1]] == ["💬 Поясни", "⏸ До завтра", "🤷 Реши сама"])
+check("4 choice короткие латиницей (плагин режет до 16)", all(len(b["choice"]) <= 16 and b["choice"].isascii() for r in btn for b in r))
+a, _ = k("button", "[кнопка] ⭐ Да")
+check("5 нажатие «⭐ Да» по подписи → answered key a, by owner", a.get("ok") and a["card"]["status"] == "answered" and a["card"]["answer"]["key"] == "a" and a["card"]["answer"]["by"] == "owner", a)
+n, _ = k("next", "inbox")
+check("6 дальше — со сроком раньше, чем без срока", n["card"]["id"] == r3["id"], n["card"]["q"])
+s, _ = k("button", "[кнопка] ⏸ До завтра")
+until = dt.datetime.fromisoformat(s["card"]["until"])
+check("7 «До завтра» → snoozed до 09:00 завтра", s["card"]["status"] == "snoozed" and until.hour == 9 and until.date() > dt.datetime.now(until.tzinfo).date())
+n, _ = k("next", "inbox")
+check("8 отложенная ушла из колоды", n["card"]["id"] == r1["id"] and n["left"] == 1)
+e, _ = k("button", "[кнопка] 💬 Поясни")
+check("9 «Поясни» — карточка остаётся открытой", e.get("explain") and k("list", "inbox")[0]["left"] == 1)
+d, _ = k("button", "[кнопка] 🤷 Реши сама")
+check("10 «Реши сама» → delegated", d["card"]["status"] == "delegated")
+fin, _ = k("next", "inbox")
+check("11 пусто → «Все ответы розданы.»", fin["left"] == 0 and fin["text"] == "Все ответы розданы.")
+bad, rc = k("ask", "--q", "Это очень длинный вопрос владельцу из пятнадцати слов который никто не прочтёт с первого раза никогда", "--why", "x", "--opt", "a|Да|", "--opt", "b|Нет|")
+check("12 вопрос >12 слов — не записан, причина названа", rc == 1 and any("слов" in e for e in bad["errors"]))
+bad, rc = k("ask", "--q", "Ставим?", "--why", "M-0001 ждёт", "--opt", "a|Да|", "--opt", "b|Нет|", "--rec", "c")
+check("13 код задачи в тексте и рекомендация не из вариантов — отказ", rc == 1 and len(bad["errors"]) == 2, bad.get("errors"))
+t1, _ = k("task", "--task", "Перевести три статьи блога на EN и UZ", "--why", "Гости из поиска не уходят", "--to", "kontent", "--due", "2026-10-17", "--est", "90", "--prio", "2")
+t2, _ = k("task", "--task", "Починить кнопку оплаты", "--why", "Клиенты не могут заплатить", "--to", "razrabotka", "--prio", "1")
+n, _ = k("next", "proposals")
+check("14 задачи: prio 1 первой; кнопки Да/Изменить/Нет/Другой Миле", n["card"]["id"] == t2["id"] and [b["label"] for r in n["buttons"] for b in r] == ["✅ Да", "✏️ Изменить", "Нет", "➡️ Другой Миле"])
+y, _ = k("button", "[кнопка] ✅ Да")
+check("15 «Да» → accepted", y["card"]["status"] == "accepted")
+k("next", "proposals"); m, _ = k("button", "[кнопка] ➡️ Другой Миле")
+check("16 «Другой Миле» → спросить кому (ask move)", m.get("ask") == "move" and m["id"] == t1["id"])
+mv, _ = k("answer", t1["id"], "--move", "trafik")
+check("17 answer --move → moved, to=trafik", mv["card"]["status"] == "moved" and mv["card"]["to"] == "trafik")
+st = {}
+for l in lines(os.path.join(W, "proposals.jsonl")): st[l["id"]] = l
+check("18 состояние = последняя строка по id (контракт)", st[t1["id"]]["status"] == "moved" and st[t2["id"]]["status"] == "accepted" and len(lines(os.path.join(W, "proposals.jsonl"))) == 4)
+k("ask", "--q", "Берём новый канал?", "--why", "Каталог просит.", "--opt", "a|Да|", "--opt", "b|Нет|", e=dict(env, MILA_WORK=T, MILA_SLUG="kontent"))
+n, _ = k("next", "inbox", "--home", W, "--home", T)
+check("19 администратор видит вопрос команды (--home), подпись «Спрашивает: kontent»", n["left"] == 1 and "Спрашивает: kontent" in n["text"], n.get("text"))
+a, _ = k("button", "[кнопка] Да")
+check("20 ответ на чужую карточку пишется в файл той Милы", a.get("ok") and lines(os.path.join(T, "inbox.jsonl"))[-1]["status"] == "answered" and not os.path.exists(os.path.join(W, "inbox.jsonl.x")))
+again, rc = k("answer", a["card"]["id"], "--pick", "b", "--home", T)
+check("21 повторный ответ на закрытую — отказ, не перезапись", rc == 1 and "уже" in again.get("error", ""))
+with open(os.path.join(W, "inbox.jsonl"), "a") as f: f.write("не json\n")
+check("22 битая строка не ломает чтение", k("list", "inbox")[1] == 0)
+print("итог %d/%d" % (ok, tot))

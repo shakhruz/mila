@@ -71,19 +71,19 @@ Two things are deliberately separate from this repository:
 | `skills/youtube-research` | Research a topic through YouTube transcripts before writing about it. |
 | `skills/video-overview` | Narrated video explainer from a scenario, like NotebookLM Video Overview but editable: pencil-sketch or brand style, 16:9 and 9:16 from one script, burned-in captions + `.srt`, YouTube chapters, cover; ru/uz/en. Stdlib builder, HyperFrames render queue on the host. |
 | `skills/infographic` | One complex idea as one picture, NotebookLM-style: a pencil-sketch page generated whole by the image model, a series of pages bound into a PDF, Uzbek in Cyrillic and Latin; a branded HTML fallback rendered by the host queue. |
-| `skills/naglyadno` | Show, don't only tell: one idea → a pencil-sketch picture (via `infographic`); 2–8 diagrams, charts, mind maps → one self-contained HTML gallery (mermaid + Chart.js, light/dark); a large system → a hand-drawn Excalidraw-style canvas with click-for-details, plus an `.excalidraw` file to edit. Set `MILA_CANVAS_URL` to publish the canvas as a live link to your own canvas server; unset, it falls back to the file. Stdlib, host render queue for PNG. |
+| `skills/visual` | Show, don't only tell: one idea → a pencil-sketch picture (via `infographic`); 2–8 diagrams, charts, mind maps → one self-contained HTML gallery (mermaid + Chart.js, light/dark); a large system → a hand-drawn Excalidraw-style canvas with click-for-details, plus an `.excalidraw` file to edit. Set `MILA_CANVAS_URL` to publish the canvas as a live link to your own canvas server; unset, it falls back to the file. Stdlib, host render queue for PNG. |
 | `skills/mini-podcast` | A two-host audio overview of a report or lesson: a lively dialogue script, ElevenLabs Text to Dialogue in chunks under the API limit, one mp3 with loudness checked. |
 | `skills/flashcards` | Flashcards from any source, NotebookLM-style but with a source quote on every card, three card types (Q&A, cloze, explain-in-your-own-words), spaced repetition (Leitner 1·3·7·14·30 in a phone trainer), ru / uz Latin / uz Cyrillic (auto-transliterated) / en, pencil-sketch PNGs, duplex-ready A4 PDF, one-click Anki import, Telegram quiz polls. Stdlib, host render queue. |
 | `skills/copyblock` | Text a person will forward goes out as a monospace block — one tap to copy on a phone. `tg_md2.py` escapes Telegram MarkdownV2. |
 | `skills/humanizer-ru` | Russian style pass: strips bureaucratese, anglicisms and machine tone from anything a person will read. |
 | `skills/subscription-limits` | When the Claude plan hits its limit: how to tell, what to say to the person, what not to invent, what to do after the reset, how to change plans. |
-| `skills/yasno` | How a question to the owner is written so it is understood on first read: one question, options as buttons, the recommendation first, no jargon. |
-| `skills/kartochki`, `vhodyashchie`, `zadachi` | One card format for the owner — a question with options, a recommendation and a deadline, or a task with an assignee, estimate and cost — kept in `inbox.jsonl` / `proposals.jsonl`, shown one card at a time in chat ("inbox", "tasks") and in the Mila Office mini-app. |
-| `skills/voprosy` | A question storm for when the owner is stuck or about to spend money and time: questions that open the decision, not ideas that close it. |
-| `skills/znakomstvo` | The first session of a newborn assistant: getting to know the owner, their goal and the first small win — the only skill it starts with. |
-| `skills/mila-v-chate`, `topiki` | Behaviour in Telegram groups: when to speak, when to stay quiet; how to run a group with topics — open, name, archive, keep the index. |
+| `skills/plain-words` | How a question to the owner is written so it is understood on first read: one question, options as buttons, the recommendation first, no jargon. |
+| `skills/cards`, `inbox`, `tasks` | One card format for the owner — a question with options, a recommendation and a deadline, or a task with an assignee, estimate and cost — kept in `inbox.jsonl` / `proposals.jsonl`, shown one card at a time in chat ("inbox", "tasks") and in the Mila Office mini-app. |
+| `skills/questions` | A question storm for when the owner is stuck or about to spend money and time: questions that open the decision, not ideas that close it. |
+| `skills/onboarding` | The first session of a newborn assistant: getting to know the owner, their goal and the first small win — the only skill it starts with. |
+| `skills/mila-in-chat`, `topics` | Behaviour in Telegram groups: when to speak, when to stay quiet; how to run a group with topics — open, name, archive, keep the index. |
 | `skills/bot-send` | A message or a mailing from the owner's public bot — only on the owner's word in their private chat: to one person who wrote to the bot, or a mailing shown as a preview ("to N people, this text") and sent after the owner's ✅. |
-| `skills/rashod` | Spending the owner's money on paid generation (images, models, video, voice) consciously: a forecast before every paid call, an approve/change/cancel card above a configurable threshold, the actual cost after, a monthly summary. |
+| `skills/spend` | Spending the owner's money on paid generation (images, models, video, voice) consciously: a forecast before every paid call, an approve/change/cancel card above a configurable threshold, the actual cost after, a monthly summary. |
 | `skills/mila-update` | Which core version is installed, whether a release is out and what it brings; updating only after the owner's yes, with a backup and a rollback. |
 | `skills/mila-export` | `mila export` / `mila restore`: the Mila's whole memory in one archive without secrets (scanner on every file, manifest with sha256, format 1); restore never overwrites and prints what to re-enter. History only with `--with-history`. |
 | `install/mila` | One-word launcher: `mila` resumes, `mila new` starts fresh, `mila status` checks the channel, `mila inbox` shows unread messages. |
@@ -92,7 +92,7 @@ Two things are deliberately separate from this repository:
 | `install/crons-keeper.py` | Scheduled reminders survive a session restart: every CronCreate/CronDelete is mirrored to `~/work/state/crons.json`, and at session start the assistant is asked to recreate whatever is missing (repeating jobs expire after 7 days — it renews them). |
 | `install/companion-feeder.py` | Container feeder: journal → session stdin, with delivery checks. Also lets our own companions hear each other: a bot message is fed only if it is from our registry and addressed by `@name` or reply, quote up to 3000 characters, loop guard `COMPANION_BOT_PAIR_MAX`. See [`docs/team-hearing.md`](docs/team-hearing.md). |
 | `install/usage_collect.py` | Token spend by day and model, read straight from the session transcripts. Wired into the launcher as `mila usage`. |
-| `install/records.py` + `install/turns_collect.py` | The books: a turn-by-turn conversation table (schema-compatible with the fleet's operators) and a ledger of paid outbound calls, with a switch for how much of the conversation text is kept. `mila turns`, `mila records`. See [`docs/uchet.md`](docs/uchet.md). |
+| `install/records.py` + `install/turns_collect.py` | The books: a turn-by-turn conversation table (schema-compatible with the fleet's operators) and a ledger of paid outbound calls, with a switch for how much of the conversation text is kept. `mila turns`, `mila records`. See [`docs/accounting.md`](docs/accounting.md). |
 | `install/chats_index.py` | Chat registry: which chats are connected, who talks in them, when they last did. `mila chats`. |
 | `install/chat_locale.py` | Timezone and language per chat. `mila when` shows what time it is for every client and who is in quiet hours. |
 | `install/chat_note.py` | Writes into a chat card — purpose, participants, promises, notes. `mila owe` lists every open promise across all chats. |
@@ -228,7 +228,7 @@ inflated by roughly 1.7×. Spending did not drop — the error did. New rows car
 
 ## Keeping the books
 
-Full documentation, in Russian: [`docs/uchet.md`](docs/uchet.md).
+Full documentation, in Russian: [`docs/accounting.md`](docs/accounting.md).
 
 Two ledgers, two different questions. Mixing them is the whole point of keeping
 them apart: in the first one the dollars are almost always notional, in the

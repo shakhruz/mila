@@ -1,4 +1,4 @@
-// ЭКСПРЕСС-ЭКЗАМЕН ядра (skills/ekzamen; владелец MILAGPT 17.10): те же сценарии, что гоняет юзербот, — внутри, через подписку Claude (Haiku), без Telegram.
+// ЭКСПРЕСС-ЭКЗАМЕН ядра (skills/exam; владелец MILAGPT 17.10): те же сценарии, что гоняет юзербот, — внутри, через подписку Claude (Haiku), без Telegram.
 // Гость = claude -p с промптом гостя ровно как в бою (--prompt + --extra разметка моста), свежая сессия на сценарий,
 // ходы — --resume, шапка гостя как у моста. Оценка — отдельный ход Haiku по «ждём / провал» экзамена → pass/fail + цитата.
 // bun express_exam.mjs --yaml scenarii.yaml --prompt GUEST-PROMPT-v2.md [--par 5] [--only 1,4] [--out runs/]

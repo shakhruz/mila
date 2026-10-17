@@ -38,7 +38,7 @@ Mila Companion takes a narrower job: a digital employee for a business, in Teleg
 | Channels | Telegram: DMs, groups, your public bot | 20+ (WhatsApp, Telegram, Slack...) | many, each added by a skill | Telegram, Discord, Slack, WhatsApp... |
 | Business skills out of the box | CRM of dialogs, promises and tasks, owner cards, weekly rhythm, mailings | general skills (ClawHub) | general skills | self-written skills |
 | Nothing goes out without the owner's yes | yes, by design (constitution + send-guard) | exec approvals, Team preset | enterprise version | no data |
-| Spending limits | yes (`rashod` skill: forecast, approval above the limit) | no data | no data | per-employee limit (Business plan) |
+| Spending limits | yes (`spend` skill: forecast, approval above the limit) | no data | no data | per-employee limit (Business plan) |
 | Your Mila moves with you | `mila export` / `mila restore` | Markdown memory files | per-group folders | own memory store |
 | License | Apache-2.0 | MIT | MIT | MIT |
 | Price | free to self-host; hosted from $50/month | free, self-host only | free; enterprise on request | free; Nous Portal $0-200/month |

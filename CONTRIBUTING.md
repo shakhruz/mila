@@ -17,8 +17,8 @@ python3 templates/home/.claude/hooks/test_send_guard.py
 python3 install/test_records.py
 python3 install/test_team_hearing.py
 python3 skills/bot-send/test_bot_send.py
-python3 skills/kartochki/test_kartochki.py
-bash skills/yasno/test_yasno.sh
+python3 skills/cards/test_cards.py
+bash skills/plain-words/test_plain_words.sh
 bash skills/mila-update/test_update.sh
 bash skills/mila-update/test_nightly.sh
 ```

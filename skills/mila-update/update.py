@@ -248,12 +248,19 @@ def newborn_block():
 def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_label=""):
     """Бэкап → запись → версия и журнал. Возвращает словарь результата (печатает вызывающий)."""
     tag = tag or m.get("tag")
+    # RENAMED-1017 (v1.4.0, международные имена): release.json "renamed" {старое: новое}. По старому имени в релизе — алиас
+    # (обёртки скриптов, без SKILL.md — навыком не грузится). Старую папку заменяем алиасом даже при правке хозяина, иначе навык задвоится;
+    # его правку кладём в mila-update/new/<тег>/было-<старое> и называем в отчёте.
+    ren = m.get("renamed") or {}
+    kept = [r for r in rows if r["name"] in ren and r["cur"] is not None and r["state"] in ("ваша правка", "отличается")]
+    for r in kept: r["state"] = "обновится"
     todo = [r for r in rows if r["state"] in ("новое", "обновится") or (r["state"] == "отличается" and r["name"] in take)]
     side = [r for r in rows if r["state"] in ("ваша правка", "отличается") and r not in todo]
     b = backup([r["dst"] for r in todo] + [VERSION], tag)
     added = [r["dst"] for r in todo if r["cur"] is None]
-    for r in todo: put(r["src"], r["dst"], r["kind"])
     newdir = os.path.join(STATE, "new", tag)   # не рядом с навыком: вторая папка навыка задвоила бы его
+    for r in kept: put(r["dst"], os.path.join(newdir, "было-" + r["name"]), r["kind"])   # правка хозяина под старым именем — до замены алиасом
+    for r in todo: put(r["src"], r["dst"], r["kind"])
     for r in side: put(r["src"], os.path.join(newdir, r["name"]), r["kind"])
     files = dict(load_version().get("files", {}))
     for r in rows:
@@ -261,11 +268,14 @@ def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_labe
     os.makedirs(STATE, exist_ok=True)
     json.dump({"version": m.get("version"), "tag": tag, "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "channel": channel or CFG["channel"],
                "sha": sha_, "source": src_label or REPO, "files": files}, open(VERSION, "w"), ensure_ascii=False, indent=1)
-    touched = [r["dst"] for r in todo] + [os.path.join(newdir, r["name"]) for r in side] + [VERSION]
+    touched = [r["dst"] for r in todo] + [os.path.join(newdir, r["name"]) for r in side] + [os.path.join(newdir, "было-" + r["name"]) for r in kept] + [VERSION]
     jlog({"event": "update", "tag": tag, "version": m.get("version"), "yes": yes, "backup": b, "added": added, "touched": touched,
-          "updated": [r["name"] for r in todo if r["cur"] is not None], "new_beside": [r["name"] for r in side]})
+          "updated": [r["name"] for r in todo if r["cur"] is not None], "new_beside": [r["name"] for r in side],
+          "renamed": {r["name"]: ren[r["name"]] for r in rows if r["name"] in ren and r["cur"] is not None}, "renamed_kept_edit": [r["name"] for r in kept]})
     return {"ok": True, "version": m.get("version"), "obnovleno": [r["name"] for r in todo if r["cur"] is not None],
-            "dobavleno": [r["name"] for r in todo if r["cur"] is None], "vasha_pravka_new_v": newdir if side else "", "backup": b}
+            "dobavleno": [r["name"] for r in todo if r["cur"] is None], "vasha_pravka_new_v": newdir if side or kept else "", "backup": b,
+            "pereimenovano": {r["name"]: ren[r["name"]] for r in rows if r["name"] in ren and r["cur"] is not None},
+            "pravka_starogo_imeni": [os.path.join(newdir, "было-" + r["name"]) for r in kept]}
 
 
 def cmd_apply(a):

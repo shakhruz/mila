@@ -17,14 +17,14 @@ mkdir -p "$MILA_WORK/rituals"; echo "мой ритуал" > "$MILA_WORK/rituals/
 U="python3 $HERE/update.py"; ok=0; n=0
 chk() { n=$((n+1)); if eval "$2"; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 echo "знакомство: идёт" > "$MILA_WORK/USER.md"
-chk "новорождённая до знакомства — не обновляется" "! $U apply --src $T/rel --yes x >/dev/null 2>&1 && [ ! -e $CLAUDE_CONFIG_DIR/skills/naglyadno ]"
+chk "новорождённая до знакомства — не обновляется" "! $U apply --src $T/rel --yes x >/dev/null 2>&1 && [ ! -e $CLAUDE_CONFIG_DIR/skills/visual ]"
 echo "знакомство: пройдено" > "$MILA_WORK/USER.md"
-chk "без «да» не обновляется" "! $U apply --src $T/rel >/dev/null 2>&1 && [ ! -e $CLAUDE_CONFIG_DIR/skills/naglyadno ]"
+chk "без «да» не обновляется" "! $U apply --src $T/rel >/dev/null 2>&1 && [ ! -e $CLAUDE_CONFIG_DIR/skills/visual ]"
 $U diff --src "$T/rel" > "$T/d1.json"
-chk "diff: навыки ядра — новое" "grep -q naglyadno $T/d1.json"
+chk "diff: навыки ядра — новое" "grep -q visual $T/d1.json"
 $U apply --src "$T/rel" --yes "тест: хозяин нажал ✅ 12.10" > "$T/a1.json"
 chk "первая сверка: чужой хук — «отличается», не затёрт; ритуалы не тронуты" "grep -q 'мой хук новее' $CLAUDE_CONFIG_DIR/hooks/chat_note.py && grep -A3 otlichaetsya $T/d1.json | grep -q chat_note && grep -q 'мой ритуал' $MILA_WORK/rituals/WAKE.md"
-chk "apply: навык ядра поставлен" "[ -f $CLAUDE_CONFIG_DIR/skills/naglyadno/SKILL.md ]"
+chk "apply: навык ядра поставлен" "[ -f $CLAUDE_CONFIG_DIR/skills/visual/SKILL.md ]"
 chk "apply: хук поставлен, тесты — нет" "[ -f $CLAUDE_CONFIG_DIR/hooks/telegram-inbox-feed.py ] && [ ! -e $CLAUDE_CONFIG_DIR/hooks/test_records.py ]"
 chk "NOW, memory, settings, ключ, личный навык — как были" "[ \"\$(cat $MILA_WORK/NOW.md)\" = 'NOW хозяина' ] && [ -f $MILA_WORK/memory/a.md ] && grep -q x $CLAUDE_CONFIG_DIR/settings.json && [ -f $HOME/secrets/k.key ] && [ -f $CLAUDE_CONFIG_DIR/skills/moy-lichny/SKILL.md ]"
 chk "версия и журнал записаны" "$U status | grep -q 1.0.0 && grep -q 'хозяин нажал' $CLAUDE_CONFIG_DIR/mila-update/journal.jsonl"
@@ -33,16 +33,16 @@ chk "--take: хук из релиза взят" "! grep -q 'мой хук нов
 $U diff --src "$T/rel" > "$T/d2.json"
 chk "повторный diff: всё как есть" "python3 -c \"import json,sys; d=json.load(open('$T/d2.json')); sys.exit(0 if list(d['itog'])==['как есть'] else 1)\""
 # хозяин поправил навык ядра, а релиз v1.1 изменил его и хук
-echo "моя правка" >> "$CLAUDE_CONFIG_DIR/skills/naglyadno/SKILL.md"
-echo "# v1.1" >> "$T/rel/skills/naglyadno/SKILL.md"; echo "# v1.1" >> "$T/rel/install/doctor.py"
+echo "моя правка" >> "$CLAUDE_CONFIG_DIR/skills/visual/SKILL.md"
+echo "# v1.1" >> "$T/rel/skills/visual/SKILL.md"; echo "# v1.1" >> "$T/rel/install/doctor.py"
 python3 - "$T/rel/release.json" <<'PY'   # портативно: sed -i у GNU и BSD разный
 import sys; p = sys.argv[1]; s = open(p).read()
 import json; d = json.loads(s); d["version"], d["tag"] = "1.1.0", "v1.1"; open(p, "w").write(json.dumps(d, ensure_ascii=False, indent=2))
 PY
 $U diff --src "$T/rel" > "$T/d3.json"
-chk "diff: правка хозяина видна, хук обновится" "grep -A3 vasha_pravka $T/d3.json | grep -q naglyadno && grep -A3 obnovitsya $T/d3.json | grep -q doctor.py"
+chk "diff: правка хозяина видна, хук обновится" "grep -A3 vasha_pravka $T/d3.json | grep -q visual && grep -A3 obnovitsya $T/d3.json | grep -q doctor.py"
 $U apply --src "$T/rel" --yes "тест v1.1" > /dev/null
-chk "правка хозяина цела, новая версия отдельно" "grep -q 'моя правка' $CLAUDE_CONFIG_DIR/skills/naglyadno/SKILL.md && grep -q v1.1 $CLAUDE_CONFIG_DIR/mila-update/new/v1.1/naglyadno/SKILL.md && [ ! -e $CLAUDE_CONFIG_DIR/skills/naglyadno.new-v1.1 ]"
+chk "правка хозяина цела, новая версия отдельно" "grep -q 'моя правка' $CLAUDE_CONFIG_DIR/skills/visual/SKILL.md && grep -q v1.1 $CLAUDE_CONFIG_DIR/mila-update/new/v1.1/visual/SKILL.md && [ ! -e $CLAUDE_CONFIG_DIR/skills/naglyadno.new-v1.1 ]"
 chk "хук обновлён до v1.1" "grep -q '# v1.1' $CLAUDE_CONFIG_DIR/hooks/doctor.py"
 $U rollback > /dev/null
 chk "откат: хук как в v1.0, версия 1.0.0" "! grep -q '# v1.1' $CLAUDE_CONFIG_DIR/hooks/doctor.py && $U status | grep -q '\"1.0.0\"'"
@@ -57,6 +57,6 @@ chk "навык с секретом — отказ" "! $U install-skill $T/pkg/n
 rm "$T/pkg/novaya-sila/.env"; $U rollback >/dev/null
 chk "откат установки навыка" "[ ! -e $CLAUDE_CONFIG_DIR/skills/novaya-sila ]"
 $U installed > "$T/i.json"
-chk "installed: ядро и личные раздельно" "grep -q moy-lichny $T/i.json && python3 -c \"import json,sys; d=json.load(open('$T/i.json')); sys.exit(0 if 'naglyadno' in d['yadro'] and 'moy-lichny' in d['lichnye'] else 1)\""
+chk "installed: ядро и личные раздельно" "grep -q moy-lichny $T/i.json && python3 -c \"import json,sys; d=json.load(open('$T/i.json')); sys.exit(0 if 'visual' in d['yadro'] and 'moy-lichny' in d['lichnye'] else 1)\""
 chk "заголовки всех SKILL.md репо разбираются YAML (нужен pyyaml)" "python3 $REPO/tools/check_frontmatter.py $REPO/skills $REPO/templates >/dev/null"
 echo "итог $ok/$n"; rm -rf "$T"

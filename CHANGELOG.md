@@ -1,5 +1,19 @@
 # CHANGELOG · Mila Companion
 
+## v1.4.0-rc1 · international names (candidate)
+Skills get English names; old names keep working until v1.6.0. Owner 17.10 (33645).
+
+**For the owner**
+- Skills now have international names (cards, plain-words, onboarding…) — your Mila finds and updates them the same way.
+- Nothing you changed is lost: if you edited a renamed skill, your version is kept next to the new one.
+- Old commands and paths keep working for two more versions.
+
+**For Milas**
+- Renamed: ekzamen→exam · kartochki→cards · lichka-hozyaina→owner-dm · mila-v-chate→mila-in-chat · naglyadno→visual · proverka→verify · put-gostya→guest-path · rashod→spend · topiki→topics · vhodyashchie→inbox · vkusy→tastes · voprosy→questions · yasno→plain-words · zadachi→tasks · znakomstvo→onboarding; canon/OBDUMYVANIE→THINKING-BUDGET; docs/uchet→docs/accounting. Scripts: cards.py, plain_words_check.py, spend.py.
+- Old names are aliases: `MOVED.md` + script wrappers (old paths exec the new scripts), no SKILL.md — not loaded as skills, no duplicates.
+- `mila-update`: `renamed` in release.json — the old folder becomes the alias even if the owner edited it; the edit is saved to `mila-update/new/<tag>/было-<old>` and reported (`pereimenovano`, `pravka_starogo_imeni`). Test `test_renamed.sh` 10/10, in release.sh.
+- Data paths are not renamed (`~/work/rashod`, `.kartochki-shown.json`, `memory/vkusy.md`, `work/topiki/`) — owners keep their history.
+
 ## v1.3.0 · lessons of Mila Tashkent, 17.10
 What a working sales Mila learned in one day (exam "Guest path" 15/15), now in the core for every Mila.
 

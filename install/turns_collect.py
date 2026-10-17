@@ -32,7 +32,7 @@ usd_cost СПРАВОЧНАЯ величина. Никто эти доллары
 живёт в другой базе — external-spend.db.
 
 Тексты подчиняются выключателю MILA_RECORD_TEXT (full | length | none),
-описанному в records.py и в docs/uchet.md.
+описанному в records.py и в docs/accounting.md.
 
   turns_collect.py                     # ходы за сегодня во всех проектах
   turns_collect.py --days 7            # за неделю
