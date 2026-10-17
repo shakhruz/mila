@@ -1,5 +1,11 @@
 # CHANGELOG · Mila Companion
 
+## v1.4.0-rc3 · code improvements (candidate)
+- `tests/run_all.sh`: every test in the repo + frontmatter in one command (11, ~9 s), exit code 1 on any failure; in release.sh and CONTRIBUTING.
+- `install.sh` registers `reply-required.py` as a Stop hook (promised by README/REFERENCE, was manual); `--dry-run` lists every hook; owner's own hooks and settings kept, backup made, re-run does not duplicate.
+- `mila` on Linux: daemons via `systemctl --user` (units from deploy/bootstrap.sh), macOS keeps launchctl; per-OS hints.
+- `docs/exam-example/`: example guest prompt + exam yaml + README for `tools/express_exam.mjs`; fix: planted failures with ids like `s01` were not matched.
+
 ## v1.4.0-rc2 · bilingual skill descriptions (candidate)
 - 46 skills: `description` = English first (what + when + English triggers), then `RU:` with the original Russian — English-speaking owners' models find the skills, Russian triggers keep working. `mila-session` was already English.
 
