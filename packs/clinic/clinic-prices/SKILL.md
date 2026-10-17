@@ -5,7 +5,7 @@ description: "Clinic prices and services: answer «how much / do you do X» only
 
 # Clinic prices
 
-- Source: `work/clinic/prices.md` from the owner (service · price · duration · preparation). No price there → «I'll check with the clinic and come back», and the owner gets a one-line question. Never invent or round prices.
+- Source: `~/work/clinic/prices.md` from the owner (service · price · duration · preparation). No price there → «I'll check with the clinic and come back», and the owner gets a one-line question. Never invent or round prices.
 - Answer shape: price + duration + preparation (if any) in one line → «Nearest free: Tue 15:00 or Wed 10:30 — book?» with buttons.
 - «Is it cheaper elsewhere?», «discount?» → the clinic's price only; discounts only if they are in the price list.
 - Price ranges («from 300 000») — say «from», and that the doctor names the exact price after the exam.
