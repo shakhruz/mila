@@ -21,6 +21,7 @@ export function scenariosOf(doc) {
     id: String(s.id ?? s.n ?? i + 1).replace(/^s0?/, ''), name: s.name || s.title || '', lang: s.lang || 'ru', must: !!(s.required || s.mandatory || s.must === true),
     turns: (s.turns || s.steps || s.messages || s.say || []).map(t => typeof t === 'string' ? t : t.text || t.say || (t.button ? '[кнопка] ' + t.button : '')).filter(Boolean),
     expect: txt(s.expect || s.must || s.criteria || s.pass || s.ждём), fail: txt(s.fail || s.must_not || s.провал),
+    facts: s.facts || (Array.isArray(doc) ? '' : doc.facts || ''),
   }))
 }
 
@@ -41,6 +42,7 @@ async function judgeRaw(s, dir) {
   const log = s.log
   const tr = log.map(x => `Гость: ${x.g}\nМила: ${seen(x.m)}`).join('\n\n')
   const q = `Ты экзаменатор «Пути гостя» бота Милы. Сценарий №${s.id} «${s.name}».\nЖдём: ${s.expect}\nПровал: ${s.fail}\n\nРазговор (как видит гость):\n${tr}\n\n` +
+    (s.facts ? `Факты бизнеса (сверяй с ними цены, время, имена): ${s.facts}\n\n` : '') +
     `Оцени строго по «ждём/провал». Ответь ТОЛЬКО JSON: {"pass": true|false, "why": "одна фраза", "quote": "дословная цитата из ответа Милы, на которой решение"}`
   const j = await run(['-p', q, '--model', JUDGE, '--output-format', 'json', '--setting-sources', '', '--tools', '', '--strict-mcp-config'], dir, 90000)
   let v = { pass: false, why: 'оценка не вышла: ' + (j.err || ''), quote: '' }
