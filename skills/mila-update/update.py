@@ -7,7 +7,8 @@
   update.py apply [--src DIR|--tag v1.0] --yes "<чьё да и где>" [--take a,b] — бэкап → обновление → версия и журнал;
                                          «отличается» (первая сверка) берётся только по --take, остальное — в mila-update/new/<tag>/
   update.py rollback                     — вернуть всё, как было до последнего обновления
-  update.py install-skill DIR --from "<кто прислал>" [--yes "<да хозяина>"] — навык от Милы-администратора, с бэкапом и журналом
+  update.py install-skill DIR --from "<кто прислал>" [--yes "<да хозяина>"] [--allow-missing] — навык от Милы-администратора, с бэкапом
+                                         и журналом; SKILL.md называет scripts/… или др. файлы, которых нет в папке — отказ со списком
   update.py installed                    — список моих навыков: ядро / личные (для рекомендации из каталога)
   update.py nightly [--dry-run] — ночной шаг: канал → есть новее (без отозванных) → сухой прогон → (auto: бэкап, крон-копия,
                                          apply, health, при провале авто-откат) или (не auto: карточка «есть обновление» хозяину)
@@ -518,9 +519,31 @@ def cmd_rollback(a):
     print(json.dumps({"ok": True, "vernula": u.get("tag") or u.get("skill"), "iz": u["backup"]}, ensure_ascii=False))
 
 
+SKILL_REF = re.compile(r"(?:~/\.claude/skills/([A-Za-z0-9._-]+)/|(?<![\w./-]))((?:scripts|templates|examples|knowledge|assets|fonts|data)/[^\s`'\"()<>*?{}\[\],;]+)")
+
+
+def missing_refs(d):
+    """SHELF-CHECK-1018 (Сила: у сил коробок 2–5 на полке был только SKILL.md): файлы своей папки, которые называет SKILL.md
+    (scripts/…, templates/…, examples/…, knowledge/…, assets/…, fonts/…, data/…), должны лежать в папке навыка."""
+    name = os.path.basename(d.rstrip("/"))
+    txt = open(os.path.join(d, "SKILL.md"), encoding="utf-8", errors="replace").read()
+    miss = []
+    for m in SKILL_REF.finditer(txt):
+        if m.group(1) and m.group(1) != name:
+            continue                                   # файл чужого навыка — не наш вопрос
+        rel = m.group(2).rstrip(".:!»…")
+        if rel not in miss and not os.path.exists(os.path.join(d, rel)):
+            miss.append(rel)
+    return miss
+
+
 def cmd_install_skill(a):
     d = os.path.abspath(a.dir); name = os.path.basename(d.rstrip("/"))
     if not os.path.isfile(os.path.join(d, "SKILL.md")): sys.exit(json.dumps({"error": "в папке нет SKILL.md — это не навык"}, ensure_ascii=False))
+    miss = missing_refs(d)
+    if miss and not a.allow_missing:
+        sys.exit(json.dumps({"error": "навык неполный: SKILL.md называет файлы, которых нет в папке — попросить у приславшего целую папку",
+                             "missing": miss[:30]}, ensure_ascii=False))
     if not a.sender: sys.exit(json.dumps({"error": "нужно --from: кто прислал (Мила-администратор)"}, ensure_ascii=False))
     for root, _, files in os.walk(d):
         for f in files:
@@ -531,7 +554,7 @@ def cmd_install_skill(a):
     put(d, dst, "dir")
     jlog({"event": "install-skill", "skill": name, "from": a.sender, "yes": a.yes or "", "backup": b,
           "added": [] if existed else [dst], "touched": [dst], "sha": sha(dst)})
-    print(json.dumps({"ok": True, "skill": name, "zamena": existed, "backup": b}, ensure_ascii=False))
+    print(json.dumps(dict({"ok": True, "skill": name, "zamena": existed, "backup": b}, **({"missing": miss} if miss else {})), ensure_ascii=False))
 
 
 def cmd_remove_skill(a):
@@ -567,6 +590,7 @@ def main():
         p.add_argument("--take", help="через запятую: что из «отличается» взять из релиза")
         p.add_argument("--newborn-ok", action="store_true", help="обновить новорождённую до конца знакомства (только по слову администратора)")
     p = sp.add_parser("install-skill"); p.add_argument("dir"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
+    p.add_argument("--allow-missing", action="store_true")   # поставить неполный навык осознанно (ответ покажет missing)
     p = sp.add_parser("remove-skill"); p.add_argument("name"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     a = ap.parse_args()
     {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "rollback": cmd_rollback,
