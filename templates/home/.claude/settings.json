@@ -9,7 +9,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/companion/.claude/hooks/session-start.py"
+            "command": "python3 $HOME/.claude/hooks/session-start.py"
           }
         ]
       }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/home/companion/.claude/hooks/telegram-inbox-feed.py"
+            "command": "$HOME/.claude/hooks/telegram-inbox-feed.py"
           }
         ]
       }
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/companion/.claude/hooks/send-guard.py",
+            "command": "python3 $HOME/.claude/hooks/send-guard.py",
             "onFailure": "block"
           }
         ]

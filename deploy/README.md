@@ -98,7 +98,7 @@ Walk them through these five, on their machine, with them driving:
 2. `mila doctor` — what to run when it goes quiet
 3. `mila owe` — what the assistant currently owes people
 4. `mila usage` — what a day costs
-5. `/mila_join` in a group — how to connect a new chat, and `/mila_leave` to
+5. `/channel_join` in a group — how to connect a new chat, and `/mila_leave` to
    disconnect it
 
 A client who can run those five does not need us for the everyday. That is the

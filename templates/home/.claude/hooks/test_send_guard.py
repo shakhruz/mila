@@ -40,4 +40,11 @@ json.dump([["-1002", "-1001"]], open(os.path.join(home, ".claude/hooks/same-case
 chk("со списком одного дела (Acme + Agency Work) — уходит", {"tool_name": R, "tool_input": {"chat_id": "-1001", "text": T}}, "pass")
 chk("третий клиент — по-прежнему чужое дело: стоп", {"tool_name": R, "tool_input": {"chat_id": "-1001", "text": "Как у Zina дела? @zina_c писала"}}, "deny")
 chk("и в обратную сторону одного дела: из Agency Work в Acme — уходит", {"tool_name": R, "tool_input": {"chat_id": "-1002", "text": "Agency Work подтвердил: билеты будут к вечеру"}}, "pass")
+# SELFHOST-1018: без OWNER_ID адресат проверяется по access.json (allowFrom + группы); без access.json — не проверяется
+env.pop("OWNER_ID", None)
+json.dump({"groups": {"-1001": {}}, "allowFrom": ["555"]}, open(os.path.join(home, ".claude/channels/telegram/access.json"), "w"))
+chk("без OWNER_ID: чужой чат — стоп по access.json", {"tool_name": R, "tool_input": {"chat_id": "999", "text": "привет"}}, "deny")
+chk("без OWNER_ID: допущенный из allowFrom — уходит", {"tool_name": R, "tool_input": {"chat_id": "555", "text": "Готово."}}, "pass")
+os.remove(os.path.join(home, ".claude/channels/telegram/access.json"))
+chk("без OWNER_ID и без access.json — адресат не проверяется", {"tool_name": R, "tool_input": {"chat_id": "999", "text": "Готово."}}, "pass")
 print(f"итог {ok}/{n}"); sys.exit(0 if ok == n else 1)

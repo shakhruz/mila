@@ -35,6 +35,8 @@ commands:
     prompt: "Вызови dialogs_report(window=\"{args}\" или \"day\") и отдай ответ дословно."
 ---
 
+> **Requires (SELFHOST-1018):** the `dialogs_*` tools come from the dialogs MCP server that runs next to hosted Milas (it reads the operator's `crm/dialogs.db`). It is not part of this repository yet. Without it every command answers one line: «На этой Миле журнала диалогов нет — он работает на размещённых Милах» — and does not guess. RU: инструменты `dialogs_*` даёт MCP-сервер диалогов на размещённых Милах; в открытом коде его пока нет — без него навык честно говорит, что журнала нет.
+
 # 🗂 CRM диалогов (Коммуникатор 2.0)
 
 **Диалог записывается механикой, модель только формулирует.** База `crm/dialogs.db` собирается

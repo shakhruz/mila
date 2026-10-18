@@ -113,6 +113,12 @@ for f in reply-required.py pd-mask.py; do
   run chmod 755 "$HOOK_DIR/$f"
   say "hook → $HOOK_DIR/$f"
 done
+# SELFHOST-1018 (Вебмастер, разбор v1.3.0): сторож отправки и журнал обещаний — у self-host тоже из коробки
+for f in send-guard.py; do
+  install_file "$ROOT/templates/home/.claude/hooks/$f" "$HOOK_DIR/$f" "$f"
+  run chmod 755 "$HOOK_DIR/$f"
+  say "hook → $HOOK_DIR/$f"
+done
 echo
 
 # ── tools the launcher calls ──────────────────────────────────────────────
@@ -248,6 +254,7 @@ fi
 if [[ $DRY -eq 1 ]]; then
   say "would check $CLAUDE_DIR/settings.json — register hooks (backup first if it changes):"
   say "  UserPromptSubmit: telegram-inbox-feed.py · SessionStart + PostToolUse(CronCreate|CronDelete): crons-keeper.py · Stop: reply-required.py · PostToolUse(Write|Edit): pd-mask.py"
+  say "  PreToolUse(reply|edit_message): send-guard.py · PostToolUse(reply): task-sent.py · SessionStart: task-open.py · env OWNER_ID (MILA_OWNER_ID)"
   say "would create the personal data vault key ~/.config/mila/pd.key (600) if missing"
 else
   SETTINGS_OUT="$(python3 - "$CLAUDE_DIR" << 'PY'
@@ -282,13 +289,32 @@ if not any('pd-mask.py' in json.dumps(x) for x in hooks.get('PostToolUse', [])):
     ck_missing.append(('PostToolUse', {'matcher': 'Write|Edit|MultiEdit', 'hooks': [{'type': 'command', 'command': pm}]}))
 if not any('reply-required.py' in json.dumps(x) for x in hooks.get('Stop', [])):
     ck_missing.append(('Stop', {'hooks': [{'type': 'command', 'command': rr}]}))
+# SELFHOST-1018: PreToolUse(reply|edit_message) — send-guard блокирует отправку не туда, ключи, кухню; PostToolUse(reply) — task-sent
+# пишет исходящие и обещания; SessionStart — task-open показывает сорванные и горящие обещания
+SEND_RE = 'mcp__plugin_(mila-)?telegram_telegram__reply|mcp__plugin_(mila-)?telegram_telegram__edit_message'
+sg = 'python3 ' + os.path.join(cfg_dir, 'hooks', 'send-guard.py')
+if not any('send-guard.py' in json.dumps(x) for x in hooks.get('PreToolUse', [])):
+    ck_missing.append(('PreToolUse', {'matcher': SEND_RE, 'hooks': [{'type': 'command', 'command': sg}]}))
+tdir = os.path.join(cfg_dir, 'skills', 'mila-tasks', 'hooks')
+if os.path.isfile(os.path.join(tdir, 'task-sent.py')):
+    if not any('task-sent.py' in json.dumps(x) for x in hooks.get('PostToolUse', [])):
+        ck_missing.append(('PostToolUse', {'matcher': 'mcp__plugin_(mila-)?telegram_telegram__reply',
+                                           'hooks': [{'type': 'command', 'command': 'python3 ' + os.path.join(tdir, 'task-sent.py')}]}))
+    if not any('task-open.py' in json.dumps(x) for x in hooks.get('SessionStart', [])):
+        ck_missing.append(('SessionStart', {'hooks': [{'type': 'command', 'command': 'python3 ' + os.path.join(tdir, 'task-open.py')}]}))
+# OWNER_ID — chat id хозяина: send-guard пускает ответы только ему и подключённым чатам (без него — по access.json)
+own = (os.environ.get('MILA_OWNER_ID') or os.environ.get('OWNER_ID') or '').strip()
+if own.lstrip('-').isdigit() and cfg.get('env', {}).get('OWNER_ID') != own:
+    cfg.setdefault('env', {})['OWNER_ID'] = own
+    ck_missing.append(('_env', None))
 if already and not ck_missing:
     print('  already registered in settings.json')
 else:
     if not already:
         entries.append({'hooks': [{'type': 'command', 'command': hook_cmd}]})
     for ev, e in ck_missing:
-        hooks.setdefault(ev, []).append(e)
+        if ev != '_env':
+            hooks.setdefault(ev, []).append(e)
     new_raw = json.dumps(cfg, ensure_ascii=False, indent=2)
     if raw is not None and raw != new_raw:
         ts = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')

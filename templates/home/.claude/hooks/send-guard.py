@@ -28,7 +28,9 @@ try:
     _allowed = {str(k) for k in (_acc.get("groups") or {}).keys()} | {str(x) for x in (_acc.get("allowFrom") or [])}
 except Exception:
     pass
-if owner and chat_id and chat_id != owner and chat_id not in _allowed:
+# SELFHOST-1018 (Вебмастер: без OWNER_ID проверка адресата выключалась): нет OWNER_ID — хватает access.json (allowFrom + группы);
+# нет ни того, ни другого — проверку адресата не делаем (Мила ещё не подключена, писать некуда кроме ответа)
+if chat_id and (owner or _allowed) and chat_id != owner and chat_id not in _allowed:
     why.append("адресат %s — не хозяин и не подключённый чат: говорю только там, куда меня подключили" % chat_id)
 
 SECRETS = [
