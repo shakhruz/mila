@@ -2,7 +2,7 @@
 # INSTALL-HOOKS-1017: каждый хук, который install.sh прописал в settings.json, лежит файлом (иначе Stop-хук без файла = код 2 = сессия не останавливается).
 set -u; unset TELEGRAM_STATE_DIR
 REPO="$(cd "$(dirname "$0")/.." && pwd)"; T="$(mktemp -d)"; mkdir -p "$T/home/.claude"
-HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" PATH=/usr/bin:/bin:/usr/local/bin bash "$REPO/install/install.sh" >/dev/null 2>&1
+HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_OWNER_ID=555000111 PATH=/usr/bin:/bin:/usr/local/bin bash "$REPO/install/install.sh" >/dev/null 2>&1
 ok=0; n=0; chk() { n=$((n+1)); if eval "$2"; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 miss=$(python3 - "$T/home/.claude/settings.json" <<'PY'
 import json, os, sys, shlex
@@ -19,5 +19,11 @@ chk "все хуки из settings.json лежат файлами" "[ -z \"$miss
 chk "Stop: reply-required.py установлен" "[ -x $T/home/.claude/hooks/reply-required.py ]"
 chk "PostToolUse: pd-mask.py установлен" "[ -x $T/home/.claude/hooks/pd-mask.py ]"
 chk "ключ хранилища ПДн создан, 600" "[ \"\$(stat -c %a $T/home/.config/mila/pd.key 2>/dev/null)\" = 600 ]"
+S="$T/home/.claude/settings.json"
+chk "SELFHOST-1018: PreToolUse send-guard зарегистрирован и лежит файлом" "grep -q 'send-guard.py' $S && [ -x $T/home/.claude/hooks/send-guard.py ]"
+chk "SELFHOST-1018: task-sent (PostToolUse reply) и task-open (SessionStart) зарегистрированы" "grep -q 'task-sent.py' $S && grep -q 'task-open.py' $S"
+chk "SELFHOST-1018: OWNER_ID из MILA_OWNER_ID — в env settings.json" "python3 -c \"import json;assert json.load(open('$S'))['env']['OWNER_ID']=='555000111'\""
+chk "SELFHOST-1018: повторная установка не дублирует хуки" "HOME=$T/home CLAUDE_CONFIG_DIR=$T/home/.claude MILA_OWNER_ID=555000111 PATH=/usr/bin:/bin:/usr/local/bin bash $REPO/install/install.sh >/dev/null 2>&1; [ \$(grep -c 'send-guard.py' $S) -eq 1 ]"
+chk "шаблон settings.json без зашитого /home/companion" "! grep -q '/home/companion' $REPO/templates/home/.claude/settings.json"
 [ -n "$miss" ] && echo "нет файлов: $miss"
 echo "итог $ok/$n"; rm -rf "$T"

@@ -523,5 +523,5 @@ it isn't: you can read every line you are paying someone to teach you to run.
 
 ## Licence
 
-MIT for this kit. The Telegram plugin is Apache-2.0, as a fork of Anthropic's
+Apache-2.0 for this kit (see LICENSE). The Telegram plugin is Apache-2.0 too, as a fork of Anthropic's
 official channel plugin — see its NOTICE file.
