@@ -23,9 +23,11 @@ why = []
 # кроме хозяина разрешены
 # группы из access.json — туда компаньона подключает владелец карточкой — и личка допущенных (allowFrom).
 _allowed = set()
+_card_allow = set()
 try:
     _acc = json.load(open(os.path.expanduser("~/.claude/channels/telegram/access.json"), encoding="utf-8"))
     _allowed = {str(k) for k in (_acc.get("groups") or {}).keys()} | {str(x) for x in (_acc.get("allowFrom") or [])}
+    _card_allow = {re.sub(r"\D", "", str(x)) for x in (_acc.get("cardAllow") or [])}   # CARD-ALLOW-1019: наши реквизиты оплаты
 except Exception:
     pass
 # SELFHOST-1018 (Вебмастер: без OWNER_ID проверка адресата выключалась): нет OWNER_ID — хватает access.json (allowFrom + группы);
@@ -60,7 +62,7 @@ def _cards(t):
     out = []
     for m in _PAN.finditer(t):
         d = re.sub(r"\D", "", m.group())
-        if 13 <= len(d) <= 19 and len(set(d)) > 1 and _luhn(d):
+        if 13 <= len(d) <= 19 and len(set(d)) > 1 and _luhn(d) and d not in _card_allow:
             out.append((m.start(), m.end(), d))
     return out
 def mask_cards(t):

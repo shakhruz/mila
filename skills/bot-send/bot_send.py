@@ -33,9 +33,11 @@ def _luhn(d):
 
 
 def mask_cards(text):
+    allow = {re.sub(r"\D", "", x) for x in os.environ.get("CARD_ALLOW", "").split(",") if x.strip()}   # CARD-ALLOW-1019: наши реквизиты
+
     def rep(m):
         d = re.sub(r"\D", "", m.group())
-        return "****" + d[-4:] if 13 <= len(d) <= 19 and len(set(d)) > 1 and _luhn(d) else m.group()
+        return "****" + d[-4:] if 13 <= len(d) <= 19 and len(set(d)) > 1 and _luhn(d) and d not in allow else m.group()
     return _PAN.sub(rep, str(text or ""))
 
 
