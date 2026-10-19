@@ -1,5 +1,8 @@
 # CHANGELOG · Mila Companion
 
+## v1.4.0-rc4 · fix (candidate)
+- 🔴 `install.sh` (since rc3) registered `reply-required.py` as a Stop hook but did not copy the file: on a fresh install every stop failed with exit code 2, which means «don't stop» — the session would loop. Now every hook the installer registers is copied; `install/test_install_hooks.sh` checks that each hook in settings.json exists as a file. Updates via mila-update were not affected (install/*.py are copied by the release zones; settings.json is not touched).
+
 ## v1.4.0-rc3 · code improvements (candidate)
 - `tests/run_all.sh`: every test in the repo + frontmatter in one command (11, ~9 s), exit code 1 on any failure; in release.sh and CONTRIBUTING.
 - `install.sh` registers `reply-required.py` as a Stop hook (promised by README/REFERENCE, was manual); `--dry-run` lists every hook; owner's own hooks and settings kept, backup made, re-run does not duplicate.
