@@ -49,7 +49,7 @@ for rx, name in SECRETS:
 # CARD-MASK-1019 (утечка 19.10: вечерний отчёт вставил тело письма с полным номером карты клиента): 13–19 цифр подряд
 # (пробелы/дефисы между ними — можно), проходят Луну → номер карты. В группу — стоп, автору переписать без номера;
 # хозяину и в личку — уходит, но номер заменён маской ****1234 (updatedInput). Телефон с «+» — не карта.
-_PAN = re.compile(r"(?<![\d+])(?:\d[ -]?){12,18}\d(?![\d])")
+_PAN = re.compile(r"(?<![\d+])(?:\d[ -]?){12,}\d(?![\d])")
 def _luhn(d):
     t = 0
     for i, ch in enumerate(reversed(d)):
@@ -59,11 +59,20 @@ def _luhn(d):
         t += x
     return t % 10 == 0
 def _cards(t):
+    """[(начало, конец, цифры)] — окно групп цифр 13–19, Луна; сумма после номера («… 1234 100 USD») не мешает."""
     out = []
     for m in _PAN.finditer(t):
-        d = re.sub(r"\D", "", m.group())
-        if 13 <= len(d) <= 19 and len(set(d)) > 1 and _luhn(d) and d not in _card_allow:
-            out.append((m.start(), m.end(), d))
+        txt = m.group(); parts = [g.span() for g in re.finditer(r"\d+", txt)]; i = 0
+        while i < len(parts):
+            cand = []
+            for j in range(len(parts) - 1, i - 1, -1):
+                d = re.sub(r"\D", "", txt[parts[i][0]:parts[j][1]])
+                if 13 <= len(d) <= 19 and len(set(d)) > 1 and _luhn(d) and d not in _card_allow:
+                    cand.append((j, d))
+            hit = next((c for c in cand if len(c[1]) == 16), cand[0] if cand else None)   # 16 цифр — самый частый номер; иначе самое длинное окно
+            if not hit:
+                i += 1; continue
+            out.append((m.start() + parts[i][0], m.start() + parts[hit[0]][1], hit[1])); i = hit[0] + 1
     return out
 def mask_cards(t):
     for a, b, d in reversed(_cards(t)):

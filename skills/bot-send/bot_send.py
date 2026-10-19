@@ -19,7 +19,7 @@ QUIET = (22, 8)            # с 22:00 до 08:00 по Ташкенту
 RATE = 20                  # сообщений в секунду, не больше
 PREVIEW_TTL = 3600         # превью рассылки живёт час
 # CARD-MASK-1019 (утечка 19.10): номер карты (13–19 цифр, Луна) наружу не уходит — маска ****1234
-_PAN = re.compile(r"(?<![\d+])(?:\d[ -]?){12,18}\d(?![\d])")
+_PAN = re.compile(r"(?<![\d+])(?:\d[ -]?){12,}\d(?![\d])")
 
 
 def _luhn(d):
@@ -32,12 +32,24 @@ def _luhn(d):
     return t % 10 == 0
 
 
-def mask_cards(text):
-    allow = {re.sub(r"\D", "", x) for x in os.environ.get("CARD_ALLOW", "").split(",") if x.strip()}   # CARD-ALLOW-1019: наши реквизиты
+def mask_cards(text, allow=None):
+    """Номер карты (13–19 цифр подряд, пробелы/дефисы между группами, Луна) → ****1234. Внутри длинной цепочки групп ищем
+    окно, которое проходит Луну («карта <номер> 100 USD» — сумма после номера не мешает)."""
+    allow = {re.sub(r"\D", "", str(x)) for x in (allow if allow is not None else os.environ.get("CARD_ALLOW", "").split(",")) if str(x).strip()}   # CARD-ALLOW-1019
 
     def rep(m):
-        d = re.sub(r"\D", "", m.group())
-        return "****" + d[-4:] if 13 <= len(d) <= 19 and len(set(d)) > 1 and _luhn(d) and d not in allow else m.group()
+        txt = m.group(); parts = [g.span() for g in re.finditer(r"\d+", txt)]; out, pos, i = [], 0, 0
+        while i < len(parts):
+            cand = []
+            for j in range(len(parts) - 1, i - 1, -1):
+                d = re.sub(r"\D", "", txt[parts[i][0]:parts[j][1]])
+                if 13 <= len(d) <= 19 and len(set(d)) > 1 and _luhn(d) and d not in allow:
+                    cand.append((j, d))
+            hit = next((c for c in cand if len(c[1]) == 16), cand[0] if cand else None)   # 16 цифр — самый частый номер; иначе самое длинное окно
+            if not hit:
+                i += 1; continue
+            out.append(txt[pos:parts[i][0]] + "****" + hit[1][-4:]); pos = parts[hit[0]][1]; i = hit[0] + 1
+        return "".join(out) + txt[pos:]
     return _PAN.sub(rep, str(text or ""))
 
 
