@@ -1,5 +1,24 @@
 # CHANGELOG · Mila Companion
 
+## v1.5.0 · privacy and safety layer, 19.10
+Personal data stays out of what Mila stores, card numbers never leave in a message, and a fresh self-hosted install comes with all its guards.
+
+**For the owner**
+- Card numbers are protected: a message with a bank card number (13–19 digits that pass the Luhn check) is never sent to a group, and in a private chat it goes out masked as ****1234. Your own payment details can be allowed in the config (`cardAllow` in access.json, `CARD_ALLOW` for bot sends).
+- Personal data in Mila's memory is stored as labels, not as the data itself (pd-vault, encrypted on your machine).
+- A fresh install already has every guard switched on: sending only to connected chats, no keys or internals in messages, tracking of what Mila promised you.
+- New: a pack for clinics (booking and price list, with an exam).
+
+**For Milas**
+- `send-guard` (CARD-MASK): card number → deny to groups with the reason for the author, `updatedInput` with the mask in private chats; amount right after the number («… 1234 100 USD») does not hide it — the Luhn window is searched inside the digit chain, 16 digits first. `bot_send` masks in sends and broadcast previews.
+- pd-vault (layer 2a): AES-256 + HMAC via openssl, labels instead of personal data; `pd-mask` PostToolUse hook; install creates the key by default.
+- `install.sh` (SELFHOST): registers send-guard (PreToolUse reply/edit), task-sent and task-open (mila-tasks), `OWNER_ID` from `MILA_OWNER_ID`; send-guard falls back to access.json without OWNER_ID; installer copies every hook it registers.
+- `skills/jev`: fast decider — reply / who / buttons, modes off | shadow | main, 1.2 s timeout → rules, diff log without texts.
+- `mila-update`: `install-skill` refuses an incomplete skill (files named in SKILL.md missing → list, `--allow-missing` to install knowingly); `remove-skill` with backup, core skills protected.
+- `packs/clinic` v0.1: clinic-booking, clinic-prices, exam (Sila's patient scenarios ×3), no condition names (diagnosis), data in `~/work/clinic/`.
+- README: release badge and «which version to take» (stable — Releases, canary — main); REFERENCE licence fixed to Apache-2.0.
+- Tests: `tests/run_all.sh` — ALL GREEN 17.
+
 ## v1.4.0-rc4 · fix (candidate)
 - 🔴 `install.sh` (since rc3) registered `reply-required.py` as a Stop hook but did not copy the file: on a fresh install every stop failed with exit code 2, which means «don't stop» — the session would loop. Now every hook the installer registers is copied; `install/test_install_hooks.sh` checks that each hook in settings.json exists as a file. Updates via mila-update were not affected (install/*.py are copied by the release zones; settings.json is not touched).
 
