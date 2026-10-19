@@ -1,8 +1,12 @@
 # Mila Companion
 
+[![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-companion?sort=semver&label=release)](https://github.com/shakhruz/mila-companion/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-companion)](LICENSE)
+
 ![Mila Companion](docs/preview.png)
 
 **Mila Companion is an open-source digital employee for your business. She lives in Telegram.**
+
+**Which version to take:** stable — [Releases](https://github.com/shakhruz/mila-companion/releases) (tags `vX.Y.Z`); canary — the `main` branch (newest, may break).
 
 Most open agents are universal: a powerful assistant that can do anything, if you tell it how.
 Mila is built the other way round - as a colleague with a job. She answers your clients, keeps your promises,

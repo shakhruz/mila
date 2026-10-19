@@ -1,8 +1,12 @@
 # Mila Companion
 
+[![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-companion?sort=semver&label=release)](https://github.com/shakhruz/mila-companion/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-companion)](LICENSE)
+
 ![Mila Companion](docs/preview.png)
 
 **Mila Companion - цифровой сотрудник для вашего дела с открытым кодом. Живёт в Telegram.**
+
+**Какую версию брать:** стабильная — [Releases](https://github.com/shakhruz/mila-companion/releases) (теги `vX.Y.Z`); canary — ветка `main` (новее, может ломаться).
 
 Большинство открытых агентов универсальны: мощный помощник, который сделает что угодно, если вы объясните как.
 Мила устроена наоборот - как коллега с работой. Отвечает вашим клиентам, держит обещания, помнит каждый разговор,
