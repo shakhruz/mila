@@ -18,6 +18,25 @@ TZ = timezone(timedelta(hours=5))
 QUIET = (22, 8)            # с 22:00 до 08:00 по Ташкенту
 RATE = 20                  # сообщений в секунду, не больше
 PREVIEW_TTL = 3600         # превью рассылки живёт час
+# CARD-MASK-1019 (утечка 19.10): номер карты (13–19 цифр, Луна) наружу не уходит — маска ****1234
+_PAN = re.compile(r"(?<![\d+])(?:\d[ -]?){12,18}\d(?![\d])")
+
+
+def _luhn(d):
+    t = 0
+    for i, ch in enumerate(reversed(d)):
+        x = int(ch)
+        if i % 2:
+            x = x * 2 - 9 if x > 4 else x * 2
+        t += x
+    return t % 10 == 0
+
+
+def mask_cards(text):
+    def rep(m):
+        d = re.sub(r"\D", "", m.group())
+        return "****" + d[-4:] if 13 <= len(d) <= 19 and len(set(d)) > 1 and _luhn(d) else m.group()
+    return _PAN.sub(rep, str(text or ""))
 
 
 class BotSend:
@@ -73,7 +92,7 @@ class BotSend:
     def send(self, user, text, buttons=None, kind="personal"):
         """bot_send: человеку, который писал боту. user — id (число) или @username (ищется движком в known)."""
         uid = str(user).lstrip("@")
-        text = str(text or "").strip()
+        text = mask_cards(str(text or "").strip())
         if not text: return {"ok": False, "error": "пустой текст"}
         if len(text) > 4096: return {"ok": False, "error": "текст длиннее 4096 знаков"}
         if not self.known(uid): return {"ok": False, "error": "этот человек не писал боту — первым писать нельзя"}
@@ -91,6 +110,7 @@ class BotSend:
     # ── рассылка ──
     def preview(self, user_ids, text, segment=""):
         """Шаг 1: превью владельцу. Возвращает preview_id и N (без стоп-листа и незнакомых)."""
+        text = mask_cards(text)
         stop = self.stoplist()
         to = [str(u) for u in dict.fromkeys(user_ids) if self.known(str(u)) and str(u) not in stop]
         pid = uuid.uuid4().hex[:10]

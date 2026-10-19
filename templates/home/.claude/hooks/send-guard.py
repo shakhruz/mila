@@ -44,6 +44,32 @@ SECRETS = [
 for rx, name in SECRETS:
     if re.search(rx, text):
         why.append("в тексте %s — секреты в чат не пишем, хозяину: «перевыпустить»" % name)
+# CARD-MASK-1019 (утечка 19.10: вечерний отчёт вставил тело письма с полным номером карты клиента): 13–19 цифр подряд
+# (пробелы/дефисы между ними — можно), проходят Луну → номер карты. В группу — стоп, автору переписать без номера;
+# хозяину и в личку — уходит, но номер заменён маской ****1234 (updatedInput). Телефон с «+» — не карта.
+_PAN = re.compile(r"(?<![\d+])(?:\d[ -]?){12,18}\d(?![\d])")
+def _luhn(d):
+    t = 0
+    for i, ch in enumerate(reversed(d)):
+        x = int(ch)
+        if i % 2:
+            x = x * 2 - 9 if x > 4 else x * 2
+        t += x
+    return t % 10 == 0
+def _cards(t):
+    out = []
+    for m in _PAN.finditer(t):
+        d = re.sub(r"\D", "", m.group())
+        if 13 <= len(d) <= 19 and len(set(d)) > 1 and _luhn(d):
+            out.append((m.start(), m.end(), d))
+    return out
+def mask_cards(t):
+    for a, b, d in reversed(_cards(t)):
+        t = t[:a] + "****" + d[-4:] + t[b:]
+    return t
+_card_hits = _cards(text)
+if _card_hits and chat_id.startswith("-"):
+    why.append("в тексте номер банковской карты — в группу не отправляю; перепиши без номера (если нужно — только ****%s)" % _card_hits[0][2][-4:])
 if re.search(r"(?<!\d)-100\d{10}(?!\d)", text):
     why.append("в тексте id чата (-100…) — внутренние номера наружу не показываем, называй чат по имени")
 
@@ -140,6 +166,10 @@ except Exception:
     pass  # замок не должен ломать отправку
 
 if not why:
+    if _card_hits:   # личка/хозяин: уходит, но с маской
+        print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow",
+                                                 "permissionDecisionReason": "номер карты заменён маской",
+                                                 "updatedInput": dict(args, text=mask_cards(text))}}, ensure_ascii=False))
     sys.exit(0)
 print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
                                          "permissionDecisionReason": "Не отправляю: " + "; ".join(why)}},
