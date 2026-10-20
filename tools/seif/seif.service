@@ -1,0 +1,16 @@
+[Unit]
+Description=Mila Safe — one-time links for business owner secrets (127.0.0.1:7693)
+After=network.target
+
+[Service]
+Environment=SEIF_DIR=/var/lib/mila-seif
+Environment=SEIF_HOMES=<папка домов Мил>
+Environment=SEIF_BASE=https://<ваш домен>/v/
+Environment=SEIF_UID=<uid хозяина домов>
+ExecStart=/usr/bin/python3 /opt/mila-seif/seif.py serve --port 7693
+Restart=on-failure
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
