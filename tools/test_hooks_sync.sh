@@ -9,7 +9,7 @@ mkdir -p $T/.claude/skills/mila-tasks/hooks; touch $T/.claude/skills/mila-tasks/
 cat > $T/.claude/settings.json <<'J'
 {"hooks": {"SessionStart": [{"hooks": [{"type": "command", "command": "python3 x/session-start.py"}]}], "PreToolUse": [{"matcher": "reply", "hooks": [{"type": "command", "command": "python3 x/send-guard.py"}]}], "Stop": [{"hooks": [{"type": "command", "command": "python3 x/reply-required.py"}]}]}, "env": {"OWNER_ID": "1"}}
 J
-$S > o1.json; cat o1.json > /dev/null
+$S > /dev/null
 chk "добавлены оба хука" "grep -q 'task-sent' $T/.claude/settings.json && grep -q 'task-open' $T/.claude/settings.json"
 chk "PostToolUse — на reply" "python3 -c \"import json;d=json.load(open('$T/.claude/settings.json'));assert any('telegram_telegram__reply' in x.get('matcher','') for x in d['hooks']['PostToolUse'])\""
 chk "чужие хуки и env целы" "python3 -c \"import json;d=json.load(open('$T/.claude/settings.json'));assert 'send-guard' in json.dumps(d['hooks']['PreToolUse']) and 'reply-required' in json.dumps(d['hooks']['Stop']) and d['env']['OWNER_ID']=='1' and 'session-start' in json.dumps(d['hooks']['SessionStart'])\""
