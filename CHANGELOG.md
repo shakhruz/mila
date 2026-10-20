@@ -1,5 +1,9 @@
 # CHANGELOG · Mila Companion
 
+## Unreleased
+- `skills/live-frames` (new, from Mila Video, owner 20.10 «намного лучше»): explainer video from a voice track — moving background, Twemoji icons, counters, bars, arrows and pills appear on the spoken word, whoosh/pop/ticks and a ducked music bed, −14 LUFS; Pillow + numpy + ffmpeg, no paid graphics. Local word timing check (faster-whisper). Twemoji CC-BY 4.0, PT Sans OFL. Test: 3-second render with sound.
+- `tools/hooks_sync.py` + template settings: mila-tasks hooks (PostToolUse reply → task-sent, SessionStart → task-open) for Milas deployed from the image (HOOKS-SYNC-1020).
+
 ## v1.5.0 · privacy and safety layer, 19.10
 Personal data stays out of what Mila stores, card numbers never leave in a message, and a fresh self-hosted install comes with all its guards.
 
