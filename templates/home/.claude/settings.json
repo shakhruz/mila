@@ -12,6 +12,14 @@
             "command": "python3 $HOME/.claude/hooks/session-start.py"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$HOME/.claude/skills/mila-tasks/hooks/task-open.py; [ -f \"$f\" ] && exec python3 \"$f\"; exit 0"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -32,6 +40,17 @@
             "type": "command",
             "command": "python3 $HOME/.claude/hooks/send-guard.py",
             "onFailure": "block"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__plugin_(mila-)?telegram_telegram__reply",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$HOME/.claude/skills/mila-tasks/hooks/task-sent.py; [ -f \"$f\" ] && exec python3 \"$f\"; exit 0"
           }
         ]
       }
