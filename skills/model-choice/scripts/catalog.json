@@ -1,0 +1,31 @@
+{
+ "checked": "2026-10-20",
+ "sources": {
+  "openrouter": "https://openrouter.ai/api/v1/models (живые цены, $ за 1M токенов)",
+  "fal": "https://fal.ai/pricing (20.10.2026)",
+  "elevenlabs": "https://elevenlabs.io/pricing/api (20.10.2026)"
+ },
+ "tasks": {
+  "text": {"title": "текст: письмо, пост, ответ", "job": "письмо или пост ~1 стр.", "units": {"in_tok": 3000, "out_tok": 1500},
+   "cheap": {"name": "DeepSeek V4.1 Flash", "openrouter": "deepseek/deepseek-v4.1-flash", "in": 0.056, "out": 0.12, "gives": "быстро, просто, иногда суховато"},
+   "best": {"name": "Claude Sonnet 5.5", "openrouter": "anthropic/claude-sonnet-5.5", "in": 2.0, "out": 10.0, "gives": "живой тон, точнее держит вашу задачу"}},
+  "analysis": {"title": "анализ: документ, таблица, договор", "job": "документ ~30 стр.", "units": {"in_tok": 50000, "out_tok": 3000},
+   "cheap": {"name": "Gemini 3.1 Flash Lite", "openrouter": "google/gemini-3.1-flash-lite", "in": 0.25, "out": 1.5, "gives": "главное и цифры, без глубины"},
+   "best": {"name": "Claude Opus 5.5", "openrouter": "anthropic/claude-opus-5.5", "in": 4.0, "out": 20.0, "gives": "глубокий разбор, риски, что упущено"}},
+  "translate": {"title": "перевод", "job": "текст ~2 стр.", "units": {"in_tok": 3000, "out_tok": 3000},
+   "cheap": {"name": "Gemini 3.1 Flash Lite", "openrouter": "google/gemini-3.1-flash-lite", "in": 0.25, "out": 1.5, "gives": "точный смысл, простой язык"},
+   "best": {"name": "Claude Sonnet 5.5", "openrouter": "anthropic/claude-sonnet-5.5", "in": 2.0, "out": 10.0, "gives": "звучит как написано носителем"}},
+  "image": {"title": "картинка", "job": "1 картинка ~1 Мп", "units": {"images": 1, "mp": 1},
+   "cheap": {"name": "FLUX.1 [schnell]", "provider": "fal", "per": "mp", "price": 0.003, "gives": "быстро, простые сцены"},
+   "best": {"name": "Nano Banana Pro", "provider": "fal", "per": "image", "price": 0.15, "gives": "детали, текст на картинке, ваш стиль"}},
+  "video": {"title": "видео", "job": "ролик 5 с", "units": {"seconds": 5},
+   "cheap": {"name": "Kling Video v2.5 Turbo Pro", "provider": "fal", "per": "second", "price": 0.07, "gives": "живое движение, короткие сцены"},
+   "best": {"name": "Kling Video v3 Pro", "provider": "fal", "per": "second", "price": 0.14, "gives": "плавнее, реалистичнее лица и руки"}},
+  "voice": {"title": "озвучка", "job": "1 минута речи ≈ 900 знаков", "units": {"chars": 900},
+   "cheap": {"name": "ElevenLabs Flash", "provider": "elevenlabs", "per": "kchar", "price": 0.04, "gives": "быстро, чуть ровнее интонация"},
+   "best": {"name": "ElevenLabs Multilingual v2", "provider": "elevenlabs", "per": "kchar", "price": 0.08, "gives": "живая интонация, ударения точнее"}},
+  "transcribe": {"title": "расшифровка аудио", "job": "запись 10 минут", "units": {"hours": 0.1667},
+   "cheap": {"name": "faster-whisper (локально)", "provider": "local", "per": "hour", "price": 0.0, "gives": "бесплатно, медленнее, имена иногда с ошибками"},
+   "best": {"name": "ElevenLabs Scribe v2", "provider": "elevenlabs", "per": "hour", "price": 0.22, "gives": "быстро, точнее имена и цифры"}}
+ }
+}

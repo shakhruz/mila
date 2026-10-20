@@ -1,6 +1,8 @@
 # CHANGELOG · Mila Companion
 
 ## Unreleased
+- `skills/model-choice` (a partner's idea, 20.10): before any paid task (images, video, voice, transcription, translation, document analysis) Mila shows two options — budget / best quality: model, what you get, price for this job — with a recommendation, owner picks by button; `pick.py` + dated `catalog.json` (OpenRouter live, fal.ai, ElevenLabs). Test 6/6.
+- Mila Safe (owner 20.10, «Да, делаем сейф»): `tools/seif` — one-time link (30 min, single use, GET does not burn it) where the business owner types passwords, keys and cards; values go straight to `work/secrets/<name>.env` (600) of the Mila's home, journal without values, note to the companion; `skills/safe-link` — never ask secrets in chat, request a safe link, read with `safe_read.py` (mask only). Tests 12/12, 6/6.
 - `skills/live-frames` (new, from Mila Video, owner 20.10 «намного лучше»): explainer video from a voice track — moving background, Twemoji icons, counters, bars, arrows and pills appear on the spoken word, whoosh/pop/ticks and a ducked music bed, −14 LUFS; Pillow + numpy + ffmpeg, no paid graphics. Local word timing check (faster-whisper). Twemoji CC-BY 4.0, PT Sans OFL. Test: 3-second render with sound.
 - `tools/hooks_sync.py` + template settings: mila-tasks hooks (PostToolUse reply → task-sent, SessionStart → task-open) for Milas deployed from the image (HOOKS-SYNC-1020).
 
