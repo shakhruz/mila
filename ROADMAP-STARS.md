@@ -16,4 +16,6 @@ Product manager: Mila Companion (leads and accepts). Build: Mila Development. Re
 | 7 | Duplicates inbox/vhodyashchie, tasks/zadachi, topics/topiki, questions/voprosy, tastes/vkusy — decision of Mila Companion (remove aliases in v1.6.0 or hide in `skills/_aliases/`) | catalog without duplicates | the day after the decision |
 | 8 | Demo GIF in English (Content + Mila Video): a customer writes at night → Mila answers → morning summary | in README first screen | 24.10 |
 
+**Before rolling English-first skills to the fleet:** exams for onboarding and communication in ru and uz on the stand — reply language, «знакомство: пройдено» marker, buttons (Quality, 21.10). Until they pass, English-first skills stay out of the nightly roll.
+
 Each step: branch → Quality (secrets, our hosts, client and people names in history = 0; run_all green) → push by Admin.
