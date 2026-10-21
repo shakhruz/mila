@@ -22,6 +22,7 @@ chk "nightly у новорождённой — skip" "$U nightly --dry-run 2>/de
 chk "Мила команды (MILA_INTERNAL=1): гейт не срабатывает" "MILA_INTERNAL=1 python3 -c \"import sys; sys.argv=['u']; sys.path.insert(0,'$HERE'); import update; sys.exit(0 if update.newborn_block()=='' else 1)\""
 $U config --set internal=true >/dev/null
 chk "internal=true в mila-update.json: гейт не срабатывает, nightly не skip по знакомству" "python3 -c \"import sys; sys.argv=['u']; sys.path.insert(0,'$HERE'); import update; sys.exit(0 if update.newborn_block()=='' else 1)\" && ! $U nightly --dry-run 2>/dev/null | grep -q 'знакомство ещё не пройдено'"
+chk "обход гейта в журнале: internal, источник config, где nightly" "grep -q '\"newborn_gate_skipped\".*\"source\": \"config\".*\"where\": \"nightly\"' $CLAUDE_CONFIG_DIR/mila-update/journal.jsonl"
 $U config --set internal=false >/dev/null
 chk "internal=false — гейт снова на месте" "! $U apply --src $T/rel --yes x >/dev/null 2>&1 && [ ! -e $CLAUDE_CONFIG_DIR/skills/visual ]"
 chk "internal только true/false" "! $U config --set internal=yes >/dev/null 2>&1"

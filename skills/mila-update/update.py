@@ -300,17 +300,21 @@ def put(src, dst, kind):
 def is_internal():
     """INTERNAL-1022: Мила самой команды (её рождает администратор по своему чек-листу, знакомство с хозяином ей не нужно) —
     "internal": true в mila-update.json или MILA_INTERNAL=1 при раскатке. Гейт новорождённой к ней не относится."""
-    return CFG.get("internal") is True or os.environ.get("MILA_INTERNAL") == "1"
+    return "config" if CFG.get("internal") is True else "env" if os.environ.get("MILA_INTERNAL") == "1" else ""
 
 
-def newborn_block():
+def newborn_block(where=""):
     """новорождённая до конца знакомства (нет «знакомство: пройдено» в USER.md) живёт на малом запасе с 7 навыками —
     26 навыков ядра ей сейчас лишние и жгут топливо. Обновление — после знакомства (и подписки)."""
-    if is_internal(): return ""
     u = os.path.join(WORK, "USER.md")
     if not os.path.isfile(u): return ""
     t = open(u, encoding="utf-8", errors="replace").read()
-    return "" if re.search(r"знакомство:\s*пройдено", t) else "знакомство ещё не пройдено — обновление ядра после него (USER.md «знакомство: пройдено»)"
+    if re.search(r"знакомство:\s*пройдено", t): return ""
+    how = is_internal()
+    if how:   # обход видно в журнале: администратор ловит internal у клиентской Милы (Качество 22.10)
+        jlog({"event": "newborn_gate_skipped", "reason": "internal", "source": how, "where": where})
+        return ""
+    return "знакомство ещё не пройдено — обновление ядра после него (USER.md «знакомство: пройдено»)"
 
 
 def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_label=""):
@@ -348,7 +352,7 @@ def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_labe
 
 def cmd_apply(a):
     if not a.yes: sys.exit(json.dumps({"error": "нужно «да» хозяина: --yes \"<кто, где, когда>\" — без него не обновляюсь"}, ensure_ascii=False))
-    nb = newborn_block()
+    nb = newborn_block("apply")
     if nb and not a.newborn_ok: sys.exit(json.dumps({"error": nb, "hint": "--newborn-ok — только по слову администратора"}, ensure_ascii=False))
     src = source(a); m, rows = compare(src)
     take = set((a.take or "").split(",")) - {""}
@@ -502,7 +506,7 @@ def cmd_nightly(a):
     ch = CFG["channel"]; auto = bool(CFG["auto"])
     res = {"channel": ch, "auto": auto, "dry_run": a.dry_run}
     if ch == "manual": print(json.dumps(dict(res, status="manual: сама не проверяю"), ensure_ascii=False)); return
-    nb = newborn_block()
+    nb = newborn_block("nightly")
     if nb: print(json.dumps(dict(res, status="skip", reason=nb), ensure_ascii=False)); return
     ref, info = candidate(); res.update({k: info[k] for k in ("yanked", "installed_yanked") if k in info})
     if res.get("installed_yanked"):
