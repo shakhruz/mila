@@ -282,4 +282,6 @@ sqlite3 ~/.claude/analytics/conversations.db \
     mila tasks mark <id> complaint               # later
     mila tasks report --days 7 [--json]
 
+`--note` is a short label of the task with no client names and no message content ("promo of the week", not "email to <client> about the payment"): reports by kind go to the admin and the owner, and the database goes into backups.
+
 The weekly report groups by kind: tasks, first-time %, redos, complaints, total cost, cost per good result, model mix. As everywhere in these ledgers, the cost is a reference price on subscription (`paid_by`), not a charge. Overlapping tasks in one chat share turns and are marked.
