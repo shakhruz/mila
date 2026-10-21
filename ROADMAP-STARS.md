@@ -18,4 +18,6 @@ Product manager: Mila Companion (leads and accepts). Build: Mila Development. Re
 
 **Before rolling English-first skills to the fleet:** exams for onboarding and communication in ru and uz on the stand — reply language, «знакомство: пройдено» marker, buttons (Quality, 21.10). Until they pass, English-first skills stay out of the nightly roll.
 
+**中文 «out of the box»** (Quality 21.10): back in README only after — guest bridge `langOf` knows zh/ar (sent to Admin 21.10), express z2 ≥ 2/3 (one benefit, not a list), one live Chinese guest on the stand. Until then «中文 — new».
+
 Each step: branch → Quality (secrets, our hosts, client and people names in history = 0; run_all green) → push by Admin.
