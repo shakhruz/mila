@@ -14,7 +14,7 @@ Mila — biznesingiz uchun hamkasb: mijozlaringizga javob beradi, va’dalaringi
 
 - **Raqamli xodim, universal agent emas.** Mijoz suhbatlari, va’dalar va vazifalar, egasining «ha»si uchun kartochkalar, haftalik ritm, xarajat limitlari.
 - **Telegramda yashaydi.** Yangi ilova o‘rnatish shart emas.
-- **Bitta Mila, ikki hamyon.** Claude Code obunangiz — siz uchun; qolgan hammaga — jamoa, ish chatlari, mijozlar, mehmonlar — Mila [OpenRouter](https://openrouter.ai) orqali tokenlarda, sarflanganicha toʻlov bilan javob beradi: xarajat faqat Mila javob beradigan odamlar bilan birga oʻsadi (bugun bulutli versiyada mehmonlar va mijozlar shunday yoʻnaltiriladi; jamoa va ish chatlari tokenlarga, yoʻnaltirish esa ochiq yadroga — mila-telegram ning keyingi chiqishi bilan oʻtadi). Fayllaringiz o‘z uy papkangizda qoladi; suhbatlar faqat siz tanlagan model provayderlariga boradi; Mila 100% sizniki.
+- **Bitta Mila, ikki hamyon.** Claude Code obunangiz — siz va ish chatlaringiz uchun; mijozlar va mehmonlarga Mila [OpenRouter](https://openrouter.ai) orqali tokenlarda, sarflanganicha toʻlov bilan javob beradi: xarajat faqat mijozlar bilan birga oʻsadi (mehmonlarni yoʻnaltirish: bulutli versiyada hozir bor, ochiq yadroda — mila-telegram ning keyingi chiqishi bilan). Fayllaringiz o‘z uy papkangizda qoladi; suhbatlar faqat siz tanlagan model provayderlariga boradi; Mila 100% sizniki.
 - **Xavfsiz.** Sizning «ha»ingizsiz sizning nomingizdan hech narsa yuborilmaydi.
 - **Ochiq yadro, Apache-2.0.**
 

@@ -45,7 +45,7 @@ on fire. You talk to her from your phone, by text or voice, like to a person on 
   spending limits, mailings with your yes.
 - **Telegram-native.** Your chats, your groups, your clients - Mila works where your business already talks.
   No new app to install.
-- **One Mila, two wallets.** Your Claude Code subscription works for you; everyone else — your team, work chats, customers, guests — is served pay-as-you-go via [OpenRouter](https://openrouter.ai), so the cost grows only with the people Mila serves (today the hosted version routes guests and customers this way; team and work chats move to tokens, and the routing comes to the open core, with the next mila-telegram release). Your files stay
+- **One Mila, two wallets.** Your Claude Code subscription works for you and your work chats; customers and guests are served pay-as-you-go via [OpenRouter](https://openrouter.ai), so the cost grows only with the customers Mila serves (guest routing: hosted version today, open core with the next mila-telegram release). Your files stay
   in your own home folder, conversations go only to the model providers you choose; Mila belongs to you 100% and moves with you (`mila export` / `mila restore`).
 - **Safe by default.** Nothing goes out on your behalf without your yes; a send-guard blocks messages that would
   leak one conversation into another; spending above the limit needs your approval.
