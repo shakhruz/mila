@@ -1,5 +1,6 @@
 name: tests
 on: [push, pull_request]
+permissions: { contents: read }   # минимальный токен CI, в том числе для PR из чужих форков
 jobs:
   run_all:
     runs-on: ubuntu-latest

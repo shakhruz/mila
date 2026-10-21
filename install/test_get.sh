@@ -11,4 +11,7 @@ chk "в конце — шаги «дальше» и mila doctor" "grep -q 'mila 
 run > $T/o2.txt 2>&1
 chk "повторный запуск — обновление, не ошибка" "grep -q 'updating' $T/o2.txt"
 chk "без git — подсказка и выход 1" "! env -i HOME=$T PATH=/nonexistent /bin/bash $H/install/get.sh > $T/o3.txt 2>&1 && grep -q 'git' $T/o3.txt"
+R2=$T/rel2; git clone -q "$H" $R2; git -C $R2 tag v9.9.9 >/dev/null 2>&1; git -C $R2 tag v10.0.0-rc1 >/dev/null 2>&1
+HOME=$T MILA_SKIP_CHECKS=1 MILA_REPO="$R2" MILA_DIR="$T/m2" bash "$H/install/get.sh" > $T/o4.txt 2>&1
+chk "без MILA_REF — последний стабильный тег (v9.9.9, не rc)" "grep -q 'version: v9.9.9' $T/o4.txt && [ -d $T/m2/.git ]"
 echo "итог $ok/$n"; rm -rf $T; [ $ok -eq $n ]
