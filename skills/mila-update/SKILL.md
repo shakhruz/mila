@@ -11,7 +11,7 @@ description: "Mila update: my core version, any new release and what it brings; 
 · Любое обновление можно отменить одной командой.
 
 ## Где моё ядро
-- Ядро — открытый git-репозиторий `github.com/shakhruz/mila-companion` (ключ не нужен; свой форк — `MILA_CORE_REPO` или `"repo"` в настройках).
+- Ядро — открытый git-репозиторий `github.com/shakhruz/mila` (ключ не нужен; свой форк — `MILA_CORE_REPO` или `"repo"` в настройках).
   Нет сети или доступа — скрипт отвечает `no_access` и одной строкой; передать хозяину как есть. В каждом релизе `release.json`
   (что обновляется и куда) и раздел в `CHANGELOG.md` (что нового).
 - Настройки — `~/.claude/mila-update.json` (`update.py config`): `channel` — `stable` (теги `vX.Y.Z`, без `-rc` и без отозванных из `yanked.json`),

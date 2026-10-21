@@ -34,8 +34,8 @@ PY
 git add release.json; git commit -qm "release v$V"
 if [ "$NOTAG" = "--no-tag" ]; then echo "коммит release v$V создан, тег не ставлю (--no-tag)"; exit 0; fi
 if [ -n "$(git config user.signingkey || true)" ]; then
-  git tag -s "v$V" -m "Mila Companion v$V"; echo "тег v$V подписан"
+  git tag -s "v$V" -m "Mila v$V"; echo "тег v$V подписан"
 else
-  git tag -a "v$V" -m "Mila Companion v$V"; echo "ВНИМАНИЕ: тег v$V БЕЗ подписи (нет user.signingkey; gpg --gen-key + git config user.signingkey <id>)"
+  git tag -a "v$V" -m "Mila v$V"; echo "ВНИМАНИЕ: тег v$V БЕЗ подписи (нет user.signingkey; gpg --gen-key + git config user.signingkey <id>)"
 fi
 echo "Пуш не выполнен. Когда готовы:  git push origin <ветка> && git push origin v$V"

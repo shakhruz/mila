@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Mila Companion — installs the assistant kit into an existing Claude Code setup.
+# Mila — installs the assistant kit into an existing Claude Code setup.
 #
 # What it does, in order, and nothing else:
 #   1. copies the skills into ~/.claude/skills/
@@ -51,7 +51,7 @@ install_file() {
   run cp "$src" "$dst"
 }
 
-echo "Mila Companion installer"
+echo "Mila installer"
 echo "  target: $CLAUDE_DIR"
 [[ $DRY -eq 1 ]] && echo "  DRY RUN — nothing will be written"
 echo
@@ -203,7 +203,7 @@ elif command -v systemctl >/dev/null 2>&1; then
     mkdir -p "$UNITS"
     cat > "$UNITS/mila-turns-collect.service" <<UNITEOF
 [Unit]
-Description=Mila Companion — collect turns into conversations.db
+Description=Mila — collect turns into conversations.db
 
 [Service]
 Type=oneshot
@@ -214,7 +214,7 @@ ExecStart=$PY_BIN $COLLECT --days 1 --quiet
 UNITEOF
     cat > "$UNITS/mila-turns-collect.timer" <<UNITEOF
 [Unit]
-Description=Mila Companion — hourly turn collection
+Description=Mila — hourly turn collection
 
 [Timer]
 OnCalendar=*:$(printf '%02d' "$TURNS_MIN")

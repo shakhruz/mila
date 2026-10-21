@@ -1,10 +1,10 @@
-# Mila Companion
+# Mila
 
-![Mila Companion](preview.png)
+![Mila](preview.png)
 
 **Don't want to set it up yourself?** We run it for you: [Mila Pro](https://milagpt.io) — an AI employee in Telegram for small businesses (runs on your own Claude plan).
 
-**TL;DR** — Claude Code waits for you at a keyboard. Mila Companion puts it in your team's Telegram: reachable from a phone, present in client chats, surviving restarts.
+**TL;DR** — Claude Code waits for you at a keyboard. Mila puts it in your team's Telegram: reachable from a phone, present in client chats, surviving restarts.
 
 **Quick start** — 1) get a Claude subscription · 2) create a Telegram bot with @BotFather · 3) follow [Install](#install) (≈15 min).
 
@@ -13,7 +13,7 @@
 The kit that turns a Claude Code subscription into an assistant your team can
 actually talk to — in Telegram, in group chats, all day.
 
-Claude Code is a terminal tool. It waits for you at a keyboard. Mila Companion is
+Claude Code is a terminal tool. It waits for you at a keyboard. Mila is
 what we added around it so it could work the way a colleague works: reachable
 from a phone, present in client chats, surviving restarts, and behaving itself
 in front of people who are not engineers.
@@ -139,7 +139,7 @@ Telegram plugin.
 Clone this repository, then from your copy:
 
 ```sh
-cd mila-companion
+cd mila
 ./install/install.sh --dry-run   # see exactly what it will touch
 ./install/install.sh
 ```

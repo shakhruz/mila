@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Mila Companion — bootstrap a fresh Linux server into a working assistant host.
+# Mila — bootstrap a fresh Linux server into a working assistant host.
 #
 # Run as root on a clean Ubuntu/Debian box. Idempotent: safe to run twice, it
 # skips what is already in place and says so. Nothing here is irreversible
@@ -51,7 +51,7 @@ case "${ID:-}" in
      echo "proceed manually or adapt this script" >&2; exit 1 ;;
 esac
 
-echo "Mila Companion bootstrap"
+echo "Mila bootstrap"
 say "host: $(hostname) · $PRETTY_NAME"
 say "user: $USER_NAME"
 [[ $DRY -eq 1 ]] && say "DRY RUN — nothing will change"

@@ -1,23 +1,25 @@
-# Mila — open-source digital employee in Telegram
+# Mila
 
-**Runs on your Claude subscription.**
+**Open-source digital employee in Telegram. Runs on your Claude subscription, remembers your business, acts in your name only with your consent.**
+
+*Warm by design.*
 
 **English** · [Русский](README.ru.md) · [Oʻzbekcha](README.uz.md)
 
-[![tests](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-companion?sort=semver&label=release)](https://github.com/shakhruz/mila-companion/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-companion)](LICENSE)
+[![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
 
 - **Answers your customers in Telegram** — day and night, in their language (English, Russian, Uzbek out of the box).
 - **Remembers your business** — every client, conversation and promise; one short summary for you every morning.
 - **Acts on your behalf only with your yes** — every such action is in a journal; your files stay in your own home folder; conversations go only to the model providers you choose.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-companion/main/install/get.sh | bash
+curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 ```
 ≈ 5 minutes. You need: Claude Code (with a Claude subscription), [Bun](https://bun.sh), a Telegram bot token from `@BotFather`. Details — [Quick start](#quick-start).
 
 ![Mila](docs/preview.png)
 
-**Which version to take:** stable — [Releases](https://github.com/shakhruz/mila-companion/releases) (tags `vX.Y.Z`); canary — the `main` branch (newest, may break).
+**Which version to take:** stable — [Releases](https://github.com/shakhruz/mila/releases) (tags `vX.Y.Z`); canary — the `main` branch (newest, may break).
 
 Most open agents are universal: a powerful assistant that can do anything, if you tell it how.
 Mila is built the other way round - as a colleague with a job. She answers your clients, keeps your promises,
@@ -44,9 +46,9 @@ The Telegram plugin is a separate open repository: [shakhruz/mila-telegram](http
 ## How Mila compares
 
 OpenClaw, NanoClaw and Hermes Agent are excellent open agents - universal assistants for a person.
-Mila Companion takes a narrower job: a digital employee for a business, in Telegram.
+Mila takes a narrower job: a digital employee for a business, in Telegram.
 
-| | **Mila Companion** | OpenClaw | NanoClaw | Hermes Agent |
+| | **Mila** | OpenClaw | NanoClaw | Hermes Agent |
 |---|---|---|---|---|
 | What it is | digital employee for a business | universal personal agent | personal agent in containers | personal agent that grows with you |
 | Engine | Claude Code | own agent loop, models as plugins | Claude Agent SDK | own agent loop, any model |
@@ -82,7 +84,7 @@ Something wrong or out of date? Open an issue - we fix it the same day.
 One command:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-companion/main/install/get.sh | bash
+curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 ```
 
 It checks Claude Code, Bun and git, clones the kit to `~/mila-companion` and runs `install/install.sh` (existing files are backed up as `<file>.bak-YYYYMMDD-HHMMSS`). Prefer to look first? Clone and run `./install/install.sh --dry-run` — it shows exactly what will be touched.

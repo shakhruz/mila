@@ -1,6 +1,6 @@
 # Security policy
 
-Mila Companion runs an AI agent that can read and write in Telegram chats and on a
+Mila runs an AI agent that can read and write in Telegram chats and on a
 machine, so security reports are taken seriously.
 
 ## Reporting a vulnerability

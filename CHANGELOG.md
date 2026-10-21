@@ -1,4 +1,4 @@
-# CHANGELOG · Mila Companion
+# CHANGELOG · Mila
 
 ## v1.5.1 · 21.10 — safe, model choice, live frames, one-command install
 - One-command install: `curl -fsSL …/install/get.sh | bash` (checks Claude Code, Bun, git); CI runs `tests/run_all.sh` on every push; issue/PR templates, Code of Conduct.

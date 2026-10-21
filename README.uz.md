@@ -1,10 +1,12 @@
-# Mila — Telegramdagi ochiq kodli raqamli xodim
+# Mila
 
-[![tests](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml) [![License](https://img.shields.io/github/license/shakhruz/mila-companion)](LICENSE)
+**Telegramdagi ochiq kodli raqamli xodim. Sizning Claude obunangizda ishlaydi, biznesingizni eslab qoladi, sizning nomingizdan faqat roziligingiz bilan ish qiladi.**
+
+*Iliqlik uchun yaratilgan.*
+
+[![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
 
 [English](README.md) · [Русский](README.ru.md) · **Oʻzbekcha**
-
-**Sizning Claude obunangizda ishlaydi.**
 
 Mila — biznesingiz uchun hamkasb: mijozlaringizga javob beradi, va’dalaringizni eslab qoladi, har bir suhbatni yodda tutadi, postlar yozadi, uchrashuvlarni eslatadi va har tong nima «yonayotganini» aytadi. U bilan telefoningizdan — matn yoki ovoz orqali, xuddi jamoangizdagi odam bilan gaplashgandek gaplashasiz.
 
@@ -23,7 +25,7 @@ Qutidan 3 ta til — **inglizcha, ruscha, o‘zbekcha**; o‘zingiznikini bitta 
 ≈ 5 daqiqa. Kerak: Claude Code (Claude obunasi bilan), [Bun](https://bun.sh), `@BotFather`dan bot tokeni.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-companion/main/install/get.sh | bash
+curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 ```
 
 Keyin Claude Code sessiyasida:

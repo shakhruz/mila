@@ -273,7 +273,7 @@ def restore_md(m):
 История переписки и транскрипты в архиве: {hist}.
 
 ## Шаги
-1. Поставьте открытое ядро: https://github.com/shakhruz/mila-companion (`install/install.sh`, на сервере `deploy/bootstrap.sh`).
+1. Поставьте открытое ядро: https://github.com/shakhruz/mila (`install/install.sh`, на сервере `deploy/bootstrap.sh`).
 2. Распакуйте архив во временную папку и проверьте: `mila export verify <архив>` (манифест и sha256).
 3. Разложите: `mila restore <архив>` (сначала `--dry-run`). Существующие файлы не перезаписываются: расхождения
    лежат в `~/.claude/mila-restore/<время>/conflicts/`; `--overwrite` заменяет их, оставляя копию.

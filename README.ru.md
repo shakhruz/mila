@@ -1,16 +1,17 @@
-# Мила — цифровой сотрудник в Telegram с открытым кодом
+# Мила
 
-**Работает на вашей подписке Claude.**
+**Цифровой сотрудник с открытым кодом в Telegram. Работает на вашей подписке Claude, помнит ваше дело, действует от вашего имени только с вашего согласия.**
+
+*Тёплая по замыслу.*
 
 [English](README.md) · **Русский** · [Oʻzbekcha](README.uz.md)
 
-[![tests](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-companion?sort=semver&label=release)](https://github.com/shakhruz/mila-companion/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-companion)](LICENSE)
+[![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
 
-![Mila Companion](docs/preview.png)
+![Mila](docs/preview.png)
 
-**Mila Companion - цифровой сотрудник для вашего дела с открытым кодом. Живёт в Telegram.**
 
-**Какую версию брать:** стабильная — [Releases](https://github.com/shakhruz/mila-companion/releases) (теги `vX.Y.Z`); canary — ветка `main` (новее, может ломаться).
+**Какую версию брать:** стабильная — [Releases](https://github.com/shakhruz/mila/releases) (теги `vX.Y.Z`); canary — ветка `main` (новее, может ломаться).
 
 Большинство открытых агентов универсальны: мощный помощник, который сделает что угодно, если вы объясните как.
 Мила устроена наоборот - как коллега с работой. Отвечает вашим клиентам, держит обещания, помнит каждый разговор,
@@ -50,7 +51,7 @@ Telegram-плагин - отдельный открытый репозитори
 Одной командой:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-companion/main/install/get.sh | bash
+curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 ```
 
 Она проверит Claude Code, Bun и git, склонирует набор в `~/mila-companion` и запустит `install/install.sh` (заменяемые файлы сохраняются как `<файл>.bak-ГГГГММДД-ЧЧММСС`). Хотите сначала посмотреть — склонируйте и запустите `./install/install.sh --dry-run`: покажет, что будет затронуто.

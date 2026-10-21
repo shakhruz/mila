@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping. Mila Companion is a kit of skills (Markdown), hooks and small
+Thanks for helping. Mila is a kit of skills (Markdown), hooks and small
 Python/shell tools around Claude Code and a Telegram channel.
 
 ## Ground rules

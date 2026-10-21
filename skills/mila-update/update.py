@@ -16,7 +16,7 @@
   update.py health                       — проверка здоровья после обновления (команда из release.json или встроенная)
   update.py slot                         — смещение ночного запуска в минутах (0–119) по имени дома, чтобы Милы не шли разом
 
-Ядро — публичный git-репозиторий (по умолчанию github.com/shakhruz/mila-companion; свой форк — MILA_CORE_REPO или "repo" в
+Ядро — публичный git-репозиторий (по умолчанию github.com/shakhruz/mila; свой форк — MILA_CORE_REPO или "repo" в
 ~/.claude/mila-update.json). Каналы: stable — теги vX.Y.Z (без -rc, без отозванных из yanked.json), canary — ветка main.
 Нет доступа — навык не падает: одна строка хозяину.
 Что обновляется и что никогда — release.json релиза + неприкосновенный список ниже (он сильнее манифеста).
@@ -26,7 +26,7 @@ import argparse, fnmatch, glob, hashlib, json, os, re, shutil, subprocess, sys, 
 HOME = os.path.expanduser("~")
 CLAUDE = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(HOME, ".claude")
 WORK = os.environ.get("MILA_WORK") or os.path.join(HOME, "work")
-DEFAULT_REPO = "https://github.com/shakhruz/mila-companion.git"   # открытое ядро: ключ не нужен
+DEFAULT_REPO = "https://github.com/shakhruz/mila.git"   # открытое ядро: ключ не нужен
 CONFIG = os.path.join(CLAUDE, "mila-update.json")
 DEFAULT_CFG = {"channel": "stable", "auto": False, "repo": DEFAULT_REPO, "owner_chat": ""}   # auto=false: ставит только по «да» хозяина
 

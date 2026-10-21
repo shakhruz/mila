@@ -7,7 +7,7 @@ The Apache-2.0 license of this repository covers the code only. It does not gran
 permission to use these names, the logo or the artwork (Section 6 of the license).
 
 You may:
-- say that your project is "based on Mila Companion" or "compatible with Mila Companion";
+- say that your project is "based on Mila" or "compatible with Mila";
 - name your fork anything that does not suggest it is the official product.
 
 You may not, without written permission:

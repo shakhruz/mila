@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Mila Companion — one-command install / установка одной командой:
-#   curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-companion/main/install/get.sh | bash
+# Mila — one-command install / установка одной командой:
+#   curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 # Checks what is needed (Claude Code, Bun, git), clones the kit to ~/mila-companion (or updates it), runs install/install.sh.
 # Env: MILA_DIR (where to clone), MILA_REF (branch/tag; default — latest stable tag vX.Y.Z, canary: MILA_REF=main), MILA_REPO, MILA_INSTALL_ARGS.
 set -euo pipefail
-REPO="${MILA_REPO:-https://github.com/shakhruz/mila-companion}"
+REPO="${MILA_REPO:-https://github.com/shakhruz/mila}"
 DIR="${MILA_DIR:-$HOME/mila-companion}"
 REF="${MILA_REF:-}"   # пусто → последний стабильный тег vX.Y.Z (как в README: стабильная — Releases); main — только по MILA_REF=main
 miss=0
 need() { command -v "$1" >/dev/null 2>&1 || { printf '  ✗ %s — %s\n' "$1" "$2"; miss=1; }; }
-echo "Mila Companion · install"
+echo "Mila · install"
 if [[ "${MILA_SKIP_CHECKS:-0}" != "1" ]]; then
   need claude "Claude Code: https://docs.claude.com/en/docs/claude-code"
   need bun    "Bun: curl -fsSL https://bun.sh/install | bash"
