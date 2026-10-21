@@ -29,7 +29,7 @@
 - **Открытое ядро, Apache-2.0.** Навыки, хуки, инструменты и шаблоны - здесь. Форкайте, учите, присылайте pull request.
 
 Не хотите настраивать сами? Напишите [Миле Ташкент](https://t.me/mila_tashkent_bot): она заведёт вашу Милу за один разговор -
-3 дня за $5, дальше $50 в месяц. Облачная версия и сообщество: <https://milagpt.io>.
+3 дня за $5, дальше $50 в месяц. Облачная версия и сообщество: <https://milagpt.io/mila/>.
 Telegram-плагин - отдельный открытый репозиторий: [shakhruz/mila-telegram](https://github.com/shakhruz/mila-telegram).
 
 [English](README.md) · [Полный справочник (EN)](docs/REFERENCE.md) · [Сравнение с OpenClaw, NanoClaw, Hermes Agent (EN)](README.md#how-mila-compares)

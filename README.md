@@ -52,7 +52,7 @@ on fire. You talk to her from your phone, by text or voice, like to a person on 
 - **Open core, Apache-2.0.** Skills, hooks, tools and templates are here. Fork it, teach it, send a pull request.
 
 Don't want to set it up yourself? Talk to [Mila Tashkent](https://t.me/mila_tashkent_bot): she will start your own
-Mila in one conversation - 3 days for $5, then $50/month. Hosted version and the community: <https://milagpt.io>.
+Mila in one conversation - 3 days for $5, then $50/month. Hosted version and the community: <https://milagpt.io/en/mila/>.
 The Telegram plugin is a separate open repository: [shakhruz/mila-telegram](https://github.com/shakhruz/mila-telegram).
 
 [Full reference](docs/REFERENCE.md)

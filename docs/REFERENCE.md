@@ -2,7 +2,7 @@
 
 ![Mila](preview.png)
 
-**Don't want to set it up yourself?** We run it for you: [Mila Pro](https://milagpt.io) — an AI employee in Telegram for small businesses (runs on your own Claude plan).
+**Don't want to set it up yourself?** We run it for you: [Mila Pro](https://milagpt.io/en/mila/) — an AI employee in Telegram for small businesses (runs on your own Claude plan).
 
 **TL;DR** — Claude Code waits for you at a keyboard. Mila puts it in your team's Telegram: reachable from a phone, present in client chats, surviving restarts.
 
@@ -516,7 +516,7 @@ because a skill here is a file that one agent reads and another can be taught
 to write.
 
 Details and contact:
-**[milagpt.io/mila-companion](https://milagpt.io/mila-companion?from=github)**
+**[milagpt.io/en/mila](https://milagpt.io/en/mila/?from=github)**
 
 The code being open is the reason this is worth buying rather than the reason
 it isn't: you can read every line you are paying someone to teach you to run.
