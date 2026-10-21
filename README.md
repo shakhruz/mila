@@ -4,11 +4,11 @@
 
 *Warm by design.*
 
-**English** · [Русский](README.ru.md) · [Oʻzbekcha](README.uz.md)
+**English** · [中文](README.zh-CN.md) · [Русский](README.ru.md) · [Oʻzbekcha](README.uz.md)
 
 [![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
 
-- **Answers your customers in Telegram** — day and night, in their language (English, Russian, Uzbek out of the box).
+- **Answers your customers in Telegram** — day and night, in their language.
 - **Remembers your business** — every client, conversation and promise; one short summary for you every morning.
 - **Acts on your behalf only with your yes** — every such action is in a journal; your files stay in your own home folder; conversations go only to the model providers you choose.
 
@@ -20,6 +20,18 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 ![Mila](docs/preview.png)
 
 **Which version to take:** stable — [Releases](https://github.com/shakhruz/mila/releases) (tags `vX.Y.Z`); canary — the `main` branch (newest, may break).
+
+## Speaks your customer's language
+
+4 out of the box — **English, 中文, Русский, Oʻzbek** — add yours in one file (the owner's greeting `skills/onboarding/GREETING.<code>.md`). Mila replies in the language the customer writes in, not the language of their phone settings.
+
+```
+Customer: Hi! Is the two-bedroom by the sea still free? Can I see it on Saturday?
+Mila:     Hi! Yes, it's free 🙂 Saturday at 11:00 or 15:00 — which suits you? I'll book it and remind you an hour before.
+Customer: 11, please.
+Mila:     Done ✅ I'll send the address and remind you on Saturday morning.
+```
+In the morning the owner gets one line: *new client · viewing Saturday 11:00 · reminder set.*
 
 Most open agents are universal: a powerful assistant that can do anything, if you tell it how.
 Mila is built the other way round - as a colleague with a job. She answers your clients, keeps your promises,
