@@ -23,7 +23,7 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 
 ## Speaks your customer's language
 
-4 out of the box — **English, 中文, Русский, Oʻzbek** — add yours in one file (the owner's greeting `skills/onboarding/GREETING.<code>.md`). Mila replies in the language the customer writes in, not the language of their phone settings.
+3 out of the box — **English, Русский, Oʻzbek**; **中文 — new**, in testing — add yours in one file (the owner's greeting `skills/onboarding/GREETING.<code>.md`). Mila replies in the language the customer writes in, not the language of their phone settings.
 
 ```
 Customer: Hi! Is the two-bedroom by the sea still free? Can I see it on Saturday?
