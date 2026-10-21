@@ -1,0 +1,39 @@
+# Mila — Telegramdagi ochiq kodli raqamli xodim
+
+[![tests](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml) [![License](https://img.shields.io/github/license/shakhruz/mila-companion)](LICENSE)
+
+[English](README.md) · [Русский](README.ru.md) · **Oʻzbekcha**
+
+**Sizning Claude obunangizda ishlaydi.**
+
+Mila — biznesingiz uchun hamkasb: mijozlaringizga javob beradi, va’dalaringizni eslab qoladi, har bir suhbatni yodda tutadi, postlar yozadi, uchrashuvlarni eslatadi va har tong nima «yonayotganini» aytadi. U bilan telefoningizdan — matn yoki ovoz orqali, xuddi jamoangizdagi odam bilan gaplashgandek gaplashasiz.
+
+- **Raqamli xodim, universal agent emas.** Mijoz suhbatlari, va’dalar va vazifalar, egasining «ha»si uchun kartochkalar, haftalik ritm, xarajat limitlari.
+- **Telegramda yashaydi.** Yangi ilova o‘rnatish shart emas.
+- **Sizning Claude obunangizda.** Ma’lumotlaringiz uy papkangizda qoladi; Mila 100% sizniki.
+- **Xavfsiz.** Sizning «ha»ingizsiz sizning nomingizdan hech narsa yuborilmaydi.
+- **Ochiq yadro, Apache-2.0.**
+
+## Mijozingiz tilida gapiradi
+
+Qutidan 3 ta til — **inglizcha, ruscha, o‘zbekcha**; o‘zingiznikini bitta fayl bilan qo‘shasiz. Mila mijoz qaysi tilda yozsa, o‘sha tilda javob beradi.
+
+## Tez boshlash
+
+≈ 5 daqiqa. Kerak: Claude Code (Claude obunasi bilan), [Bun](https://bun.sh), `@BotFather`dan bot tokeni.
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-companion/main/install/get.sh | bash
+```
+
+Keyin Claude Code sessiyasida:
+
+```
+/plugin marketplace add shakhruz/mila-telegram
+/plugin install mila-telegram@mila
+/telegram:configure <@BotFather bergan token>
+```
+
+`mila` bilan qayta ishga tushiring, botga yozing, juftlang (`/telegram:access pair <kod>`) va kirishni yoping: `/telegram:access policy allowlist`. Bot jim bo‘lsa — `mila doctor`.
+
+To‘liq ma’lumot — [English README](README.md) va [docs/REFERENCE.md](docs/REFERENCE.md).

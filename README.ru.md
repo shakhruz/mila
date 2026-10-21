@@ -1,4 +1,8 @@
-# Mila Companion
+# Мила — цифровой сотрудник в Telegram с открытым кодом
+
+**Работает на вашей подписке Claude.**
+
+[English](README.md) · **Русский** · [Oʻzbekcha](README.uz.md)
 
 [![tests](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-companion?sort=semver&label=release)](https://github.com/shakhruz/mila-companion/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-companion)](LICENSE)
 

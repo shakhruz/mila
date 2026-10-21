@@ -1,10 +1,21 @@
-# Mila Companion
+# Mila — open-source digital employee in Telegram
+
+**Runs on your Claude subscription.**
+
+**English** · [Русский](README.ru.md) · [Oʻzbekcha](README.uz.md)
 
 [![tests](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-companion?sort=semver&label=release)](https://github.com/shakhruz/mila-companion/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-companion)](LICENSE)
 
-![Mila Companion](docs/preview.png)
+- **Answers your customers in Telegram** — day and night, in their language (English, Russian, Uzbek out of the box).
+- **Remembers your business** — every client, conversation and promise; one short summary for you every morning.
+- **Acts on your behalf only with your yes** — every such action is in a journal; your data stays in your home folder.
 
-**Mila Companion is an open-source digital employee for your business. She lives in Telegram.**
+```sh
+curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-companion/main/install/get.sh | bash
+```
+≈ 5 minutes. You need: Claude Code (with a Claude subscription), [Bun](https://bun.sh), a Telegram bot token from `@BotFather`. Details — [Quick start](#quick-start).
+
+![Mila](docs/preview.png)
 
 **Which version to take:** stable — [Releases](https://github.com/shakhruz/mila-companion/releases) (tags `vX.Y.Z`); canary — the `main` branch (newest, may break).
 
@@ -28,7 +39,7 @@ Don't want to set it up yourself? Talk to [Mila Tashkent](https://t.me/mila_tash
 Mila in one conversation - 3 days for $5, then $50/month. Hosted version and the community: <https://milagpt.io>.
 The Telegram plugin is a separate open repository: [shakhruz/mila-telegram](https://github.com/shakhruz/mila-telegram).
 
-[Русская версия](README.ru.md) · [Full reference](docs/REFERENCE.md)
+[Full reference](docs/REFERENCE.md)
 
 ## How Mila compares
 
