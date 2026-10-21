@@ -234,6 +234,12 @@ case "${1:-continue}" in
                  [ -f "$c" ] && exec python3 "$c" "$@"
                done
                echo "records.py not found — reinstall the kit" >&2; exit 1 ;;
+  tasks)       shift
+               for c in "$HOME/.claude/hooks/tasks.py" \
+                        "$(dirname "$0")/tasks.py"; do
+                 [ -f "$c" ] && exec python3 "$c" "$@"
+               done
+               echo "tasks.py not found — reinstall the kit" >&2; exit 1 ;;
   chats|c)     shift
                for c in "$HOME/.claude/hooks/chats_index.py" \
                         "$HOME/.claude/skills/mila-session/chats_index.py" \
@@ -288,6 +294,7 @@ mila fix        restart receiver and sender (leaves the session alone)
 mila usage      token spend by day and model (--days 7 --by-model)
 mila turns      collect turns from the transcripts into conversations.db
 mila records    show turns | external | check — the ledgers (see docs/accounting.md)
+mila tasks      start --kind post | done <id> [--outcome redo|complaint] | report --days 7 — cost and outcome per task type
 mila chats      rebuild the chat registry (--stale 14 lists quiet ones)
 mila owe        every open promise across all chats
 mila when       what time it is for each client, and who is in quiet hours

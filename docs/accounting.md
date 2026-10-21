@@ -272,3 +272,14 @@ sqlite3 ~/.claude/analytics/conversations.db \
   собирали. Числа сходятся, потому что разбор общий, но вопросы разные.
 * **Не аудитом.** Сборщик читает то, что записал Claude Code. Если ход не попал
   в транскрипт, его здесь не будет.
+
+## Tasks: cost and outcome per task type
+
+`install/tasks.py` (`mila tasks`) adds one table, `tasks`, to `conversations.db`: a task is a time span `[start, end]` with a kind (`post`, `email`, `doc`…) and an outcome — `done` (accepted the first time), `redo`, `complaint`. Its cost is computed in the report from the turns of that span (same agent, same chat if given), so a lagging turn collector does not lose anything.
+
+    mila tasks start --kind email --chat <id>     # → task id
+    mila tasks done <id> [--outcome redo]
+    mila tasks mark <id> complaint               # later
+    mila tasks report --days 7 [--json]
+
+The weekly report groups by kind: tasks, first-time %, redos, complaints, total cost, cost per good result, model mix. As everywhere in these ledgers, the cost is a reference price on subscription (`paid_by`), not a charge. Overlapping tasks in one chat share turns and are marked.
