@@ -22,6 +22,12 @@ if [[ -z "$REF" ]]; then
   REF="${REF:-main}"
   echo "  version: $REF"
 fi
+# Папка занята чужим: не наш набор (нет install/get.sh и skills/mila-update) — не трогаем, честный отказ (Качество 21.10)
+ours(){ [[ -f "$1/install/get.sh" && -d "$1/skills/mila-update" ]]; }
+if [[ -e "$DIR" ]] && ! ours "$DIR" && [[ -n "$(ls -A "$DIR" 2>/dev/null)" ]]; then
+  echo "  $DIR is already used by something else (not the Mila kit) — I leave it untouched."
+  echo "  Run again with another folder, e.g.: MILA_DIR=\$HOME/mila-kit bash <(curl -fsSL …/install/get.sh)"; exit 1
+fi
 if [[ -d "$DIR/.git" ]]; then
   echo "  updating $DIR"; git -C "$DIR" fetch -q --depth 1 origin "$REF" && git -C "$DIR" checkout -q FETCH_HEAD
 else
