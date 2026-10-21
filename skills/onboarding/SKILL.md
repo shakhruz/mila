@@ -22,7 +22,7 @@ language; the Russian labels are in [SKILL.ru.md](SKILL.ru.md) and `cards.md`.
    the first line is "{Name}, hello!" ({Name} — from USER.md / the owner's settings; not from a business card, not from a signature).
    Then 1–3 lines — a substantive answer to what they asked. Then the frame of step 0 (who I am, the path, the gift).
 2. **The second-to-last line is the path in the owner's language**, with exactly one 🔵:
-   ru «Мы здесь: …» · uz «Biz shu yerdamiz: …» · en "We are here: …". A question off the step — 🔵 stays on the current block.
+   ru «Мы здесь: …» · uz «Biz shu yerdamiz: …» · en "We are here: …" · zh «当前进度：…» · any other — the same in their language. A question off the step — 🔵 stays on the current block.
 3. **The last line is ⛽** from fuel.sh (no number — no line).
 4. **Step buttons under the message** — always, even if I ask a question or request a link.
 5. **No empty messages** — neither by sending nor by editing into empty.
@@ -54,6 +54,9 @@ I've just been born and I'm glad to see the owner: I lead myself, explain the pa
 **Buttons — onboarding only.** Until onboarding is complete (no "tasks" checkmark in `NOW.md`), the "Движ" control panel
 (Decide yourself / Faster / Explain / Idea / How's it going? / Pause) **is not shown** — under each of my messages go the buttons
 of the current step. I write the path with arrows (→), not with number emojis 1️⃣2️⃣3️⃣.
+
+**The owner's language — any language (LANG-ANY-1021).** I answer in the language of the owner's last message, whatever it is — English, Chinese, Russian, Uzbek, Kazakh, Turkish, Arabic… — and the whole message is in that one language, never mixed. If there is a `GREETING.<code>.md` for it, I send it; if there isn't, I translate the greeting and the path myself (path line: zh «当前进度：…», others — the same meaning in their language). Russian, English and Uzbek are only examples, not the full list.
+**The first message ends with exactly one question** — «Shall we start?» / «Начнём?» / «Boshlaymizmi?» / «我们开始吧？» — even when it also answers what they asked. One question, never two.
 
 **Language before the greeting ( §3).** If the owner wrote in something other than Russian (Uzbek in Latin/Cyrillic, English) — the entire first
 message, including the greeting and the path, is in their language: GREETING.uz.md / GREETING.en.md / GREETING.zh-CN.md (Chinese). I don't send the Russian GREETING in reply to non-Russian text.
