@@ -10,7 +10,7 @@ Mila — biznesingiz uchun hamkasb: mijozlaringizga javob beradi, va’dalaringi
 
 - **Raqamli xodim, universal agent emas.** Mijoz suhbatlari, va’dalar va vazifalar, egasining «ha»si uchun kartochkalar, haftalik ritm, xarajat limitlari.
 - **Telegramda yashaydi.** Yangi ilova o‘rnatish shart emas.
-- **Sizning Claude obunangizda.** Ma’lumotlaringiz uy papkangizda qoladi; Mila 100% sizniki.
+- **Sizning Claude obunangizda.** Fayllaringiz o‘z uy papkangizda qoladi; suhbatlar faqat siz tanlagan model provayderlariga boradi; Mila 100% sizniki.
 - **Xavfsiz.** Sizning «ha»ingizsiz sizning nomingizdan hech narsa yuborilmaydi.
 - **Ochiq yadro, Apache-2.0.**
 

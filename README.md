@@ -8,7 +8,7 @@
 
 - **Answers your customers in Telegram** — day and night, in their language (English, Russian, Uzbek out of the box).
 - **Remembers your business** — every client, conversation and promise; one short summary for you every morning.
-- **Acts on your behalf only with your yes** — every such action is in a journal; your data stays in your home folder.
+- **Acts on your behalf only with your yes** — every such action is in a journal; your files stay in your own home folder; conversations go only to the model providers you choose.
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-companion/main/install/get.sh | bash
@@ -29,8 +29,8 @@ on fire. You talk to her from your phone, by text or voice, like to a person on 
   spending limits, mailings with your yes.
 - **Telegram-native.** Your chats, your groups, your clients - Mila works where your business already talks.
   No new app to install.
-- **Runs on your own Claude subscription** through [Claude Code](https://claude.com/claude-code). Your data stays
-  in your home folder; Mila belongs to you 100% and moves with you (`mila export` / `mila restore`).
+- **Runs on your own Claude subscription** through [Claude Code](https://claude.com/claude-code). Your files stay
+  in your own home folder, conversations go only to the model providers you choose; Mila belongs to you 100% and moves with you (`mila export` / `mila restore`).
 - **Safe by default.** Nothing goes out on your behalf without your yes; a send-guard blocks messages that would
   leak one conversation into another; spending above the limit needs your approval.
 - **Open core, Apache-2.0.** Skills, hooks, tools and templates are here. Fork it, teach it, send a pull request.
