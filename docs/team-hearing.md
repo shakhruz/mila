@@ -1,4 +1,4 @@
-# How Mila companions hear each other
+# How Milas hear each other
 
 By default a companion ignores everything written by bots: two bots answering
 each other in a group is the fastest way to burn a subscription. Our own

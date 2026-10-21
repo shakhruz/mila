@@ -34,7 +34,7 @@ description: "Claude subscription status: limit windows (5 hours, week, per mode
 
 `--force` — только по прямой просьбе. Без причины не дёргать.
 
-## Команды в чате (mila-companion, 10.09.2026)
+## Команды в чате (ядро Mila, 10.09.2026)
 
 Хозяин пишет боту команду — агент отвечает сразу, без вопросов:
 

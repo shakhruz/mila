@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""subscription_watch — часовой сторож подписок Claude (mila-companion).
+"""subscription_watch — часовой сторож подписок Claude (ядро Mila).
 
 Берёт все подписки из accounts.json через subscription.py --json, пишет историю (снимок в час),
 считает темп по истории, предупреждает ОДИН раз на повод (повтор не чаще раза в 3 ч):

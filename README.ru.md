@@ -56,7 +56,7 @@ Telegram-плагин - отдельный открытый репозитори
 curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 ```
 
-Она проверит Claude Code, Bun и git, склонирует набор в `~/mila-companion` и запустит `install/install.sh` (заменяемые файлы сохраняются как `<файл>.bak-ГГГГММДД-ЧЧММСС`). Хотите сначала посмотреть — склонируйте и запустите `./install/install.sh --dry-run`: покажет, что будет затронуто.
+Она проверит Claude Code, Bun и git, склонирует набор в `~/mila` и запустит `install/install.sh` (заменяемые файлы сохраняются как `<файл>.bak-ГГГГММДД-ЧЧММСС`). Хотите сначала посмотреть — склонируйте и запустите `./install/install.sh --dry-run`: покажет, что будет затронуто.
 
 Затем в сессии Claude Code:
 

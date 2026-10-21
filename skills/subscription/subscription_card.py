@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""subscription_card — картинка-дэшборд подписок (rich media для Telegram), mila-companion.
+"""subscription_card — картинка-дэшборд подписок (rich media для Telegram), ядро Mila.
 
 Вход — state из subscription.py (--json): accounts[] с windows[] (percent = израсходовано,
 resets_at, exhausts_at), plan, profile.email, age_seconds/stale, name. Рисует HTML в
