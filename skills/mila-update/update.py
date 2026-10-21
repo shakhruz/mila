@@ -297,9 +297,16 @@ def put(src, dst, kind):
         shutil.copy2(src, dst)
 
 
+def is_internal():
+    """INTERNAL-1022: Мила самой команды (её рождает администратор по своему чек-листу, знакомство с хозяином ей не нужно) —
+    "internal": true в mila-update.json или MILA_INTERNAL=1 при раскатке. Гейт новорождённой к ней не относится."""
+    return CFG.get("internal") is True or os.environ.get("MILA_INTERNAL") == "1"
+
+
 def newborn_block():
     """новорождённая до конца знакомства (нет «знакомство: пройдено» в USER.md) живёт на малом запасе с 7 навыками —
     26 навыков ядра ей сейчас лишние и жгут топливо. Обновление — после знакомства (и подписки)."""
+    if is_internal(): return ""
     u = os.path.join(WORK, "USER.md")
     if not os.path.isfile(u): return ""
     t = open(u, encoding="utf-8", errors="replace").read()
@@ -549,6 +556,7 @@ def cmd_config(a):
         k, _, v = kv.partition("=")
         if k == "channel" and v in ("stable", "canary", "manual"): c[k] = v
         elif k == "auto" and v in ("true", "false"): c[k] = v == "true"
+        elif k == "internal" and v in ("true", "false"): c[k] = v == "true"   # только администратор флота
         elif k in ("repo", "owner_chat", "require_signed"): c[k] = (v == "true") if k == "require_signed" else v
         else: sys.exit(json.dumps({"error": "неверная настройка: " + kv}, ensure_ascii=False))
     if a.set:

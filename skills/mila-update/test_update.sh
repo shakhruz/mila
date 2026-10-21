@@ -18,6 +18,13 @@ U="python3 $HERE/update.py"; ok=0; n=0
 chk() { n=$((n+1)); if eval "$2"; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 echo "знакомство: идёт" > "$MILA_WORK/USER.md"
 chk "новорождённая до знакомства — не обновляется" "! $U apply --src $T/rel --yes x >/dev/null 2>&1 && [ ! -e $CLAUDE_CONFIG_DIR/skills/visual ]"
+chk "nightly у новорождённой — skip" "$U nightly --dry-run 2>/dev/null | grep -q 'знакомство ещё не пройдено'"
+chk "Мила команды (MILA_INTERNAL=1): гейт не срабатывает" "MILA_INTERNAL=1 python3 -c \"import sys; sys.argv=['u']; sys.path.insert(0,'$HERE'); import update; sys.exit(0 if update.newborn_block()=='' else 1)\""
+$U config --set internal=true >/dev/null
+chk "internal=true в mila-update.json: гейт не срабатывает, nightly не skip по знакомству" "python3 -c \"import sys; sys.argv=['u']; sys.path.insert(0,'$HERE'); import update; sys.exit(0 if update.newborn_block()=='' else 1)\" && ! $U nightly --dry-run 2>/dev/null | grep -q 'знакомство ещё не пройдено'"
+$U config --set internal=false >/dev/null
+chk "internal=false — гейт снова на месте" "! $U apply --src $T/rel --yes x >/dev/null 2>&1 && [ ! -e $CLAUDE_CONFIG_DIR/skills/visual ]"
+chk "internal только true/false" "! $U config --set internal=yes >/dev/null 2>&1"
 echo "знакомство: пройдено" > "$MILA_WORK/USER.md"
 chk "без «да» не обновляется" "! $U apply --src $T/rel >/dev/null 2>&1 && [ ! -e $CLAUDE_CONFIG_DIR/skills/visual ]"
 $U diff --src "$T/rel" > "$T/d1.json"
