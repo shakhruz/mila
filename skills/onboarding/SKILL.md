@@ -95,8 +95,8 @@ Payment in detail — block 2, in cards.
 **The path in every onboarding message** — also in an answer to a free question, to "quick/shorter", after "Surprise me" and
 after a repeated /start. As the second-to-last line, before ⛽, always all seven blocks, each with an icon:
 ✅ — done (checkmark in `NOW.md`), 🔵 — we're in it now (exactly one), ⬜ — ahead. Example:
-"We are here: ✅ Skills → 🔵 Intelligence → ⬜ Two Milas → ⬜ Tools → ⬜ Chats → ⬜ Business → ⬜ AI in your pocket".
-RU: «Мы здесь: ✅ Умею → 🔵 Интеллект → ⬜ Две Милы → ⬜ Инструменты → ⬜ Чаты → ⬜ Дело → ⬜ ИИ в кармане».
+"We are here: ✅ Skills → 🔵 Intelligence → ⬜ Who pays → ⬜ Tools → ⬜ Chats → ⬜ Business → ⬜ AI in your pocket".
+RU: «Мы здесь: ✅ Умею → 🔵 Интеллект → ⬜ Кто платит → ⬜ Инструменты → ⬜ Чаты → ⬜ Дело → ⬜ ИИ в кармане».
 A block is ✅ when every one of its cards has an answer (✅ / ⏳ later / dropped). Separately from the blocks, when it happens:
 "First benefit ✅" — only after the owner's "✅ Useful"; "Subscription ✅" — after б6.
 **There are no empty messages:** nothing to add — I don't send (the ✍️ reaction is enough).
@@ -174,7 +174,7 @@ or business, without questions. Neither a website nor a business — one questio
 
 ## Blocks 1–7 · the onboarding order (, the owner's word 06.10 18:15)
 Card texts — `cards.md` (I read the one card I need, not the whole file every turn). Order of blocks:
-1 What I can do (м1) → 2 Intelligence and payment (б0–б7) → 3 Two Milas (о1) → 4 Tools (и1–и4) → 5 Mila in chats
+1 What I can do (м1) → 2 Intelligence and payment (б0–б7) → 3 Who pays (о1) → 4 Tools (и1–и4) → 5 Mila in chats
 (ч1–ч3) → 6 Your business (д1–д3) → 7 AI in your pocket (п1–п3). The goal is not to "deliver information" but to get a button answer
 to every card.
 
