@@ -8,6 +8,8 @@
 
 [English](README.md) · [中文](README.zh-CN.md) · [Русский](README.ru.md) · **Oʻzbekcha**
 
+Mila — kattaroq narsaning bir qismi. Manifestimizni o‘qing: [milagpt.io/uz/manifest](https://milagpt.io/uz/manifest)
+
 Mila — biznesingiz uchun hamkasb: mijozlaringizga javob beradi, va’dalaringizni eslab qoladi, har bir suhbatni yodda tutadi, postlar yozadi, uchrashuvlarni eslatadi va har tong nima «yonayotganini» aytadi. U bilan telefoningizdan — matn yoki ovoz orqali, xuddi jamoangizdagi odam bilan gaplashgandek gaplashasiz.
 
 - **Raqamli xodim, universal agent emas.** Mijoz suhbatlari, va’dalar va vazifalar, egasining «ha»si uchun kartochkalar, haftalik ritm, xarajat limitlari.

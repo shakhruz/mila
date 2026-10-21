@@ -8,6 +8,8 @@
 
 [![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
 
+Mila is part of something bigger — read our Manifesto: [milagpt.io/en/manifest](https://milagpt.io/en/manifest)
+
 - **Answers your customers in Telegram** — day and night, in their language.
 - **Remembers your business** — every client, conversation and promise; one short summary for you every morning.
 - **Acts on your behalf only with your yes** — every such action is in a journal; your files stay in your own home folder; conversations go only to the model providers you choose.
