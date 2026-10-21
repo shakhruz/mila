@@ -8,7 +8,7 @@
 
 [![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
 
-Mila 是更大愿景的一部分 —— 阅读我们的宣言（英文）：[milagpt.io/en/manifest](https://milagpt.io/en/manifest)
+Mila 是更大愿景的一部分 —— 阅读我们的宣言（英文）：[milagpt.io/en/manifest](https://milagpt.io/en/manifest/)
 
 - **在 Telegram 里回复你的客户** —— 全天候在线，用客户的语言回复。
 - **记住你的业务** —— 每一位客户、每一次对话、每一个承诺；每天早上给你一份简短汇总。

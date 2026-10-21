@@ -8,7 +8,7 @@
 
 [![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
 
-Мила — часть большего. Прочитайте наш Манифест: [milagpt.io/manifest](https://milagpt.io/manifest)
+Мила — часть большего. Прочитайте наш Манифест: [milagpt.io/manifest](https://milagpt.io/manifest/)
 
 ![Mila](docs/preview.png)
 
