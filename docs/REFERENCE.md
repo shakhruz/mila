@@ -80,6 +80,7 @@ Two things are deliberately separate from this repository:
 | `skills/plain-words` | How a question to the owner is written so it is understood on first read: one question, options as buttons, the recommendation first, no jargon. |
 | `skills/cards`, `inbox`, `tasks` | One card format for the owner — a question with options, a recommendation and a deadline, or a task with an assignee, estimate and cost — kept in `inbox.jsonl` / `proposals.jsonl`, shown one card at a time in chat ("inbox", "tasks") and in the Mila Office mini-app. |
 | `skills/questions` | A question storm for when the owner is stuck or about to spend money and time: questions that open the decision, not ideas that close it. |
+| `skills/utochnenie-zadach` | Understand first, then do: before substantial work, 2–4 short questions with ready options, a one-line check of understanding, then the work and a check before handing it over. A base skill of every Mila. |
 | `skills/onboarding` | The first session of a newborn assistant: getting to know the owner, their goal and the first small win — the only skill it starts with. |
 | `skills/mila-in-chat`, `topics` | Behaviour in Telegram groups: when to speak, when to stay quiet; how to run a group with topics — open, name, archive, keep the index. |
 | `skills/bot-send` | A message or a mailing from the owner's public bot — only on the owner's word in their private chat: to one person who wrote to the bot, or a mailing shown as a preview ("to N people, this text") and sent after the owner's ✅. |
