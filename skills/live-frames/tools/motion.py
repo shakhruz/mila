@@ -215,7 +215,7 @@ def main():
     fc = (f"[1:a]aresample={sr},aformat=channel_layouts=stereo,adelay={int(getattr(S, 'VOICE_AT', 0.0) * 1000)}:all=1,apad[v];[v]asplit[v1][v2];"
           f"[3:a]aformat=channel_layouts=stereo,volume={mus_db}dB[m];[m][v2]sidechaincompress=threshold=0.03:ratio=4:attack=20:release=400[md];"
           f"[2:a]aformat=channel_layouts=stereo,volume=-6dB[f];[v1][md][f]amix=inputs=3:normalize=0:duration=longest,atrim=0:{total:.2f},loudnorm=I=-14:TP=-1.5:LRA=11[a]")
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", vid, "-i", S.VOICE, "-i", os.path.join(tmp, "fx.wav"), "-i", os.path.join(tmp, "mus.wav"),
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", vid, "-i", S.VOICE, "-i", os.path.join(tmp, "fx.wav"), "-i", os.path.join(tmp, "mus.wav"),
                     "-filter_complex", fc, "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", out], check=True)
     print(json.dumps({"out": out, "sec": round(total, 1), "scenes": len(scenes), "sfx": len(sfx_events(scenes, total))}, ensure_ascii=False))
 

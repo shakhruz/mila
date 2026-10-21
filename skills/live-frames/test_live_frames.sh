@@ -4,7 +4,7 @@
 set -u; H="$(cd "$(dirname "$0")" && pwd)"; T=$(mktemp -d); cd $T
 ok=0; n=0; chk(){ n=$((n+1)); if eval "$2" >/dev/null 2>&1; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 python3 -c "import numpy, PIL" 2>/dev/null || { echo "⏭ нет numpy/Pillow — пропуск"; echo "итог 0/0"; exit 0; }
-ffmpeg -v error -y -f lavfi -i "sine=f=200:d=3" -ac 1 voice.wav
+ffmpeg -nostdin -v error -y -f lavfi -i "sine=f=200:d=3" -ac 1 voice.wav
 cat > spec.py <<P
 VOICE = "$T/voice.wav"
 W, H = 640, 360

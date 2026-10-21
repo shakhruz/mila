@@ -7,7 +7,7 @@ from faster_whisper import WhisperModel
 m = WhisperModel(os.environ.get("STT_MODEL", "medium"), device="cpu", compute_type="int8")
 SR, CH, OV = 16000, 30.0, 2.0
 for f in sys.argv[1:]:
-    pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", f, "-ac", "1", "-ar", "16000", "-f", "s16le", "-"], capture_output=True, check=True).stdout
+    pcm = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-i", f, "-ac", "1", "-ar", "16000", "-f", "s16le", "-"], capture_output=True, check=True).stdout
     audio = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768
     ws, t0 = [], 0.0
     while t0 < len(audio) / SR:

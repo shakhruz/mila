@@ -4,7 +4,7 @@
 cd "$(dirname "$0")/.." || exit 1
 unset TELEGRAM_STATE_DIR MILA_OUTBOX MILA_OWNER_CHAT   # tests never write into a real send queue
 bad=(); n=0
-run() { n=$((n+1)); local out; out=$("$@" 2>&1); local rc=$?
+run() { n=$((n+1)); local out; out=$("$@" 2>&1 </dev/null); local rc=$?   # stdin closed: a test must not eat the file list of the while-read loop
   local last; last=$(printf '%s\n' "$out" | grep -v '^\s*$' | tail -1)
   if [ $rc -eq 0 ] && ! printf '%s' "$last" | grep -Eq '❌|FAIL|итог ([0-9]+)/([0-9]+)' || printf '%s' "$last" | grep -Eq 'итог ([0-9]+)/\1$|итого: ([0-9]+) из \2$'; then
     printf '✅ %-55s %s\n' "$*" "$last"
