@@ -1,6 +1,6 @@
 # Mila Companion
 
-[![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-companion?sort=semver&label=release)](https://github.com/shakhruz/mila-companion/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-companion)](LICENSE)
+[![tests](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila-companion/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-companion?sort=semver&label=release)](https://github.com/shakhruz/mila-companion/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-companion)](LICENSE)
 
 ![Mila Companion](docs/preview.png)
 
@@ -66,14 +66,15 @@ Something wrong or out of date? Open an issue - we fix it the same day.
 
 ## Quick start
 
-Requirements: Claude Code, a Claude subscription, [Bun](https://bun.sh), a Telegram bot token from `@BotFather`.
+≈ 5 minutes. You need: Claude Code (with a Claude subscription), [Bun](https://bun.sh), a Telegram bot token from `@BotFather`.
+
+One command:
 
 ```sh
-git clone <this repository> mila-companion
-cd mila-companion
-./install/install.sh --dry-run   # shows exactly what will be touched
-./install/install.sh             # existing files are backed up as <file>.bak-YYYYMMDD-HHMMSS
+curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-companion/main/install/get.sh | bash
 ```
+
+It checks Claude Code, Bun and git, clones the kit to `~/mila-companion` and runs `install/install.sh` (existing files are backed up as `<file>.bak-YYYYMMDD-HHMMSS`). Prefer to look first? Clone and run `./install/install.sh --dry-run` — it shows exactly what will be touched.
 
 Then, inside a Claude Code session:
 
@@ -85,6 +86,19 @@ Then, inside a Claude Code session:
 
 Restart with `mila`, message your bot, pair (`/telegram:access pair <code>`), then lock it down with
 `/telegram:access policy allowlist`. If the bot goes quiet, run `mila doctor`.
+
+When it works, `mila doctor` looks like this (yellow lines are hints, not errors):
+
+```
+Channel diagnosis · ~/.claude/channels/telegram
+
+🟢 bot                @your_mila_bot (Mila), source: ~/.claude/channels/telegram/.env
+🟡 privacy mode       on — in groups only mentions and replies reach Mila
+🟢 private chats      allowed 1, policy «allowlist»
+🟢 daemon             running, code: …/mila-telegram/receiver.ts
+🟢 permissions        telegram — 700, .env — 600, access.json — 600
+🟢 channel in session plugin MCP server is running
+```
 Server install: see [deploy/README.md](deploy/README.md).
 
 ## Revive your Mila from an archive
