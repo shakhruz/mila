@@ -10,6 +10,7 @@ cases = [
     ("документ, предложение для дела клиента", dict(hard=True, costly=True, rare=True, can_wait=True, valuable=True), "strong"),
     ("проверка качества, публичный текст", dict(hard=True, costly=True, can_wait=True, valuable=True), "strong"),
     ("гость хочет купить или оплатить", dict(costly=True, valuable=True), "strong"),
+    ("шаблон, но ошибка вредит (доза, цена клиенту, срок визы)", dict(costly=True), "strong"),
     ("письмо от имени владельца", dict(in_name=True), "strong+yes"),
     ("оплата или удаление", dict(irreversible=True), "strong+yes"),
 ]

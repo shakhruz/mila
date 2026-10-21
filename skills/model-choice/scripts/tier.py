@@ -9,7 +9,8 @@
      --in-name       от имени человека (письмо, пост, подпись)
      --irreversible  необратимо (деньги, удаление, отправка наружу)
 Выход JSON: {tier: light|strong|strong+yes, model, score, why[]}. Правило: от имени человека и необратимое — всегда сильная + его «да»,
-что бы ни сказали остальные вопросы. Цена ошибки весит вдвое: дешёвая ошибка на сильной — переплата, дорогая на лёгкой — ущерб."""
+что бы ни сказали остальные вопросы. Цена ошибки решает: дорогая ошибка — сильная модель даже на частом шаблоне (доза, цена клиенту, срок визы);
+дешёвая ошибка на сильной — переплата, дорогая на лёгкой — ущерб."""
 import json, sys
 
 MODEL = {"light": "haiku", "strong": "opus", "strong+yes": "opus"}   # алиасы Claude Code: --model / model: в субагенте
@@ -25,7 +26,7 @@ def tier(hard=False, costly=False, rare=False, can_wait=False, valuable=False, i
     for flag, word in ((hard, "трудная"), (costly, "дорогая ошибка"), (rare, "редкая"), (can_wait, "можно подождать"), (valuable, "высокая ценность")):
         if flag:
             why.append(word)
-    t = "strong" if score >= 3 or costly and hard else "light"
+    t = "strong" if costly or score >= 3 else "light"   # дорогая ошибка — всегда сильная, даже на шаблоне (Качество 21.10)
     if t == "light":
         why.append("шаблон, ошибку легко отменить, часто и быстро — лёгкая модель")
     return {"tier": t, "model": MODEL[t], "score": score, "why": why}
