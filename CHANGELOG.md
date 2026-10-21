@@ -1,5 +1,16 @@
 # CHANGELOG · Mila
 
+## v1.5.2 · 21.10 — English first, five questions about the model, fleet roll from the host
+- English first: `communication` and `onboarding` skills in English (`SKILL.md`) with Russian beside (`SKILL.ru.md`); the owner's language can be any (LANG-ANY): Chinese, Arabic…; on «what can you do» — one benefit, not a list.
+- `skills/utochnenie-zadach` (new, base skill of every Mila): understand first, then do — 2–4 questions with ready options before substantial work; answers already given — no questions; urgent — result first with assumptions.
+- `skills/model-choice`: five questions → model tier (`tier.py`: light | strong | strong+yes; a costly error always goes to the strong model; in someone's name or irreversible — strong model and the person's yes).
+- `skills/draft-and-check` (new): a light model drafts, the strong model checks facts, numbers and tone against sources, the person's yes on that exact text sends it.
+- `mila tasks` (`install/tasks.py`): task journal — kind, outcome (done / redo / complaint), cost from the turns of the task span; weekly report per task type.
+- `skills/design-gates`: `fit_text.py` — does the text fit (wrap, largest size that fits, error with advice before writing files) for every visual skill.
+- CI: DejaVu font installed; a test that skipped itself (`итог 0/0`) is ⚠ locally and fails in CI; tests run with stdin closed (`ffmpeg -nostdin`).
+- README: Manifesto link (`milagpt.io/en/manifest/`), site links → `milagpt.io/en/mila/`, «One Mila, two wallets» — the subscription for the owner and work chats, customers and guests on OpenRouter tokens (guest routing in the hosted version today); compare table approvals row re-checked.
+- `mila-update` fleet mode: `MILA_HOME` — update a Mila's home from the host; `MILA_CHOWN=uid[:gid]` — run as root, and only what this run wrote goes back to the home's owner (in-memory list, only inside the home: realpath + commonpath, no hard links). Rollback as root does not trust the journal or backups in the home (removal and unpacking only inside the home, no hard links or devices, symlinks only to targets inside). No access to the home → a clear error. `test_fleet.py` 11/11.
+
 ## v1.5.1 · 21.10 — safe, model choice, live frames, one-command install
 - One-command install: `curl -fsSL …/install/get.sh | bash` (checks Claude Code, Bun, git); CI runs `tests/run_all.sh` on every push; issue/PR templates, Code of Conduct.
 - `skills/model-choice` (a partner's idea, 20.10): before any paid task (images, video, voice, transcription, translation, document analysis) Mila shows two options — budget / best quality: model, what you get, price for this job — with a recommendation, owner picks by button; `pick.py` + dated `catalog.json` (OpenRouter live, fal.ai, ElevenLabs). Test 6/6.

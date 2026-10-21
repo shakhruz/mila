@@ -23,7 +23,9 @@
 Пути: {claude}=~/.claude (CLAUDE_CONFIG_DIR), {work}=~/work (MILA_WORK), {home}=~. Только stdlib."""
 import argparse, fnmatch, glob, hashlib, json, os, re, shutil, subprocess, sys, tarfile, tempfile, time
 
-HOME = os.path.expanduser("~")
+# FLEET-1021 (пилот test20 21.10): раскатка с хоста — MILA_HOME=/srv/…/<slug>/home (дом Милы вместо ~), запуск от root,
+# MILA_CHOWN=uid[:gid] — после записи всё, что тронули (и папка mila-update), отдаётся хозяину дома.
+HOME = os.environ.get("MILA_HOME") or os.path.expanduser("~")
 CLAUDE = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(HOME, ".claude")
 WORK = os.environ.get("MILA_WORK") or os.path.join(HOME, "work")
 DEFAULT_REPO = "https://github.com/shakhruz/mila.git"   # открытое ядро: ключ не нужен
@@ -77,7 +79,11 @@ def sha(path):
     return h.hexdigest()[:16]
 
 
+RUN_TOUCHED = set()   # FLEET-1021b: что тронул ЭТОТ запуск — только отсюда chown, журналу в доме не верим
+
+
 def jlog(rec):
+    RUN_TOUCHED.update(p for p in rec.get("touched", []) if isinstance(p, str))
     os.makedirs(STATE, exist_ok=True)
     rec = dict({"ts": time.strftime("%Y-%m-%dT%H:%M:%S%z")}, **rec)
     open(JOURNAL, "a").write(json.dumps(rec, ensure_ascii=False) + "\n")
@@ -173,7 +179,61 @@ def plan(src):
     return m, pairs
 
 
+def preflight():
+    """Нет доступа к дому Милы — честный отказ, а не «новое» по всем навыкам (пилот 21.10: diff от mila-home видел «новое»,
+    потому что не мог пройти в чужой дом)."""
+    for d in (CLAUDE, os.path.dirname(CLAUDE)):
+        if os.path.exists(d) and not os.access(d, os.R_OK | os.X_OK):
+            sys.exit(json.dumps({"error": "нет доступа к %s — запускайте от хозяина дома или от root с MILA_CHOWN=uid" % d}, ensure_ascii=False))
+    try:
+        os.listdir(CLAUDE) if os.path.isdir(CLAUDE) else None
+    except PermissionError:
+        sys.exit(json.dumps({"error": "нет доступа к %s — запускайте от хозяина дома или от root с MILA_CHOWN=uid" % CLAUDE}, ensure_ascii=False))
+
+
+def inside_home(p):
+    """Путь лежит внутри дома Милы (по realpath и commonpath, не startswith: /home/mila2 не внутри /home/mila). Симлинк судим по
+    месту самой ссылки, не по цели."""
+    home = os.path.realpath(HOME)
+    try:
+        rp = os.path.join(os.path.realpath(os.path.dirname(p)), os.path.basename(p)) if os.path.islink(p) else os.path.realpath(p)
+        return os.path.commonpath([rp, home]) == home and rp != home
+    except (ValueError, OSError):
+        return False
+
+
+def fleet_chown():
+    """MILA_CHOWN=uid[:gid]: тронутое последней записью журнала (и при откате — то, что вернули), папку mila-update и созданных
+    по пути родителей внутри дома — хозяину. Без переменной — ничего."""
+    spec = os.environ.get("MILA_CHOWN", "").strip()
+    if not spec: return
+    uid, _, gid = spec.partition(":"); uid = int(uid); gid = int(gid or uid)
+    paths = set(RUN_TOUCHED) | {STATE}   # FLEET-1021b (Качество): только то, что тронул этот запуск, не journal.jsonl из дома
+    home = os.path.realpath(HOME)
+    def own(p):
+        # внутри дома; жёсткая ссылка (nlink>1) — пропуск: lchown сменил бы владельца общего inode, напр. /etc/shadow
+        if not inside_home(p): return
+        try:
+            st = os.lstat(p)
+            if not os.path.islink(p) and not os.path.isdir(p) and st.st_nlink > 1: return
+            os.lchown(p, uid, gid)
+        except FileNotFoundError: pass
+    for p in paths:
+        if not os.path.lexists(p) or not inside_home(p): continue
+        own(p)
+        if os.path.isdir(p) and not os.path.islink(p):
+            for root, dirs, files in os.walk(p):   # os.walk по симлинкам-папкам не ходит
+                for x in dirs + files: own(os.path.join(root, x))
+        q = os.path.dirname(os.path.realpath(p))   # созданные родители внутри дома (skills/, hooks/, work/…)
+        while q != home and os.path.commonpath([q, home]) == home:
+            try:
+                if os.stat(q).st_uid != uid: own(q)
+            except FileNotFoundError: pass
+            q = os.path.dirname(q)
+
+
 def compare(src):
+    preflight()
     m, pairs = plan(src)
     known = load_version().get("files", {})   # хэши того, что ставили мы в прошлый раз
     rows = []
@@ -508,12 +568,28 @@ def cmd_rollback(a):
     ups = [u for u in ups if u.get("event") in ("update", "install-skill") and u.get("backup") not in done]
     if not ups: sys.exit(json.dumps({"error": "откатывать нечего"}, ensure_ascii=False))
     u = ups[-1]
+    # FLEET-1021b: журнал и бэкап лежат в доме Милы — при запуске от root им не верим: удаляем и распаковываем только внутри дома,
+    # из архива — только обычные файлы и папки (и симлинки, чья цель внутри дома); жёсткие ссылки и устройства — нет
+    if not inside_home(u.get("backup", "")): sys.exit(json.dumps({"error": "бэкап вне дома — откат отклонён"}, ensure_ascii=False))
+    home = os.path.realpath(HOME)
+    def in_home_lex(path):
+        q = os.path.normpath(path)
+        try: return os.path.commonpath([q, home]) == home and q != home
+        except ValueError: return False
     for p in u.get("touched", []):
+        if not isinstance(p, str) or not inside_home(p): continue
+        RUN_TOUCHED.add(p)
         if never(p) and p != VERSION: continue
         if os.path.isdir(p) and not os.path.islink(p): shutil.rmtree(p)
         elif os.path.lexists(p): os.remove(p)
     with tarfile.open(u["backup"]) as t:
-        ok = [m for m in t.getmembers() if not never("/" + m.name) or "/" + m.name == VERSION]
+        ok = []
+        for m in t.getmembers():
+            name = "/" + m.name.lstrip("/")
+            if not in_home_lex(name) or (never(name) and name != VERSION): continue
+            if m.issym() and not in_home_lex(os.path.join(os.path.dirname(name), m.linkname)): continue
+            if not (m.isfile() or m.isdir() or m.issym()): continue
+            ok.append(m); RUN_TOUCHED.add(name)
         t.extractall("/", members=ok, **({"filter": "tar"} if hasattr(tarfile, "tar_filter") else {}))
     jlog({"event": "rollback", "of": u.get("tag") or u.get("skill"), "backup": u["backup"]})
     print(json.dumps({"ok": True, "vernula": u.get("tag") or u.get("skill"), "iz": u["backup"]}, ensure_ascii=False))
@@ -593,9 +669,13 @@ def main():
     p.add_argument("--allow-missing", action="store_true")   # поставить неполный навык осознанно (ответ покажет missing)
     p = sp.add_parser("remove-skill"); p.add_argument("name"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     a = ap.parse_args()
-    {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "rollback": cmd_rollback,
-     "install-skill": cmd_install_skill, "remove-skill": cmd_remove_skill, "installed": cmd_installed, "nightly": cmd_nightly,
-     "config": cmd_config, "health": cmd_health, "slot": cmd_slot}[a.cmd.replace("_", "-")](a)
+    try:
+        {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "rollback": cmd_rollback,
+         "install-skill": cmd_install_skill, "remove-skill": cmd_remove_skill, "installed": cmd_installed, "nightly": cmd_nightly,
+         "config": cmd_config, "health": cmd_health, "slot": cmd_slot}[a.cmd.replace("_", "-")](a)
+    finally:   # и при sys.exit внутри команды: что записали — хозяину дома (MILA_CHOWN)
+        if a.cmd in ("apply", "rollback", "install-skill", "remove-skill", "nightly"):
+            fleet_chown()
 
 
 if __name__ == "__main__":

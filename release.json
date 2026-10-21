@@ -1,9 +1,9 @@
 {
   "product": "Mila",
-  "version": "1.5.1",
-  "tag": "v1.5.1",
+  "version": "1.5.2",
+  "tag": "v1.5.2",
   "date": "2026-10-21",
-  "notes": "CHANGELOG.md - section v1.5.1",
+  "notes": "CHANGELOG.md - section v1.5.2",
   "zones": [
     {
       "what": "навыки ядра",
