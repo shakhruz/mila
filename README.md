@@ -68,13 +68,13 @@ Mila takes a narrower job: a digital employee for a business, in Telegram.
 | Engine | Claude Code | own agent loop, models as plugins | Claude Agent SDK | own agent loop, any model |
 | Channels | Telegram: DMs, groups, your public bot | 20+ (WhatsApp, Telegram, Slack...) | many, each added by a skill | Telegram, Discord, Slack, WhatsApp... |
 | Business skills out of the box | CRM of dialogs, promises and tasks, owner cards, weekly rhythm, mailings | general skills (ClawHub) | general skills | self-written skills |
-| Nothing goes out without the owner's yes | yes, by design (constitution + send-guard) | exec approvals, Team preset | enterprise version | no data |
+| Nothing goes out without the owner's yes | yes, by design (constitution + send-guard) | exec approvals, Team preset | approval for credential use, self-modification and new chats; ordinary messages are not gated | approval for dangerous shell commands (fail-closed); no approval step for sending messages |
 | Spending limits | yes (`spend` skill: forecast, approval above the limit) | no data | no data | per-employee limit (Business plan) |
 | Your Mila moves with you | `mila export` / `mila restore` | Markdown memory files | per-group folders | own memory store |
 | License | Apache-2.0 | MIT | MIT | MIT |
 | Price | free to self-host; hosted from $50/month | free, self-host only | free; enterprise on request | free; Nous Portal $0-200/month |
 
-Facts about other projects: their READMEs and docs, checked 17.10.2026 -
+Facts about other projects: their READMEs and docs, checked 17.10.2026; approvals row re-checked 21.10.2026 against [NanoClaw security](https://docs.nanoclaw.dev/concepts/security) and [Hermes security](https://hermes-agent.nousresearch.com/docs/user-guide/security) -
 [OpenClaw](https://github.com/openclaw/openclaw),
 [NanoClaw](https://github.com/nanocoai/nanoclaw), [Hermes Agent](https://github.com/NousResearch/hermes-agent).
 Something wrong or out of date? Open an issue - we fix it the same day.
