@@ -639,6 +639,14 @@ def cmd_rollback(a):
             if full.startswith(h + os.sep): return full[len(h) + 1:]
         return None
     has_data = hasattr(tarfile, "data_filter")
+    if not has_data and (os.geteuid() == 0 or os.environ.get("MILA_CHOWN")):   # флот от root без фильтра — закрыто (Качество 22.10)
+        sys.exit(json.dumps({"error": "откат от root нужен python с tarfile.data_filter (3.12+, или 3.8.17/3.9.17/3.10.12/3.11.4+)"}, ensure_ascii=False))
+    def lands_inside(rel):
+        """Без фильтра «data» (python до 3.12 без бэкпорта): перед записью члена — его родитель по realpath, с учётом уже
+        распакованных ссылок, внутри дома."""
+        q = os.path.realpath(os.path.join(home, os.path.dirname(rel)))
+        try: return os.path.commonpath([q, home]) == home
+        except ValueError: return False
     with tarfile.open(u["backup"]) as t:
         for m in t.getmembers():
             name = "/" + m.name.lstrip("/")
@@ -652,6 +660,10 @@ def cmd_rollback(a):
                 tgt = rel_to_home(os.path.normpath(m.linkname))
                 if tgt is None: skipped.append(name); continue
                 m.linkname = os.path.relpath(tgt, os.path.dirname(rel) or ".")
+            if not has_data:
+                tgt = os.path.realpath(os.path.join(home, os.path.dirname(rel), m.linkname)) if m.issym() else ""
+                if not lands_inside(rel) or (tgt and os.path.commonpath([tgt, home]) != home) or m.mode & 0o6000:
+                    skipped.append(name); continue
             try:
                 if has_data: t.extract(m, home, filter="data")
                 else: t.extract(m, home)

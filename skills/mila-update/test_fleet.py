@@ -8,11 +8,11 @@ def check(name, c, x=""):
     global ok, n; n += 1; ok += bool(c); print(("✅ " if c else "❌ ") + name + ("" if c else "  " + str(x)[:300]))
 home = os.path.join(T, "srv", "acme", "home"); os.makedirs(os.path.join(home, "work")); open(os.path.join(home, "work", "USER.md"), "w").write("знакомство: пройдено")
 rel = os.path.join(T, "rel"); shutil.copytree(REPO, rel, ignore=shutil.ignore_patterns(".git"))
-def run(*args, chown=None):
+def run(*args, chown=None, nofilter=False):
     calls = []
     env = dict(os.environ, MILA_HOME=home, HOME=os.path.join(T, "admin-home")); env.pop("CLAUDE_CONFIG_DIR", None); env.pop("MILA_WORK", None)
     if chown: env["MILA_CHOWN"] = chown
-    code = ("import os,sys,json,runpy\nC=[]\nos.lchown=lambda p,u,g: C.append((p,u,g))\nsys.argv=%r\n"
+    code = ("import tarfile\n" + ("del tarfile.data_filter\n" if nofilter else "") + "import os,sys,json,runpy\nC=[]\nos.lchown=lambda p,u,g: C.append((p,u,g))\nsys.argv=%r\n"
             "try:\n  runpy.run_path(%r, run_name='__main__')\nexcept SystemExit as e:\n  print(e) if e.code not in (None, 0) else None\nopen(%r,'w').write(json.dumps(C))\n") % (["update.py"] + list(args), os.path.join(H, "update.py"), os.path.join(T, "calls.json"))
     r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env)
     try: calls = json.load(open(os.path.join(T, "calls.json")))
@@ -69,6 +69,17 @@ with tarfile.open(chain_tar, "w:gz") as t:
 open(jr, "a", encoding="utf-8").write(json.dumps({"event": "update", "tag": "vC", "backup": chain_tar, "touched": []}, ensure_ascii=False) + "\n")
 r, c = run("rollback")
 check("цепочка ссылок через давнюю ссылку наружу: вне дома 0 файлов", os.listdir(far) == [], (os.listdir(far), r.stdout[-300:], r.stderr[-300:]))
+# python без tarfile.data_filter (системный 3.9.6 на Маке): у хозяина — своя проверка realpath перед каждым членом; от root — отказ
+chain2 = chain_tar.replace("chain.tgz", "chain2.tgz"); shutil.copy(chain_tar, chain2)
+qa = os.path.join(home, ".claude", "skills", "a-link"); shutil.rmtree(qa) if os.path.isdir(qa) and not os.path.islink(qa) else (os.path.lexists(qa) and os.remove(qa))
+open(jr, "a", encoding="utf-8").write(json.dumps({"event": "update", "tag": "vC2", "backup": chain2, "touched": []}, ensure_ascii=False) + "\n")
+r, c = run("rollback", nofilter=True)
+check("без data_filter: цепочка — вне дома 0 файлов", os.listdir(far) == [] and "vC2" in r.stdout, (os.listdir(far), r.stdout[-300:], r.stderr[-300:]))
+chain3 = chain_tar.replace("chain.tgz", "chain3.tgz"); shutil.copy(chain_tar, chain3)
+qa = os.path.join(home, ".claude", "skills", "a-link"); shutil.rmtree(qa) if os.path.isdir(qa) and not os.path.islink(qa) else (os.path.lexists(qa) and os.remove(qa))
+open(jr, "a", encoding="utf-8").write(json.dumps({"event": "update", "tag": "vC3", "backup": chain3, "touched": []}, ensure_ascii=False) + "\n")
+r, c = run("rollback", chown="4242", nofilter=True)
+check("без data_filter и с MILA_CHOWN (флот от root): отказ, вне дома 0", "data_filter" in r.stdout and os.listdir(far) == [], r.stdout[-300:])
 os.chmod(os.path.join(home, ".claude"), 0o000)
 r, _ = run("diff", "--src", rel)
 os.chmod(os.path.join(home, ".claude"), 0o755)
