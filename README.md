@@ -122,6 +122,13 @@ Then, inside a Claude Code session:
 Restart with `mila`, message your bot, pair (`/mila-telegram:access pair <code>`), then lock it down with
 `/mila-telegram:access policy allowlist`. If the bot goes quiet, run `mila doctor`.
 
+**Why `mila` starts Claude Code with `--dangerously-load-development-channels`.** Channels are a research preview in
+Claude Code: the plain `--channels` flag accepts only plugins on Anthropic's approved list, and `mila-telegram` is not on it
+yet. The development flag lets this one plugin, named in the command, push messages into your session; it does not
+skip permission prompts and does not load anything else. Messages still reach Mila only from people you paired or allowed.
+If the plugin is accepted into Anthropic's plugin marketplace, `mila` will switch to plain `--channels`. Details:
+[Claude Code — channels](https://code.claude.com/docs/en/channels#research-preview).
+
 When it works, `mila doctor` looks like this (yellow lines are hints, not errors):
 
 ```

@@ -19,6 +19,14 @@ pairing flow guidance.
 Out of scope: vulnerabilities in Claude Code, Telegram or other upstream software
 (report those to their vendors), and misconfiguration of your own server.
 
+## The development-channels flag
+
+`mila` starts Claude Code with `--dangerously-load-development-channels plugin:mila-telegram@<marketplace>`.
+While channels are a research preview, plain `--channels` accepts only plugins on Anthropic's approved list, and
+`mila-telegram` is not on it. The flag applies only to the plugin named after it: it does not bypass permission
+prompts or load other channels. Who can write to the session is limited by the plugin's pairing and allowlist
+(`/mila-telegram:access`). Once the plugin is accepted into Anthropic's marketplace, the launcher moves to `--channels`.
+
 ## Ground rules for everyone
 
 - Never commit tokens, API keys or chat exports. `gitleaks` scans the whole history on every push and pull request (`.github/workflows/gitleaks.yml`).
