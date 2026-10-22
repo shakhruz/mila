@@ -109,7 +109,7 @@ One command:
 curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 ```
 
-It checks Claude Code, Bun and git, clones the kit to `~/mila` and runs `install/install.sh` (existing files are backed up as `<file>.bak-YYYYMMDD-HHMMSS`). Prefer to look first? Clone and run `./install/install.sh --dry-run` — it shows exactly what will be touched.
+It checks Claude Code, Bun and git, clones the kit to `~/mila` and runs `install/install.sh` (existing files are backed up as `<file>.bak-YYYYMMDD-HHMMSS`). Prefer to look first? `curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | MILA_INSTALL_ARGS=--dry-run bash` — or clone and run `./install/install.sh --dry-run`: it shows exactly what will be touched.
 
 Then, inside a Claude Code session:
 
