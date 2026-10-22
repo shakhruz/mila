@@ -630,18 +630,34 @@ def cmd_rollback(a):
         if os.path.isdir(p) and not os.path.islink(p): shutil.rmtree(p)
         elif os.path.lexists(p): os.remove(p)
     skipped = []
+    # CHAIN-1022 (Качество): распаковка в сам дом (dest = realpath(home)), по одному члену, с фильтром «data». Фильтр смотрит
+    # каждый член уже ПОСЛЕ распаковки предыдущих, поэтому цепочка ссылок (a → c, где c — давняя ссылка из дома наружу) и файл
+    # a/x отсекаются: LinkOutsideDestinationError, снаружи ничего. Имена в архиве — от корня; переводим их в путь от дома.
+    homes = {os.path.normpath(os.path.abspath(HOME)), home}
+    def rel_to_home(full):
+        for h in homes:
+            if full.startswith(h + os.sep): return full[len(h) + 1:]
+        return None
+    has_data = hasattr(tarfile, "data_filter")
     with tarfile.open(u["backup"]) as t:
-        ok = []
         for m in t.getmembers():
             name = "/" + m.name.lstrip("/")
             if not in_home_lex(name) or (never(name) and name != VERSION): continue
             if m.issym() and not in_home_lex(os.path.join(os.path.dirname(name), m.linkname)): continue
             if not (m.isfile() or m.isdir() or m.issym()): continue
-            if hasattr(tarfile, "data_filter"):   # фильтр «data»: без setuid, без записи для group/other, без ссылок наружу
-                try: tarfile.data_filter(m, "/")
-                except tarfile.FilterError as e: skipped.append(name); soft_err("rollback filter " + name, e); continue
-            ok.append(m); RUN_TOUCHED.add(name)
-        t.extractall("/", members=ok, **({"filter": "data"} if hasattr(tarfile, "data_filter") else {}))
+            rel = rel_to_home(os.path.normpath(name))
+            if not rel: skipped.append(name); continue
+            m.name = rel
+            if m.issym() and os.path.isabs(m.linkname):   # абсолютная цель внутри дома → относительная (фильтр «data» не пускает абсолютные)
+                tgt = rel_to_home(os.path.normpath(m.linkname))
+                if tgt is None: skipped.append(name); continue
+                m.linkname = os.path.relpath(tgt, os.path.dirname(rel) or ".")
+            try:
+                if has_data: t.extract(m, home, filter="data")
+                else: t.extract(m, home)
+                RUN_TOUCHED.add(name)
+            except (tarfile.FilterError if has_data else tarfile.TarError, OSError) as e:
+                skipped.append(name); soft_err("rollback filter " + name, e)
     jlog({"event": "rollback", "of": u.get("tag") or u.get("skill"), "backup": u["backup"], "skipped": skipped})
     print(json.dumps(dict({"ok": True, "vernula": u.get("tag") or u.get("skill"), "iz": u["backup"]}, **({"propushcheno": skipped} if skipped else {})), ensure_ascii=False))
 

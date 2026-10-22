@@ -59,6 +59,16 @@ C = json.loads(r.stdout.strip().splitlines()[-1]) if r.stdout.strip() else []
 check("прямой вызов: внутри папки — файлы навыка да; ссылка-симлинк — сама ссылка, не цель; жёсткая ссылка, чужой дом, /etc, сосед acme2 — нет",
       any(p.endswith("SKILL.md") for p in C) and os.path.join(sk, "hard-out") not in C and os.path.realpath(outside) not in [os.path.realpath(p) for p in C if not os.path.islink(p)]
       and victim not in C and "/etc/passwd" not in C and (home + "2") not in C, (r.stderr[-300:], C[:6]))
+# CHAIN-1022 (Качество): в доме давняя ссылка наружу c → /вне; подложенный бэкап: ссылка a → c и файл a/x. Откат не пишет вне дома.
+far = os.path.join(T, "far-outside"); os.makedirs(far)
+cdir = os.path.join(home, ".claude", "skills", "c-link"); os.symlink(far, cdir)
+chain_tar = os.path.join(home, ".claude", "mila-update", "backups", "chain.tgz")
+with tarfile.open(chain_tar, "w:gz") as t:
+    li = tarfile.TarInfo((home + "/.claude/skills/a-link").lstrip("/")); li.type = tarfile.SYMTYPE; li.linkname = "c-link"; t.addfile(li)
+    data = b"pwn"; ti = tarfile.TarInfo((home + "/.claude/skills/a-link/x").lstrip("/")); ti.size = len(data); t.addfile(ti, io.BytesIO(data))
+open(jr, "a", encoding="utf-8").write(json.dumps({"event": "update", "tag": "vC", "backup": chain_tar, "touched": []}, ensure_ascii=False) + "\n")
+r, c = run("rollback")
+check("цепочка ссылок через давнюю ссылку наружу: вне дома 0 файлов", os.listdir(far) == [], (os.listdir(far), r.stdout[-300:], r.stderr[-300:]))
 os.chmod(os.path.join(home, ".claude"), 0o000)
 r, _ = run("diff", "--src", rel)
 os.chmod(os.path.join(home, ".claude"), 0o755)
