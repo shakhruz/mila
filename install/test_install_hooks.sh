@@ -18,7 +18,7 @@ PY
 chk "все хуки из settings.json лежат файлами" "[ -z \"$miss\" ]"
 chk "Stop: reply-required.py установлен" "[ -x $T/home/.claude/hooks/reply-required.py ]"
 chk "PostToolUse: pd-mask.py установлен" "[ -x $T/home/.claude/hooks/pd-mask.py ]"
-chk "ключ хранилища ПДн создан, 600" "[ \"\$(stat -c %a $T/home/.config/mila/pd.key 2>/dev/null)\" = 600 ]"
+chk "ключ хранилища ПДн создан, 600" "python3 -c \"import os,sys; sys.exit(0 if os.stat(sys.argv[1]).st_mode & 0o777 == 0o600 else 1)\" $T/home/.config/mila/pd.key"
 S="$T/home/.claude/settings.json"
 chk "SELFHOST-1018: PreToolUse send-guard зарегистрирован и лежит файлом" "grep -q 'send-guard.py' $S && [ -x $T/home/.claude/hooks/send-guard.py ]"
 chk "SELFHOST-1018: task-sent (PostToolUse reply) и task-open (SessionStart) зарегистрированы" "grep -q 'task-sent.py' $S && grep -q 'task-open.py' $S"

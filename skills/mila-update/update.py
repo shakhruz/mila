@@ -617,7 +617,10 @@ def cmd_rollback(a):
     if not inside_home(u.get("backup", "")): sys.exit(json.dumps({"error": "бэкап вне дома — откат отклонён"}, ensure_ascii=False))
     home = os.path.realpath(HOME)
     def in_home_lex(path):
+        # MACOS-1022: родителей сводим через realpath, как и сам дом. Иначе на macOS дом /var/folders/… (ссылка на /private/var/…)
+        # не совпадал с путями из архива, и откат пропускал всё. Родитель-ссылка наружу теперь тоже отсекается.
         q = os.path.normpath(path)
+        q = os.path.join(os.path.realpath(os.path.dirname(q)), os.path.basename(q))
         try: return os.path.commonpath([q, home]) == home and q != home
         except ValueError: return False
     for p in u.get("touched", []):
