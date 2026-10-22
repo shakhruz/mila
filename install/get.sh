@@ -51,11 +51,7 @@ cat <<'NEXT'
 
 Next / дальше:
   1. Create a bot at @BotFather and keep its token.
-  2. Start Claude Code with `mila` and save the token:
-       /mila-telegram:configure <token>
-  3. Restart with `mila`, message your bot, then in the session:
-       /mila-telegram:access pair <code>
-       /mila-telegram:access policy allowlist
-  4. Check everything:  mila doctor   — all lines 🟢 or 🟡 with a hint.
+  2. mila onboard   — bot token, Claude sign-in, pair with your bot: three steps, each checked.
+  3. mila           — start Mila. Check any time:  mila doctor
   Details: README → Quick start.
 NEXT

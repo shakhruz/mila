@@ -110,7 +110,7 @@ Something wrong or out of date? Open an issue - we fix it the same day.
 - [Bun](https://bun.sh) and git.
 - A Telegram bot token from `@BotFather`.
 - `~/.local/bin` on your `PATH` — the `mila` launcher goes there (the installer tells you if it is missing: `export PATH="$HOME/.local/bin:$PATH"`).
-- Your Telegram chat id, so Mila answers you and the chats you connect, nobody else. After pairing (below) it is the number in `allowFrom` of `~/.claude/channels/telegram/access.json`. Put it into `MILA_OWNER_ID` and run the installer again: `MILA_OWNER_ID=<your id> ~/mila/install/install.sh`.
+- Nothing else: your Telegram id is set by `mila onboard` (step 3). Setting it by hand: `MILA_OWNER_ID=<your id> ~/mila/install/install.sh`.
 
 One command:
 
@@ -120,14 +120,18 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 
 It checks Claude Code, Bun and git, clones the kit to `~/mila`, runs `install/install.sh` and installs the Telegram plugin `mila-telegram` (existing files are backed up as `<file>.bak-YYYYMMDD-HHMMSS`). Prefer to look first? `curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | MILA_INSTALL_ARGS=--dry-run bash` — or clone and run `./install/install.sh --dry-run`: it shows exactly what will be touched.
 
-Then, inside a Claude Code session:
+Then three steps, each checked before the next:
 
-```
-/mila-telegram:configure <bot token from @BotFather>
+```sh
+mila onboard
 ```
 
-Restart with `mila`, message your bot, pair (`/mila-telegram:access pair <code>`), then lock it down with
-`/mila-telegram:access policy allowlist`. If the bot goes quiet, run `mila doctor`.
+1. **Bot token** — paste it (hidden), Telegram confirms it, it is saved with mode 600.
+2. **Claude** — if you are not signed in, Anthropic's own sign-in opens; Mila never sees it.
+3. **Pair** — you get a 6-character code, send it to your bot from Telegram; you become the owner (allowlist + `OWNER_ID`).
+
+Then start Mila with `mila`. `mila onboard --check` shows the three steps without changing anything; if the bot goes quiet, run
+`mila doctor`. Prefer the plugin's own commands? `/mila-telegram:configure <token>` and `/mila-telegram:access pair <code>` still work.
 
 **Why `mila` starts Claude Code with `--dangerously-load-development-channels`.** Channels are a research preview in
 Claude Code: the plain `--channels` flag accepts only plugins on Anthropic's approved list, and `mila-telegram` is not on it

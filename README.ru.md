@@ -67,14 +67,17 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 
 Она проверит Claude Code, Bun и git, склонирует набор в `~/mila`, запустит `install/install.sh` и поставит плагин Telegram `mila-telegram` (заменяемые файлы сохраняются как `<файл>.bak-ГГГГММДД-ЧЧММСС`). Хотите сначала посмотреть — склонируйте и запустите `./install/install.sh --dry-run`: покажет, что будет затронуто.
 
-Затем в сессии Claude Code:
+Затем три шага, каждый с проверкой:
 
-```
-/mila-telegram:configure <токен бота от @BotFather>
+```sh
+mila onboard
 ```
 
-Перезапустите через `mila`, напишите боту, сопрягите (`/mila-telegram:access pair <код>`) и закройте доступ:
-`/mila-telegram:access policy allowlist`. Бот молчит - `mila doctor`. Сервер - [deploy/README.md](deploy/README.md).
+1. **Токен бота** — вставляете (скрыто), Telegram его подтверждает, файл с правами 600.
+2. **Claude** — не вошли — откроется вход Anthropic; Мила его не видит.
+3. **Пара** — получаете код из 6 знаков и шлёте его своему боту; вы — хозяин (allowlist и `OWNER_ID`).
+
+Дальше — `mila`. `mila onboard --check` покажет три шага, ничего не меняя. Бот молчит - `mila doctor`. Сервер - [deploy/README.md](deploy/README.md).
 
 Когда всё работает, `mila doctor` выглядит так (жёлтые строки — подсказки, не ошибки):
 

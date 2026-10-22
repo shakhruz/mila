@@ -41,12 +41,16 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 
 Buyruq Claude Code, Bun va git’ni tekshiradi, to‘plamni `~/mila` ga yuklaydi va Telegram plaginini `mila-telegram` o‘rnatadi.
 
-Keyin Claude Code sessiyasida:
+Keyin uch qadam, har biri tekshiriladi:
 
-```
-/mila-telegram:configure <@BotFather bergan token>
+```sh
+mila onboard
 ```
 
-`mila` bilan qayta ishga tushiring, botga yozing, juftlang (`/mila-telegram:access pair <kod>`) va kirishni yoping: `/mila-telegram:access policy allowlist`. Bot jim bo‘lsa — `mila doctor`.
+1. **Bot tokeni** — yashirin kiritasiz, Telegram tasdiqlaydi, 600 huquqli faylga yoziladi.
+2. **Claude** — kirmagan bo‘lsangiz, Anthropic’ning o‘z kirish sahifasi ochiladi; Mila uni ko‘rmaydi.
+3. **Juftlash** — 6 belgili kod olasiz va uni botingizga yuborasiz; siz — egasiz (allowlist va `OWNER_ID`).
+
+Keyin — `mila`. `mila onboard --check` hech narsani o‘zgartirmasdan uch qadamni ko‘rsatadi. Bot jim bo‘lsa — `mila doctor`.
 
 To‘liq ma’lumot — [English README](README.md) va [docs/REFERENCE.md](docs/REFERENCE.md).

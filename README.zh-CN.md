@@ -34,12 +34,16 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 
 该命令会检查 Claude Code、Bun 和 git，把套件克隆到 `~/mila`，并安装 Telegram 插件 `mila-telegram`。
 
-然后在 Claude Code 会话中运行：
+然后完成三步，每一步都会检查：
 
-```
-/mila-telegram:configure <从 @BotFather 获取的 token>
+```sh
+mila onboard
 ```
 
-用 `mila` 重新启动，给你的机器人发一条消息，完成配对（`/mila-telegram:access pair <验证码>`），然后关闭对外访问（仅允许白名单用户）：`/mila-telegram:access policy allowlist`。机器人没有反应时，运行 `mila doctor`。
+1. **机器人 token** —— 隐藏输入，由 Telegram 验证，以 600 权限保存。
+2. **Claude** —— 如果尚未登录，会打开 Anthropic 自己的登录页面；Mila 看不到登录信息。
+3. **配对** —— 你会得到一个 6 位验证码，从 Telegram 发给你的机器人；你就成为主人（白名单 + `OWNER_ID`）。
+
+之后运行 `mila` 启动。`mila onboard --check` 只显示三步状态，不做任何更改。机器人没有反应时，运行 `mila doctor`。
 
 完整说明见 [English README](README.md)（英文）和 [docs/REFERENCE.md](docs/REFERENCE.md)（英文）。

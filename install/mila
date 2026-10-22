@@ -253,6 +253,12 @@ case "${1:-continue}" in
                  [ -f "$c" ] && exec python3 "$c" "$@"
                done
                echo "chat_note.py not found — reinstall the kit" >&2; exit 1 ;;
+  onboard|ob)  shift
+               for c in "$HOME/.claude/hooks/onboard.py" \
+                        "$(dirname "$0")/onboard.py"; do
+                 [ -f "$c" ] && exec python3 "$c" "$@"
+               done
+               echo "onboard.py not found — reinstall the kit" >&2; exit 1 ;;
   doctor|doc)  shift
                for c in "$HOME/.claude/hooks/doctor.py" \
                         "$(dirname "$0")/doctor.py"; do
@@ -288,6 +294,7 @@ mila            resume the last session with the plugin (--continue)
 mila new        start a fresh session
 mila pick       choose a session from the list (--resume)
 mila status     channel health: receiver, sender, bridge, journal, outbox
+mila onboard    first setup in three checked steps: bot token, Claude sign-in, pair with your bot (--check)
 mila doctor     full diagnosis: token, privacy mode, access, daemon, permissions
 mila inbox      show unread inbound messages and mark them seen
 mila fix        restart receiver and sender (leaves the session alone)

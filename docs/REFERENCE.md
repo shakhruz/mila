@@ -152,7 +152,11 @@ Existing files it would overwrite — skills, the `mila` launcher, hooks, and
 content is left alone with no copy made, and the installer prints the list of
 backups it made at the end.
 
-Then, inside a Claude Code session:
+`install/get.sh` also installs the plugin. Then run `mila onboard`: bot token (checked with Telegram, saved 600),
+Claude sign-in (Anthropic's own page), pairing by a 6-character code you send to your bot — it writes `allowFrom`,
+`dmPolicy: allowlist` and `OWNER_ID` itself. `mila onboard --check` only reports.
+
+By hand, the same in a Claude Code session:
 
 ```
 /plugin marketplace add shakhruz/mila-telegram

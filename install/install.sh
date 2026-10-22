@@ -128,7 +128,7 @@ echo
 # like "nothing is due".
 echo "Tools"
 for f in usage_collect.py turns_collect.py records.py tasks.py chats_index.py \
-         chat_note.py chat_locale.py doctor.py backup.py design_check.py; do
+         chat_note.py chat_locale.py doctor.py onboard.py backup.py design_check.py; do
   if [[ -f "$HERE/$f" ]]; then
     install_file "$HERE/$f" "$HOOK_DIR/$f" "$f"
     run chmod 755 "$HOOK_DIR/$f"
