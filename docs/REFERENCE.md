@@ -92,9 +92,9 @@ Two things are deliberately separate from this repository:
 | `install/reply-required.py` | Stop hook: if the last inbound was a Telegram `<channel>` message and the session has not called the plugin `reply` tool since, the stop is blocked with a reason — the owner reads Telegram, not the transcript. Born from a client companion launch (12.09.2026): the first replies were plain text and never reached the owner. |
 | `install/telegram-inbox-feed.py` | Hook that surfaces incoming Telegram messages in the terminal — and any promise whose deadline is today or past. |
 | `install/crons-keeper.py` | Scheduled reminders survive a session restart: every CronCreate/CronDelete is mirrored to `~/work/state/crons.json`, and at session start the assistant is asked to recreate whatever is missing (repeating jobs expire after 7 days — it renews them). |
-| `install/companion-feeder.py` | Container feeder: journal → session stdin, with delivery checks. Also lets our own companions hear each other: a bot message is fed only if it is from our registry and addressed by `@name` or reply, quote up to 3000 characters, loop guard `COMPANION_BOT_PAIR_MAX`. See [`docs/team-hearing.md`](docs/team-hearing.md). |
+| `install/companion-feeder.py` | Container feeder: journal → session stdin, with delivery checks. Also lets our own companions hear each other: a bot message is fed only if it is from our registry and addressed by `@name` or reply, quote up to 3000 characters, loop guard `COMPANION_BOT_PAIR_MAX`. See [`docs/team-hearing.md`](team-hearing.md). |
 | `install/usage_collect.py` | Token spend by day and model, read straight from the session transcripts. Wired into the launcher as `mila usage`. |
-| `install/records.py` + `install/turns_collect.py` | The books: a turn-by-turn conversation table (schema-compatible with the fleet's operators) and a ledger of paid outbound calls, with a switch for how much of the conversation text is kept. `mila turns`, `mila records`. See [`docs/accounting.md`](docs/accounting.md). |
+| `install/records.py` + `install/turns_collect.py` | The books: a turn-by-turn conversation table (schema-compatible with the fleet's operators) and a ledger of paid outbound calls, with a switch for how much of the conversation text is kept. `mila turns`, `mila records`. See [`docs/accounting.md`](accounting.md). |
 | `install/chats_index.py` | Chat registry: which chats are connected, who talks in them, when they last did. `mila chats`. |
 | `install/chat_locale.py` | Timezone and language per chat. `mila when` shows what time it is for every client and who is in quiet hours. |
 | `install/chat_note.py` | Writes into a chat card — purpose, participants, promises, notes. `mila owe` lists every open promise across all chats. |
@@ -126,7 +126,7 @@ ssh root@host 'bash /tmp/bootstrap.sh --user mila --dry-run'
 
 User, runtimes, kit, state directories, a systemd unit for the receiver,
 hardened permissions — idempotent, with a dry run that changes nothing and
-prints every step. See **[deploy/README.md](./deploy/README.md)**.
+prints every step. See **[deploy/README.md](../deploy/README.md)**.
 
 Three things it will not do: log anyone in, write a bot token, open a port. The
 first is not a limitation — the account and the subscription must be the
@@ -230,7 +230,7 @@ inflated by roughly 1.7×. Spending did not drop — the error did. New rows car
 
 ## Keeping the books
 
-Full documentation, in Russian: [`docs/accounting.md`](docs/accounting.md).
+Full documentation, in Russian: [`docs/accounting.md`](accounting.md).
 
 Two ledgers, two different questions. Mixing them is the whole point of keeping
 them apart: in the first one the dollars are almost always notional, in the
