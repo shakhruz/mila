@@ -80,6 +80,18 @@ qa = os.path.join(home, ".claude", "skills", "a-link"); shutil.rmtree(qa) if os.
 open(jr, "a", encoding="utf-8").write(json.dumps({"event": "update", "tag": "vC3", "backup": chain3, "touched": []}, ensure_ascii=False) + "\n")
 r, c = run("rollback", chown="4242", nofilter=True)
 check("без data_filter и с MILA_CHOWN (флот от root): отказ, вне дома 0", "data_filter" in r.stdout and os.listdir(far) == [], r.stdout[-300:])
+# давняя ссылка home/…/over → файл вне дома, в бэкапе обычный файл с тем же именем: пишется файл в доме, цель вне дома цела
+tgt_out = os.path.join(T, "far-target.txt"); open(tgt_out, "w").write("цел")
+over = os.path.join(home, ".claude", "skills", "over"); os.symlink(tgt_out, over)
+over_tar = os.path.join(home, ".claude", "mila-update", "backups", "over.tgz")
+with tarfile.open(over_tar, "w:gz") as t:
+    data = b"pwn"; ti = tarfile.TarInfo(over.lstrip("/")); ti.size = len(data); t.addfile(ti, io.BytesIO(data))
+for nf, tag in ((False, "vO1"), (True, "vO2")):
+    tb = over_tar.replace("over.tgz", tag + ".tgz"); shutil.copy(over_tar, tb)
+    os.path.lexists(over) and os.remove(over); os.symlink(tgt_out, over)
+    open(jr, "a", encoding="utf-8").write(json.dumps({"event": "update", "tag": tag, "backup": tb, "touched": []}, ensure_ascii=False) + "\n")
+    r, c = run("rollback", nofilter=nf)
+    check("давняя ссылка, файл поверх (%s): цель вне дома цела" % ("без data_filter" if nf else "с data_filter"), open(tgt_out).read() == "цел", (open(tgt_out).read(), r.stdout[-200:]))
 os.chmod(os.path.join(home, ".claude"), 0o000)
 r, _ = run("diff", "--src", rel)
 os.chmod(os.path.join(home, ".claude"), 0o755)

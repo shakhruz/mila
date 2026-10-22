@@ -664,6 +664,9 @@ def cmd_rollback(a):
                 tgt = os.path.realpath(os.path.join(home, os.path.dirname(rel), m.linkname)) if m.issym() else ""
                 if not lands_inside(rel) or (tgt and os.path.commonpath([tgt, home]) != home) or m.mode & 0o6000:
                     skipped.append(name); continue
+            dst = os.path.join(home, rel)
+            if os.path.islink(dst) and not m.issym():   # давняя ссылка на месте обычного файла: пишем файл, не по ссылке наружу
+                os.unlink(dst)
             try:
                 if has_data: t.extract(m, home, filter="data")
                 else: t.extract(m, home)
