@@ -8,9 +8,6 @@ MILAGPT logo - see TRADEMARKS.md.
 
 Claude and Claude Code are trademarks of Anthropic, PBC. Mila is an independent open-source project, not affiliated with, endorsed or sponsored by Anthropic.
 
-To use a different license, replace the LICENSE file (and the license line in
-README.md / README.ru.md); the code carries no per-file license headers.
-
 Bundled third-party components keep their own licenses:
 - Fonts: Montserrat, Noto Sans (skills/video-overview/fonts/*.woff2) and Caveat, PT Sans
   (embedded as base64 in skills/flashcards/assets/fonts.css) are licensed under the
