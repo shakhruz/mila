@@ -6,6 +6,8 @@ The license covers the source code and documentation in this repository.
 It does not grant any rights to the names "Mila" and "MILAGPT" or to the
 MILAGPT logo - see TRADEMARKS.md.
 
+Claude and Claude Code are trademarks of Anthropic, PBC. Mila is an independent open-source project, not affiliated with, endorsed or sponsored by Anthropic.
+
 To use a different license, replace the LICENSE file (and the license line in
 README.md / README.ru.md); the code carries no per-file license headers.
 

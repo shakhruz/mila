@@ -14,4 +14,9 @@ You may not, without written permission:
 - publish a modified version under the name "Mila" or "MILAGPT", or with the logo;
 - present a service as operated, endorsed or certified by MILAGPT.
 
+## Anthropic
+
+Claude and Claude Code are trademarks of Anthropic, PBC. Mila is an independent open-source project, not affiliated with, endorsed or sponsored by Anthropic.
+We mention Claude and Claude Code only to say, in plain text, that Mila runs on them.
+
 Questions: open an issue or write via https://milagpt.io.
