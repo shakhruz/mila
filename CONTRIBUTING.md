@@ -8,21 +8,16 @@ Python/shell tools around Claude Code and a Telegram channel.
 - No secrets, no real chat ids, no names of real customers or people in code,
   examples or tests - use placeholders (`acme_bot`, `<chat_id>`, "Anna").
 - Skills: `SKILL.md` needs valid frontmatter. Check with
-  `python tools/check_frontmatter.py skills templates`.
-- JS/HTML: `python tools/check_comments.py <files>` (no code after `//` on one line).
+  `python3 tools/check_frontmatter.py skills templates`.
+- JS/HTML: `python3 tools/check_comments.py <files>` (no code after `//` on one line).
 
 ## Tests
+`bash tests/run_all.sh` runs every test in the repo (sandboxed `HOME`) plus the frontmatter check — all green before a
+pull request. CI runs the same script, plus gitleaks on the whole history. To run one test while you work:
 ```sh
 python3 templates/home/.claude/hooks/test_send_guard.py
-python3 install/test_records.py
-python3 install/test_team_hearing.py
-python3 skills/bot-send/test_bot_send.py
-python3 skills/cards/test_cards.py
-bash skills/plain-words/test_plain_words.sh
 bash skills/mila-update/test_update.sh
-bash skills/mila-update/test_nightly.sh
 ```
-Run them before opening a PR; CI runs the frontmatter, send-guard and comment checks.
 
 ## Language
 Skill text is mostly Russian (the author's working language); README and code
@@ -30,10 +25,6 @@ comments in English are welcome. Translations of skills are welcome as `SKILL.<l
 
 ## License
 By contributing you agree your work is licensed under Apache-2.0 (see LICENSE).
-
-## Tests
-
-`bash tests/run_all.sh` runs every test in the repo (sandboxed) plus the frontmatter check — all green before a pull request.
 
 ## Releases
 - Channels: `stable` = tags `vX.Y.Z` (no `-rc`), `canary` = `main`. Milas update themselves from the channel they are set to (`~/.claude/mila-update.json`).
