@@ -26,6 +26,8 @@ While channels are a research preview, plain `--channels` accepts only plugins o
 `mila-telegram` is not on it. The flag applies only to the plugin named after it: it does not bypass permission
 prompts or load other channels. Who can write to the session is limited by the plugin's pairing and allowlist
 (`/mila-telegram:access`). Once the plugin is accepted into Anthropic's marketplace, the launcher moves to `--channels`.
+The flag does not override organization policy: on Claude Team and Enterprise, channels work only after the
+organization admin enables them (`channelsEnabled`).
 
 ## Ground rules for everyone
 

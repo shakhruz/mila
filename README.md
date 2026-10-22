@@ -23,6 +23,15 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 
 **Which version to take:** stable — [Releases](https://github.com/shakhruz/mila/releases) (tags `vX.Y.Z`); canary — the `main` branch (newest, may break).
 
+### Claude — by Anthropic's rules
+
+- Mila runs on the ordinary, unmodified Claude Code, installed as Anthropic publishes it.
+- You sign in yourself, only on Anthropic's page, with your own Claude plan or your own Anthropic API key. Mila never copies or stores your login or token; don't copy an OAuth token anywhere yourself.
+- Your plan is for your own use. Customers and guests who write to your bot are served through an API key, billed to the key's owner.
+- A partner who sets Mila up for you does not run you on the partner's subscription, does not pay for, resell or intermediate your Claude usage, and does not collect logins.
+
+Source: [Claude Code — legal and compliance](https://code.claude.com/docs/en/legal-and-compliance).
+
 ## Speaks your customer's language
 
 3 out of the box — **English, Русский, Oʻzbek**; **中文 — new**, in testing — add yours in one file (the owner's greeting `skills/onboarding/GREETING.<code>.md`). Mila replies in the language the customer writes in, not the language of their phone settings.
@@ -97,7 +106,7 @@ Something wrong or out of date? Open an issue - we fix it the same day.
 
 **You need:**
 - macOS or Linux. On Windows — inside [WSL](https://learn.microsoft.com/windows/wsl/install).
-- [Claude Code](https://code.claude.com/docs/en/setup), tested on 2.1.305 (`claude --version`), signed in with your own Claude Pro or Max plan, or your own Anthropic API key.
+- [Claude Code](https://code.claude.com/docs/en/setup), tested on 2.1.305 (`claude --version`), signed in with your own Claude plan (Pro, Max, Team or Enterprise) or your own Anthropic API key. On Team and Enterprise your organization admin must enable channels.
 - [Bun](https://bun.sh) and git.
 - A Telegram bot token from `@BotFather`.
 - `~/.local/bin` on your `PATH` — the `mila` launcher goes there (the installer tells you if it is missing: `export PATH="$HOME/.local/bin:$PATH"`).
@@ -158,14 +167,6 @@ The archive has `manifest.json` (format 1, sha256 of each file, core version) an
 After the restore you re-enter by hand: the bot token, your Claude login, service keys (the checklist is printed).
 Chat history and transcripts are exported only with `--with-history` (other people's data - keep it closed).
 Details: [skills/mila-export](skills/mila-export/SKILL.md). To save the memory on a schedule, use `mila backup` (see above in the reference).
-
-## Claude — by Anthropic's rules
-
-Mila runs on Claude Code exactly as Anthropic publishes it, unmodified. Every owner installs it and signs in personally:
-with their own Claude plan (Pro or Max) or their own Anthropic API key. Sign-in happens on Anthropic's own page; Mila never
-sees or stores it. A partner who sets Mila up for someone does not run their clients on the partner's subscription, does not
-pay for, resell or intermediate their Claude usage, and does not collect anyone's Claude login. Customers and guests who write
-to your bot are served through an API key, billed to the key's owner. Source: [Claude Code — legal and compliance](https://code.claude.com/docs/en/legal-and-compliance).
 
 ## Safety
 
