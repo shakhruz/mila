@@ -6,7 +6,9 @@
 
 [English](README.md) · **中文** · [Русский](README.ru.md) · [Oʻzbekcha](README.uz.md)
 
-[![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
+[![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
+
+**当前版本：[v1.5.2](https://github.com/shakhruz/mila/releases/latest)** · [更新内容](CHANGELOG.md)
 
 Mila 是更大愿景的一部分 —— 阅读我们的宣言（英文）：[milagpt.io/en/manifest](https://milagpt.io/en/manifest/)
 
@@ -45,5 +47,9 @@ mila onboard
 3. **配对** —— 你会得到一个 6 位验证码，从 Telegram 发给你的机器人；你就成为主人（白名单 + `OWNER_ID`）。
 
 之后运行 `mila` 启动。`mila onboard --check` 只显示三步状态，不做任何更改。机器人没有反应时，运行 `mila doctor`。
+
+## 社区
+
+提问、分享想法、展示你的 Mila 在做什么：[GitHub Discussions](https://github.com/shakhruz/mila/discussions)。问题反馈：[Issues](https://github.com/shakhruz/mila/issues)。
 
 完整说明见 [English README](README.md)（英文）和 [docs/REFERENCE.md](docs/REFERENCE.md)（英文）。

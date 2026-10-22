@@ -4,9 +4,11 @@
 
 *Iliqlik uchun yaratilgan.*
 
-[![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
+[![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
 
 [English](README.md) · [中文](README.zh-CN.md) · [Русский](README.ru.md) · **Oʻzbekcha**
+
+**Joriy chiqish: [v1.5.2](https://github.com/shakhruz/mila/releases/latest)** · [nima yangi](CHANGELOG.md)
 
 Mila — kattaroq narsaning bir qismi. Manifestimizni o‘qing (rus va ingliz tillarida): [milagpt.io/manifest](https://milagpt.io/manifest/) · [English](https://milagpt.io/en/manifest/)
 
@@ -52,5 +54,9 @@ mila onboard
 3. **Juftlash** — 6 belgili kod olasiz va uni botingizga yuborasiz; siz — egasiz (allowlist va `OWNER_ID`).
 
 Keyin — `mila`. `mila onboard --check` hech narsani o‘zgartirmasdan uch qadamni ko‘rsatadi. Bot jim bo‘lsa — `mila doctor`.
+
+## Hamjamiyat
+
+Savollar, g‘oyalar, Milangiz nima qilayotganini ko‘rsating: [GitHub Discussions](https://github.com/shakhruz/mila/discussions). Xatolar — [Issues](https://github.com/shakhruz/mila/issues).
 
 To‘liq ma’lumot — [English README](README.md) va [docs/REFERENCE.md](docs/REFERENCE.md).

@@ -21,6 +21,8 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 
 ![Mila](docs/preview.png)
 
+**Current release: [v1.5.2](https://github.com/shakhruz/mila/releases/latest)** · [what's new](CHANGELOG.md)
+
 **Which version to take:** stable — [Releases](https://github.com/shakhruz/mila/releases) (tags `vX.Y.Z`); canary — the `main` branch (newest, may break).
 
 ### Claude — by Anthropic's rules
@@ -82,6 +84,11 @@ Mila takes a narrower job: a digital employee for a business, in Telegram.
 | Your Mila moves with you | `mila export` / `mila restore` | Markdown memory files | per-group folders | own memory store |
 | License | Apache-2.0 | MIT | MIT | MIT |
 | Price | free to self-host; hosted from $50/month | free, self-host only | free; enterprise on request | free; Nous Portal $0-200/month |
+
+**Mila's honest minuses.** Telegram only: no WhatsApp, Slack or Discord. It needs Claude Code, signed in with your own Claude plan
+or API key — Mila herself runs only on Claude (guests can be served by other models through OpenRouter). macOS and Linux;
+Windows only through WSL. Channels in Claude Code are a research preview, so the launcher uses a development flag for now
+(see Quick start).
 
 Facts about other projects: their READMEs and docs, checked 17.10.2026; approvals row re-checked 21.10.2026 against [NanoClaw security](https://docs.nanoclaw.dev/concepts/security) and [Hermes security](https://hermes-agent.nousresearch.com/docs/user-guide/security) -
 [OpenClaw](https://github.com/openclaw/openclaw),
@@ -187,6 +194,11 @@ this repository is the core they run on.
 **Developers, join us.** Build a skill, fix a hook, translate a skill to your language, tell us what broke.
 Every pull request is read by a person and by Mila Quality. Good contributors are invited to the core team.
 Start with [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Community
+
+Questions, ideas, show what your Mila does: [GitHub Discussions](https://github.com/shakhruz/mila/discussions).
+Bugs: [Issues](https://github.com/shakhruz/mila/issues). Security: [SECURITY.md](SECURITY.md).
 
 ## Contributing, license, name
 

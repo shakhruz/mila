@@ -13,6 +13,8 @@
 ![Mila](docs/preview.png)
 
 
+**Текущий выпуск: [v1.5.2](https://github.com/shakhruz/mila/releases/latest)** · [что нового](CHANGELOG.md)
+
 **Какую версию брать:** стабильная — [Releases](https://github.com/shakhruz/mila/releases) (теги `vX.Y.Z`); canary — ветка `main` (новее, может ломаться).
 
 ### Claude — по правилам Anthropic
@@ -42,6 +44,10 @@
 Telegram-плагин - отдельный открытый репозиторий: [shakhruz/mila-telegram](https://github.com/shakhruz/mila-telegram).
 
 [English](README.md) · [Полный справочник (EN)](docs/REFERENCE.md) · [Сравнение с OpenClaw, NanoClaw, Hermes Agent (EN)](README.md#how-mila-compares)
+
+**Честные минусы Милы.** Только Telegram: нет WhatsApp, Slack и Discord. Нужен Claude Code, вход — своей подпиской Claude или своим
+API-ключом; сама Мила работает только на Claude (гостям можно отвечать другими моделями через OpenRouter). macOS и Linux;
+Windows — только через WSL. Каналы в Claude Code пока в предварительном режиме, поэтому запускатель использует флаг разработки.
 
 ## Что внутри
 
@@ -118,6 +124,11 @@ MILAGPT - небольшая команда: **Шахруз Ашот Аширо�
 
 **Разработчики, присоединяйтесь.** Напишите навык, почините хук, переведите навык на свой язык, расскажите, что сломалось.
 Каждый pull request читает человек и Мила Качество. Сильных участников зовём в основную команду. Начало - [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Сообщество
+
+Вопросы, идеи, покажите, что делает ваша Мила: [GitHub Discussions](https://github.com/shakhruz/mila/discussions).
+Ошибки — [Issues](https://github.com/shakhruz/mila/issues). Уязвимости — [SECURITY.md](SECURITY.md).
 
 ## Безопасность, вклад, лицензия
 

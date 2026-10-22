@@ -28,6 +28,7 @@ By contributing you agree your work is licensed under Apache-2.0 (see LICENSE).
 
 ## Releases
 - Channels: `stable` = tags `vX.Y.Z` (no `-rc`), `canary` = `main`. Milas update themselves from the channel they are set to (`~/.claude/mila-update.json`).
+- Before a release: bump the «Current release» line in all four README files, publish a GitHub Release for the tag.
 - Before a release: add `## vX.Y.Z` to `CHANGELOG.md` with a **For the owner** block (up to 3 plain lines: it becomes the "What is new" card) and a **For Milas** block.
 - `tools/release.sh X.Y.Z` runs the tests, bumps `release.json`, commits `release vX.Y.Z` and tags it (signed with `git tag -s` when `user.signingkey` is set, otherwise an unsigned annotated tag, which the script says). It never pushes.
 - Withdraw a bad release: add its tag to `yanked.json` on `main` (list of tags or `{"yanked":[{"tag":"v1.2.0","reason":"..."}]}`). Milas never install a yanked tag; one that already has it gets a warning card.
