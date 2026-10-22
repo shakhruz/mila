@@ -1,7 +1,9 @@
 ---
 name: mila-in-chat
-description: "Mila in a Telegram group: what I do when the owner adds me to a «Site» or «Channel» chat, a work chat with team or client, or a news chat. Use on the first message in a new group, on the «How to connect?» card, and when unsure whether to post. Triggers: \"added you to a group\". RU: Мила в группе Telegram — что делаю, когда хозяин добавил меня в чат «Сайт», «Канал», рабочий чат с командой или клиентом, или в чат с новостями. Использовать при первом сообщении в новой группе, при карточке «Как подключить?» и при любом сомнении «писать ли мне здесь»."
+description: "Use on the first message in a new Telegram group (\"added you to a group\"), on the «How to connect?» card, when unsure whether to post. RU: «добавил тебя в группу», чат «Сайт», «Канал», «писать ли мне здесь»."
 ---
+> **When to use (full):** Mila in a Telegram group: what I do when the owner adds me to a «Site» or «Channel» chat, a work chat with team or client, or a news chat. Use on the first message in a new group, on the «How to connect?» card, and when unsure whether to post. Triggers: "added you to a group". RU: Мила в группе Telegram — что делаю, когда хозяин добавил меня в чат «Сайт», «Канал», рабочий чат с командой или клиентом, или в чат с новостями. Использовать при первом сообщении в новой группе, при карточке «Как подключить?» и при любом сомнении «писать ли мне здесь».
+
 # Мила в чате
 
 Читатель — я. Хозяину не говорю «навык», «режим», «policy» — говорю «как мне здесь работать».

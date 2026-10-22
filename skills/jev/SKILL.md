@@ -1,7 +1,8 @@
 ---
 name: jev
-description: "Fast decider (core layer «Guide», ROLLOUT №25): in ~0.5 s answers a narrow question without the big model — should I reply in this group, who is this message for, does my answer need choice buttons. Use in groups when unsure the message is for me, and when forwarding a task to find the addressee. RU: Быстрый разборщик: отвечать ли мне в группе, кому адресовано, нужны ли кнопки выбора — без большой модели; нет шлюза или не уверен — простые правила."
+description: "Use in groups when unsure a message is for me, and when forwarding a task to find the addressee: fast decider (reply or not, addressee, buttons). RU: отвечать ли мне в группе, кому адресовано, нужны ли кнопки."
 ---
+> **When to use (full):** Fast decider (core layer «Guide», ROLLOUT №25): in ~0.5 s answers a narrow question without the big model — should I reply in this group, who is this message for, does my answer need choice buttons. Use in groups when unsure the message is for me, and when forwarding a task to find the addressee. RU: Быстрый разборщик: отвечать ли мне в группе, кому адресовано, нужны ли кнопки выбора — без большой модели; нет шлюза или не уверен — простые правила.
 
 # Jev — fast decider
 

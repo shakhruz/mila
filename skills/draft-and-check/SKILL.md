@@ -1,7 +1,9 @@
 ---
 name: draft-and-check
-description: "Light model drafts, strong model checks: for any text that goes out in a person's name (email, post, reply to a client, proposal) — a subagent on a light model writes the draft, I (the strong model) check facts, numbers and tone against the sources, fix, and only the person's \"yes\" on this exact text sends it. Saves the expensive model for judgement, not typing. RU: Лёгкая пишет — сильная проверяет: текст от имени человека — черновик пишет субагент на лёгкой модели, я сверяю факты, цифры и тон с источниками, правлю, наружу — только по «да» человека на этот текст."
+description: "Use for any text going out in a person's name (email, post, client reply, proposal): light model drafts, strong model checks facts and tone; send only on \"yes\". RU: черновик письма, поста, ответа клиенту — проверка."
 ---
+> **When to use (full):** Light model drafts, strong model checks: for any text that goes out in a person's name (email, post, reply to a client, proposal) — a subagent on a light model writes the draft, I (the strong model) check facts, numbers and tone against the sources, fix, and only the person's "yes" on this exact text sends it. Saves the expensive model for judgement, not typing. RU: Лёгкая пишет — сильная проверяет: текст от имени человека — черновик пишет субагент на лёгкой модели, я сверяю факты, цифры и тон с источниками, правлю, наружу — только по «да» человека на этот текст.
+
 # Light model drafts, strong model checks
 
 ## What it gives

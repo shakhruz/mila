@@ -1,7 +1,8 @@
 ---
 name: subscription-limits
-description: "Claude subscription limit: how to tell, what to say to the person, what not to make up, what to do after it resets, how to switch subscription. Use on 429 / \"hit your session limit\" or a silent session. Triggers: \"limit reached\", \"why is Mila silent\". RU: Лимит подписки Claude: как понять, что сказать человеку, чего не выдумывать, что делать после восстановления, как сменить подписку. Применять при 429 / «hit your session limit», молчании сессии."
+description: "Use on 429, \"hit your session limit\", \"limit reached\", \"why is Mila silent\": what to tell the person, after reset, switching. RU: лимит подписки Claude, «hit your session limit», молчание сессии."
 ---
+> **When to use (full):** Claude subscription limit: how to tell, what to say to the person, what not to make up, what to do after it resets, how to switch subscription. Use on 429 / "hit your session limit" or a silent session. Triggers: "limit reached", "why is Mila silent". RU: Лимит подписки Claude: как понять, что сказать человеку, чего не выдумывать, что делать после восстановления, как сменить подписку. Применять при 429 / «hit your session limit», молчании сессии.
 
 # subscription-limits
 

@@ -1,8 +1,10 @@
 ---
 name: questions
-description: "Question storm: help the owner decide when stuck, choosing a direction or about to spend money or time. Questions, not ideas: storm, «Hit home» picks, know/believe, what must be true, cheap test, dated step; assumptions to ASSUMPTIONS.md. Triggers: \"I'm stuck\", \"should I…\", \"help me decide\". RU: Штурм вопросов — помочь хозяину принять решение, когда он застрял, выбирает направление или собирается тратить деньги и время. Не идеи, а вопросы: решение → штурм 5–7 минут по 2–3 вопроса за ход → кнопки «Задело» для отбора → знаем/верим → что должно быть правдой → дешёвый тест поведением → шаг с датой. Допущения — в ASSUMPTIONS.md. Триггеры: «не знаю, что выбрать», «застрял», «стоит ли…», «помоги решить», «давай подумаем», «штурм вопросов»."
+description: "Use on \"I'm stuck\", \"should I…\", \"help me decide\", before spending money or time: question storm, cheap test, dated step. RU: «не знаю, что выбрать», «застрял», «стоит ли…», «помоги решить», «штурм вопросов»."
 metadata: {"nanobot":{"emoji":"❓"}}
 ---
+> **When to use (full):** Question storm: help the owner decide when stuck, choosing a direction or about to spend money or time. Questions, not ideas: storm, «Hit home» picks, know/believe, what must be true, cheap test, dated step; assumptions to ASSUMPTIONS.md. Triggers: "I'm stuck", "should I…", "help me decide". RU: Штурм вопросов — помочь хозяину принять решение, когда он застрял, выбирает направление или собирается тратить деньги и время. Не идеи, а вопросы: решение → штурм 5–7 минут по 2–3 вопроса за ход → кнопки «Задело» для отбора → знаем/верим → что должно быть правдой → дешёвый тест поведением → шаг с датой. Допущения — в ASSUMPTIONS.md. Триггеры: «не знаю, что выбрать», «застрял», «стоит ли…», «помоги решить», «давай подумаем», «штурм вопросов».
+
 # ❓ Штурм вопросов — сначала правильный вопрос
 
 Основа: воркшоп President AI Award 07.10.2026; близко к «Questions Are the Answer» Хэла Грегерсена (MIT).

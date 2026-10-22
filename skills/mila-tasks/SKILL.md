@@ -1,7 +1,8 @@
 ---
 name: mila-tasks
-description: "Agent commitment system: three entities (move/build, promise to a person, owner's fork), append-only ledger, close only with machine-checked evidence, \"next\" order, report «Result · Questions · Plan». Use at session start and end, on any assignment or promise, before any \"done\". RU: Система обязательств агента: три сущности (ход/стройка · обещание человеку · развилка владельца), append-only леджер, закрытие только с уликой, исполненной машиной, порядок «следующая», прогноз времени и токенов, отчёт «Результат · Вопросы · План». Использовать в начале и в конце сессии, при любом поручении, обещании и перед любым «сделано»."
+description: "Use at session start and end, on any assignment or promise, before any \"done\": commitment ledger, close only with evidence, next order. RU: начало и конец сессии, поручение, обещание, перед «сделано»."
 ---
+> **When to use (full):** Agent commitment system: three entities (move/build, promise to a person, owner's fork), append-only ledger, close only with machine-checked evidence, "next" order, report «Result · Questions · Plan». Use at session start and end, on any assignment or promise, before any "done". RU: Система обязательств агента: три сущности (ход/стройка · обещание человеку · развилка владельца), append-only леджер, закрытие только с уликой, исполненной машиной, порядок «следующая», прогноз времени и токенов, отчёт «Результат · Вопросы · План». Использовать в начале и в конце сессии, при любом поручении, обещании и перед любым «сделано».
 
 # mila-tasks — УЛИКА
 

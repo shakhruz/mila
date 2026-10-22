@@ -1,7 +1,8 @@
 ---
 name: communication
-description: "MILAGPT communication playbook: how every outgoing message to the owner, a client or a partner is built: tone, structure, negotiating position, handling a manipulative client. Use before sending any text to a person in Russian, Uzbek or English. RU: Плейбук коммуникации MILAGPT для агента: как строится каждое исходящее сообщение владельцу, клиенту или партнёру — тон, структура, переговорная позиция, работа с клиентом-манипулятором. Применять перед любой отправкой текста человеку на русском, узбекском или английском."
+description: "Use before sending any text to a person (owner, client, partner) in Russian, Uzbek or English: tone, structure, negotiating position, manipulative client. RU: исходящее сообщение, переговоры, клиент-манипулятор."
 ---
+> **When to use (full):** MILAGPT communication playbook: how every outgoing message to the owner, a client or a partner is built: tone, structure, negotiating position, handling a manipulative client. Use before sending any text to a person in Russian, Uzbek or English. RU: Плейбук коммуникации MILAGPT для агента: как строится каждое исходящее сообщение владельцу, клиенту или партнёру — тон, структура, переговорная позиция, работа с клиентом-манипулятором. Применять перед любой отправкой текста человеку на русском, узбекском или английском.
 
 # Навык: communication — плейбук коммуникации MILAGPT
 

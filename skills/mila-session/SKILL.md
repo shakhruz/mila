@@ -1,7 +1,8 @@
 ---
 name: mila-session
-description: Start or resume a Claude Code session with the mila-telegram plugin using one short command, and check channel health. Use when starting or restarting a session, diagnosing a silent channel (receiver, bridge, sender, journal, outbox), or repairing it without restarting the session.
+description: "Use when starting or restarting a Claude Code session with the mila-telegram plugin, or a silent channel (receiver, bridge, sender, outbox): one command, health check, repair."
 ---
+> **When to use (full):** Start or resume a Claude Code session with the mila-telegram plugin using one short command, and check channel health. Use when starting or restarting a session, diagnosing a silent channel (receiver, bridge, sender, journal, outbox), or repairing it without restarting the session.
 
 # mila — one command for the session
 

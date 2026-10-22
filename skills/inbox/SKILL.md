@@ -1,7 +1,9 @@
 ---
 name: inbox
-description: "Inbox: questions waiting for the owner's word, one card at a time. Use when the owner writes \"inbox\", \"questions for me\", \"what is waiting for me\", \"what do you need from me\". RU: Входящие — вопросы, которые ждут слова владельца, по одной карточке. Применять, когда владелец пишет «входящие», «inbox», «вопросы ко мне», «что ждёт меня», «что от меня нужно»."
+description: "Use when the owner writes \"inbox\", \"questions for me\", \"what is waiting for me\": waiting questions, one card at a time. RU: «входящие», «inbox», «вопросы ко мне», «что ждёт меня», «что от меня нужно»."
 ---
+> **When to use (full):** Inbox: questions waiting for the owner's word, one card at a time. Use when the owner writes "inbox", "questions for me", "what is waiting for me", "what do you need from me". RU: Входящие — вопросы, которые ждут слова владельца, по одной карточке. Применять, когда владелец пишет «входящие», «inbox», «вопросы ко мне», «что ждёт меня», «что от меня нужно».
+
 # Входящие · вопросы ко мне по одной
 
 1. Колода: `python3 ~/.claude/skills/cards/cards.py next inbox` — мои вопросы. Вопросы команды видит Мила-администратор в мини-аппе «Офис Мил» (сервер собирает их по teams.json); из контейнера чужие work не видны, `--home` — только на сервере.

@@ -1,7 +1,9 @@
 ---
 name: model-choice
-description: "Mila picks the model for the task: before any task that spends money (images, video, voice, transcription, translation, document analysis, long texts) show the owner two options — budget and best quality (model, what you get, price for this job) — with a recommendation, and let them choose by button. Prices from scripts/catalog.json (dated) or live OpenRouter. Triggers: \"make a picture\", \"make a video\", \"voice it\", \"transcribe\", \"translate\", \"analyse the document\", \"which model\". RU: Мила сама подбирает модель под задачу: перед задачей с тратой (картинки, видео, голос, расшифровка, перевод, анализ документа, длинные тексты) показываю владельцу два варианта — «недорого» и «лучшее качество» (модель, что даёт, цена за эту работу) — и рекомендацию; выбор кнопкой. Цены — из catalog.json (с датой) или живые OpenRouter."
+description: "Use on \"make a picture\", \"make a video\", \"voice it\", \"transcribe\", \"translate\", \"which model\": budget vs best option with price. RU: «сделай картинку», «озвучь», «расшифруй», «переведи», «какая модель»."
 ---
+> **When to use (full):** Mila picks the model for the task: before any task that spends money (images, video, voice, transcription, translation, document analysis, long texts) show the owner two options — budget and best quality (model, what you get, price for this job) — with a recommendation, and let them choose by button. Prices from scripts/catalog.json (dated) or live OpenRouter. Triggers: "make a picture", "make a video", "voice it", "transcribe", "translate", "analyse the document", "which model". RU: Мила сама подбирает модель под задачу: перед задачей с тратой (картинки, видео, голос, расшифровка, перевод, анализ документа, длинные тексты) показываю владельцу два варианта — «недорого» и «лучшее качество» (модель, что даёт, цена за эту работу) — и рекомендацию; выбор кнопкой. Цены — из catalog.json (с датой) или живые OpenRouter.
+
 # Выбор модели под задачу · идея партнёра, 20.10
 
 ## Что даёт

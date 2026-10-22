@@ -1,7 +1,8 @@
 ---
 name: verify
-description: "Check a power's result before delivery against its own «Done if» list, with a verbatim quote per item; no quote, not done. Use before delivering any power's result that has «Done if» (called as its last step) and when the owner writes \"check the result\". Not for normal chat or short replies. RU: Проверка результата силы перед выдачей — по её же списку «Готово, если», с дословной цитатой на каждый пункт; нет цитаты — не готово. Применять: перед выдачей результата любой силы, у которой есть «Готово, если» (сила сама зовёт проверку последним шагом), и когда хозяин пишет «проверь результат» / «проверь по навыку». Обычный разговор и короткие ответы не проверяет."
+description: "Use before delivering any power's result with «Done if», and on \"check the result\": verbatim quote per item, no quote = not done. RU: «проверь результат», «проверь по навыку», «Готово, если»."
 ---
+> **When to use (full):** Check a power's result before delivery against its own «Done if» list, with a verbatim quote per item; no quote, not done. Use before delivering any power's result that has «Done if» (called as its last step) and when the owner writes "check the result". Not for normal chat or short replies. RU: Проверка результата силы перед выдачей — по её же списку «Готово, если», с дословной цитатой на каждый пункт; нет цитаты — не готово. Применять: перед выдачей результата любой силы, у которой есть «Готово, если» (сила сама зовёт проверку последним шагом), и когда хозяин пишет «проверь результат» / «проверь по навыку». Обычный разговор и короткие ответы не проверяет.
 
 # Проверка с цитатой
 

@@ -1,7 +1,8 @@
 ---
 name: MILAGPT-chat
-description: "MILAGPT message standard for Telegram: formatting, structure, images. Use ALWAYS when sending a message to a client, partner or owner. Triggers: \"format the message\", \"send to Telegram\", \"how should the message look\". RU: Стандарт сообщений MILAGPT в Telegram — форматирование, структура, картинки. Использовать ВСЕГДА при отправке сообщения клиенту, партнёру или владельцу."
+description: "Use ALWAYS when sending a message to a client, partner or owner (\"format the message\", \"send to Telegram\"): MILAGPT Telegram standard. RU: оформить сообщение, отправка в Telegram, форматирование, картинки."
 ---
+> **When to use (full):** MILAGPT message standard for Telegram: formatting, structure, images. Use ALWAYS when sending a message to a client, partner or owner. Triggers: "format the message", "send to Telegram", "how should the message look". RU: Стандарт сообщений MILAGPT в Telegram — форматирование, структура, картинки. Использовать ВСЕГДА при отправке сообщения клиенту, партнёру или владельцу.
 
 # MILAGPT-chat — как выглядят наши сообщения
 

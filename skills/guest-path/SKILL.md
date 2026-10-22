@@ -1,7 +1,8 @@
 ---
 name: guest-path
-description: "Guest path: how Mila leads a stranger in her bot from first message to invoice: guest's language, value and trial offer by the third reply, invoice card, soft no to anything illegal, path by tracking tag. Use in every talk with a guest or lead in the owner's bot; with client-chat and lead-qualify. RU: Путь гостя — как Мила ведёт незнакомого человека в своём боте от первого сообщения до счёта: язык гостя, польза и предложение пробы не позже третьего ответа, счёт карточкой, мягкий отказ на незаконное, пример данных одной строкой, путь по метке. Применять в каждом разговоре с гостем или лидом, который пришёл в бота хозяина (сайт, реклама, эфир, ссылка-метка); вместе с client-chat и lead-qualify."
+description: "Use in every talk with a guest or lead in the owner's bot (with client-chat, lead-qualify): first message to invoice, trial by third reply. RU: гость в боте, лид с сайта, рекламы, эфира, ссылки-метки, счёт."
 ---
+> **When to use (full):** Guest path: how Mila leads a stranger in her bot from first message to invoice: guest's language, value and trial offer by the third reply, invoice card, soft no to anything illegal, path by tracking tag. Use in every talk with a guest or lead in the owner's bot; with client-chat and lead-qualify. RU: Путь гостя — как Мила ведёт незнакомого человека в своём боте от первого сообщения до счёта: язык гостя, польза и предложение пробы не позже третьего ответа, счёт карточкой, мягкий отказ на незаконное, пример данных одной строкой, путь по метке. Применять в каждом разговоре с гостем или лидом, который пришёл в бота хозяина (сайт, реклама, эфир, ссылка-метка); вместе с client-chat и lead-qualify.
 
 # Путь гостя
 

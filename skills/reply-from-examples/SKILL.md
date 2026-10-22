@@ -1,8 +1,10 @@
 ---
 name: reply-from-examples
-description: "Draft from examples: for a typical question (price, timing, \"what do you do\") take three of our replies from history that worked, don't write from scratch. Triggers: \"draft a reply\", \"client asks the price\", \"typical question\". RU: Черновик по образцам: типовой вопрос (цена, сроки, «что вы делаете») — беру три наших сработавших ответа из истории, не сочиняю с нуля."
+description: "Use on \"draft a reply\", \"client asks the price\", \"typical question\": take three of our replies that worked from history. RU: черновик по образцам, вопрос о цене, сроках, «что вы делаете»."
 metadata: {"nanobot":{"emoji":"📝"}}
 ---
+> **When to use (full):** Draft from examples: for a typical question (price, timing, "what do you do") take three of our replies from history that worked, don't write from scratch. Triggers: "draft a reply", "client asks the price", "typical question". RU: Черновик по образцам: типовой вопрос (цена, сроки, «что вы делаете») — беру три наших сработавших ответа из истории, не сочиняю с нуля.
+
 # 📝 Черновик по образцам
 Когда: типовой вопрос — цена, сроки, «а что вы делаете», «как начать».
 1. `dialogs_dialog(who)` — контекст этого человека (куплено, предложено, обещания).

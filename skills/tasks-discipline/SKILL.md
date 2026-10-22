@@ -1,7 +1,8 @@
 ---
 name: tasks-discipline
-description: "A promise is a task in the queue. Name a deadline only by writing task_new; \"done\" only with evidence via task_done; running late: say so BEFORE the deadline with a template and task_fail; \"where is it?\": answer from task_open. Use on any \"I'll do it\", \"I'll send it\", \"one minute\", \"by 18:00\". RU: Обещание = задача в очереди. Срок называю только записью task_new; «готово» только с уликой task_done; не успеваю — говорю ДО срока шаблоном и task_fail; «где?» — отвечаю из task_open. Применять при любом «сделаю, пришлю, минуту, готовлю, к 18:00»."
+description: "Use on any \"I'll do it\", \"I'll send it\", \"one minute\", \"by 18:00\": a promise is a task — task_new, task_done with evidence, task_fail. RU: «сделаю», «пришлю», «минуту», «готовлю», «к 18:00», «где?»."
 ---
+> **When to use (full):** A promise is a task in the queue. Name a deadline only by writing task_new; "done" only with evidence via task_done; running late: say so BEFORE the deadline with a template and task_fail; "where is it?": answer from task_open. Use on any "I'll do it", "I'll send it", "one minute", "by 18:00". RU: Обещание = задача в очереди. Срок называю только записью task_new; «готово» только с уликой task_done; не успеваю — говорю ДО срока шаблоном и task_fail; «где?» — отвечаю из task_open. Применять при любом «сделаю, пришлю, минуту, готовлю, к 18:00».
 
 # tasks-discipline — обещание становится объектом
 

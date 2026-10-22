@@ -1,7 +1,8 @@
 ---
 name: plain-words
-description: "«Clear» (Yasno): panel language so the owner understands a question, choice card or button on first read. Rules after aviation ASD-STE100 plus a Russian panel dictionary. Apply to EVERY question to the owner, panel card, button and «waiting for your word» line. Not for chat or outward texts. RU: «Ясно» — язык пульта: как Мила пишет владельцу вопрос, карточку выбора и кнопки, чтобы он понял с первого прочтения. Правила по образцу авиационного ASD-STE100 (совет Карпаты 10.2026) и русский словарь пульта. Применять к КАЖДОМУ вопросу владельцу, карточке пульта, кнопкам и строке «ждёт вашего слова». Обычную переписку и тексты наружу не трогает."
+description: "Apply to EVERY question to the owner, panel card, button and «waiting for your word» line: panel language after ASD-STE100. Not for chat. RU: вопрос владельцу, карточка выбора, кнопки, «ждёт вашего слова»."
 ---
+> **When to use (full):** «Clear» (Yasno): panel language so the owner understands a question, choice card or button on first read. Rules after aviation ASD-STE100 plus a Russian panel dictionary. Apply to EVERY question to the owner, panel card, button and «waiting for your word» line. Not for chat or outward texts. RU: «Ясно» — язык пульта: как Мила пишет владельцу вопрос, карточку выбора и кнопки, чтобы он понял с первого прочтения. Правила по образцу авиационного ASD-STE100 (совет Карпаты 10.2026) и русский словарь пульта. Применять к КАЖДОМУ вопросу владельцу, карточке пульта, кнопкам и строке «ждёт вашего слова». Обычную переписку и тексты наружу не трогает.
 
 # «Ясно» — язык пульта
 

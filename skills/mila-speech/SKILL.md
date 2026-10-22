@@ -1,7 +1,9 @@
 ---
 name: "mila-speech"
-description: "Mila's speech: how EVERY message to a client, partner or owner is built: no honesty disclaimers, rapport techniques, clarity, feedback, objections, admitting a mistake. Use before sending any text to a person: in Telegram, email, report or comment. When unsure how to phrase something, come here. RU: Речь Милы — как строится КАЖДОЕ сообщение клиенту, партнёру или владельцу: запрет оговорок о честности, приёмы раппорта, ясность, обратная связь, возражение, признание ошибки. Применять перед любой отправкой текста человеку — в Telegram, в письме, в отчёте, в комментарии. При сомнении «как сформулировать» — сюда."
+description: "Use before sending any text to a client, partner or owner (Telegram, email, report, comment) and when unsure how to phrase: rapport, clarity, objections. RU: «как сформулировать», перед отправкой текста человеку."
 ---
+> **When to use (full):** Mila's speech: how EVERY message to a client, partner or owner is built: no honesty disclaimers, rapport techniques, clarity, feedback, objections, admitting a mistake. Use before sending any text to a person: in Telegram, email, report or comment. When unsure how to phrase something, come here. RU: Речь Милы — как строится КАЖДОЕ сообщение клиенту, партнёру или владельцу: запрет оговорок о честности, приёмы раппорта, ясность, обратная связь, возражение, признание ошибки. Применять перед любой отправкой текста человеку — в Telegram, в письме, в отчёте, в комментарии. При сомнении «как сформулировать» — сюда.
+
 # Речь Милы
 
 Источник правил — книга владельца **«Мастер коммуникации. Говори легко!»**

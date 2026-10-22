@@ -1,7 +1,8 @@
 ---
 name: subscription
-description: "Claude subscription status: limit windows (5 hours, week, per model), burn rate, forecast of hitting the cap, local spend in dollars. Use when the owner asks \"how much is left\", \"how is the subscription\", \"what are we on\", \"will we hit the limit\", in the morning ritual and before heavy work. RU: Состояние подписок Claude — окна лимитов (5 часов, неделя, помодельные), темп расхода, прогноз упора и местный расход в долларах. Применять, когда хозяин спрашивает «сколько осталось», «как подписка», «на чём мы», «не упрёмся ли», а также в утреннем ритуале и перед тяжёлой работой."
+description: "Use on \"how much is left\", \"how is the subscription\", \"will we hit the limit\", morning ritual, before heavy work: Claude limit windows. RU: «сколько осталось», «как подписка», «на чём мы», «не упрёмся ли»."
 ---
+> **When to use (full):** Claude subscription status: limit windows (5 hours, week, per model), burn rate, forecast of hitting the cap, local spend in dollars. Use when the owner asks "how much is left", "how is the subscription", "what are we on", "will we hit the limit", in the morning ritual and before heavy work. RU: Состояние подписок Claude — окна лимитов (5 часов, неделя, помодельные), темп расхода, прогноз упора и местный расход в долларах. Применять, когда хозяин спрашивает «сколько осталось», «как подписка», «на чём мы», «не упрёмся ли», а также в утреннем ритуале и перед тяжёлой работой.
 
 # subscription — сколько осталось от подписки
 

@@ -1,7 +1,8 @@
 ---
 name: topics
-description: "How Mila runs a group with topics: when to open a topic, how to name it, what to post first, when to archive it, how to keep the index in General. Use in any group with Topics enabled: on incoming with thread_id, a new long task, closing a task, and in the morning ritual. RU: Как Мила ведёт группу с топиками — когда открыть тему, как назвать, что писать первым, когда закрыть в архив и как держать оглавление в General. Использовать в любой группе с включёнными «Темами»: при входящем с thread_id, при новой долгой задаче, при закрытии задачи и в утреннем ритуале."
+description: "Use in any group with Topics: incoming with thread_id, a new long task, closing a task, morning ritual: open, name, archive topics. RU: группа с «Темами», топик, оглавление в General."
 ---
+> **When to use (full):** How Mila runs a group with topics: when to open a topic, how to name it, what to post first, when to archive it, how to keep the index in General. Use in any group with Topics enabled: on incoming with thread_id, a new long task, closing a task, and in the morning ritual. RU: Как Мила ведёт группу с топиками — когда открыть тему, как назвать, что писать первым, когда закрыть в архив и как держать оглавление в General. Использовать в любой группе с включёнными «Темами»: при входящем с thread_id, при новой долгой задаче, при закрытии задачи и в утреннем ритуале.
 
 # Топики — каждая долгая работа в своей комнате
 

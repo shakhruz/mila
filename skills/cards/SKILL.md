@@ -1,7 +1,9 @@
 ---
 name: cards
-description: "One card format for the owner: a question (choice) or a task for the team. Use every time I ask the owner for a decision or propose a task: write the card via cards.py, not plain text, so both the chat and the «Mila Office» mini-app see it. Triggers: \"ask the owner\", \"decision card\". RU: Один формат карточки владельцу — вопрос (выбор) и задача команде. Применять каждый раз, когда спрашиваю владельца о решении или предлагаю задачу: карточку пишу через cards.py, а не просто текстом, — тогда её видят и чат, и мини-апп «Офис Мил»."
+description: "Use every time I ask the owner for a decision or propose a task (\"ask the owner\", \"decision card\"): write the card via cards.py, not plain text. RU: «спроси владельца», вопрос-выбор, задача команде, карточка."
 ---
+> **When to use (full):** One card format for the owner: a question (choice) or a task for the team. Use every time I ask the owner for a decision or propose a task: write the card via cards.py, not plain text, so both the chat and the «Mila Office» mini-app see it. Triggers: "ask the owner", "decision card". RU: Один формат карточки владельцу — вопрос (выбор) и задача команде. Применять каждый раз, когда спрашиваю владельца о решении или предлагаю задачу: карточку пишу через cards.py, а не просто текстом, — тогда её видят и чат, и мини-апп «Офис Мил».
+
 # Карточки владельцу · один формат для чата и мини-аппа
 
 вопросы ко мне и задачи команде — одной колодой, в чате и в «Офисе Мил». Файлы веду сама:

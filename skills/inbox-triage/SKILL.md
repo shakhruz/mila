@@ -1,8 +1,10 @@
 ---
 name: inbox-triage
-description: "Triage incoming messages as a BATCH: in the morning, on /inbox and after more than 2 hours idle. One pass over the whole batch, one of four decisions per person. Triggers: \"triage inbox\", \"go through messages\", \"what came in\". RU: Разбор входящих ПАЧКОЙ: утром, по /inbox и после простоя >2 ч. Один ход на всю пачку, по каждому человеку одно из четырёх решений."
+description: "Use in the morning, on /inbox and after >2 h idle (\"triage inbox\", \"go through messages\", \"what came in\"): one pass, four decisions. RU: «разбери входящие», «что пришло», разбор пачкой."
 metadata: {"nanobot":{"emoji":"📥"}}
 ---
+> **When to use (full):** Triage incoming messages as a BATCH: in the morning, on /inbox and after more than 2 hours idle. One pass over the whole batch, one of four decisions per person. Triggers: "triage inbox", "go through messages", "what came in". RU: Разбор входящих ПАЧКОЙ: утром, по /inbox и после простоя >2 ч. Один ход на всю пачку, по каждому человеку одно из четырёх решений.
+
 # 📥 Разбор входящих пачкой
 Когда: утром, по `/inbox`, после любого простоя дольше двух часов.
 1. `dialogs_inbox()` — список без решения + 🔴 «промолчали не по своей воле».

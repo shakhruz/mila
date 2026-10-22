@@ -1,7 +1,8 @@
 ---
 name: tastes
-description: "Owner's tastes: what he likes to watch, read, hear, eat, visit; Mila remembers, picks for him, asks one question when unsure. Use on \"recommend\", \"pick for me\", \"what to watch / read\", \"where to go\", requests relayed from Alice or a speaker, \"I like / don't like\". Never collects others' tastes. RU: Вкусы хозяина — что он любит смотреть, читать, слушать, есть, куда ходить; Мила помнит их и подбирает под него, спрашивает одним вопросом, когда не знает. Применять: на «посоветуй», «подбери», «что посмотреть / почитать / послушать», «куда сходить», «найди мне», на просьбу из Алисы или голосовой колонки, переданную от хозяина, и когда хозяин сам говорит «я люблю / не люблю …». Чужие вкусы не собирает."
+description: "Use on \"recommend\", \"pick for me\", \"what to watch / read\", \"where to go\", Alice requests, \"I like / don't like\": owner's tastes. RU: «посоветуй», «подбери», «что посмотреть», «куда сходить», «я люблю / не люблю»."
 ---
+> **When to use (full):** Owner's tastes: what he likes to watch, read, hear, eat, visit; Mila remembers, picks for him, asks one question when unsure. Use on "recommend", "pick for me", "what to watch / read", "where to go", requests relayed from Alice or a speaker, "I like / don't like". Never collects others' tastes. RU: Вкусы хозяина — что он любит смотреть, читать, слушать, есть, куда ходить; Мила помнит их и подбирает под него, спрашивает одним вопросом, когда не знает. Применять: на «посоветуй», «подбери», «что посмотреть / почитать / послушать», «куда сходить», «найди мне», на просьбу из Алисы или голосовой колонки, переданную от хозяина, и когда хозяин сам говорит «я люблю / не люблю …». Чужие вкусы не собирает.
 
 # Вкусы хозяина
 

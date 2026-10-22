@@ -1,7 +1,8 @@
 ---
 name: humanizer-ru
-description: "MILAGPT Russian style: cleans bureaucratese, anglicisms and machine tone from Russian text. Pair to humanizer-uz. Apply to any outward Russian text: reports to owner and clients, posts, letters, site pages. Triggers: \"shorten\", \"cut the fluff\", \"make it lively\", \"rewrite more human\". RU: Русский слог MILAGPT: чистка канцелярита, англицизмов и машинного тона. Пара к humanizer-uz. Применяется к любому русскому тексту наружу — отчёты владельцу и клиентам, посты, письма, страницы сайта. Триггеры: «сократи», «убери воду», «сделай живым», «перепиши человечнее»."
+description: "Use on \"shorten\", \"cut the fluff\", \"make it lively\" and on any outward Russian text: cleans bureaucratese, anglicisms, machine tone. RU: «сократи», «убери воду», «сделай живым», «перепиши человечнее»."
 ---
+> **When to use (full):** MILAGPT Russian style: cleans bureaucratese, anglicisms and machine tone from Russian text. Pair to humanizer-uz. Apply to any outward Russian text: reports to owner and clients, posts, letters, site pages. Triggers: "shorten", "cut the fluff", "make it lively", "rewrite more human". RU: Русский слог MILAGPT: чистка канцелярита, англицизмов и машинного тона. Пара к humanizer-uz. Применяется к любому русскому тексту наружу — отчёты владельцу и клиентам, посты, письма, страницы сайта. Триггеры: «сократи», «убери воду», «сделай живым», «перепиши человечнее».
 
 # Русский слог MILAGPT (humanizer-ru)
 

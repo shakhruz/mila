@@ -1,7 +1,9 @@
 ---
 name: tasks
-description: "Tasks: propose 3-7 things for myself and the team to the owner and hand them out on his \"yes\". Use on \"tasks\", \"assign tasks\", \"give me some tasks\", \"what should the team do next\". RU: Задачи — предложить владельцу 3–7 дел себе и команде и раздать их по его «да». Применять на «задачи», «раздай задачи», «накидай задач», «что делать дальше команде»."
+description: "Use on \"tasks\", \"assign tasks\", \"give me some tasks\", \"what should the team do next\": propose 3-7 tasks, hand out on \"yes\". RU: «задачи», «раздай задачи», «накидай задач», «что делать дальше команде»."
 ---
+> **When to use (full):** Tasks: propose 3-7 things for myself and the team to the owner and hand them out on his "yes". Use on "tasks", "assign tasks", "give me some tasks", "what should the team do next". RU: Задачи — предложить владельцу 3–7 дел себе и команде и раздать их по его «да». Применять на «задачи», «раздай задачи», «накидай задач», «что делать дальше команде».
+
 # Задачи · предложить и раздать
 
 1. Беру из BACKLOG.md, NOW.md и целей владельца 3–7 дел, которые двигают его цель сейчас (не «всё подряд»). Администратору — и команде.

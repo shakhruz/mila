@@ -1,7 +1,9 @@
 ---
 name: onboarding
-description: "Getting to know a new owner: the only skill of a newborn Mila. Use in the first session and on any \"where do we start\": walks through seven blocks with an «Understood» button (what I can do, intelligence and payment, two Milas, tools, chats, your business, AI in your pocket), then three first tasks; counts fuel. RU: Знакомство с новым хозяином — единственный навык новорождённой Милы. Использовать в первой сессии и при любом «с чего начнём»: ведёт семью блоками с кнопкой «Понятно» (что я умею, интеллект и оплата, две Милы, инструменты, чаты, ваше дело, ИИ в кармане), затем три первые задачи; считает топливо."
+description: "Use in the first session and on any \"where do we start\": a newborn Mila gets to know the owner, seven blocks, three first tasks. RU: «с чего начнём», знакомство с новым хозяином, первая сессия."
 ---
+> **When to use (full):** Getting to know a new owner: the only skill of a newborn Mila. Use in the first session and on any "where do we start": walks through seven blocks with an «Understood» button (what I can do, intelligence and payment, two Milas, tools, chats, your business, AI in your pocket), then three first tasks; counts fuel. RU: Знакомство с новым хозяином — единственный навык новорождённой Милы. Использовать в первой сессии и при любом «с чего начнём»: ведёт семью блоками с кнопкой «Понятно» (что я умею, интеллект и оплата, две Милы, инструменты, чаты, ваше дело, ИИ в кармане), затем три первые задачи; считает топливо.
+
 Русская версия: [SKILL.ru.md](SKILL.ru.md)
 
 # Getting acquainted

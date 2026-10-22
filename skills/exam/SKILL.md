@@ -1,7 +1,8 @@
 ---
 name: exam
-description: "Mila's exam: check that operator-Mila guides guests right. One yaml scenario set, two runs: fast internal via subscription after each edit, live via the bot daily; full guest reset per scenario; a planted failure must fail. Use on prompt/bridge/sales-skill edits and \"is Mila ready\". RU: Экзамен Милы — как проверять, что Мила-оператор ведёт гостей правильно: один набор сценариев (yaml) для двух прогонов — экспресс внутри через подписку за минуты после каждой правки и живой через бота раз в сутки; полный сброс гостя перед сценарием; подложенный провал обязан упасть. Применять при каждой правке промпта, моста или навыков продаж и при вопросе «готова ли Мила»."
+description: "Use on prompt, bridge or sales-skill edits and on \"is Mila ready\": yaml scenario exam of operator-Mila, fast internal and live runs. RU: «готова ли Мила», экзамен, правка промпта, моста или навыков продаж."
 ---
+> **When to use (full):** Mila's exam: check that operator-Mila guides guests right. One yaml scenario set, two runs: fast internal via subscription after each edit, live via the bot daily; full guest reset per scenario; a planted failure must fail. Use on prompt/bridge/sales-skill edits and "is Mila ready". RU: Экзамен Милы — как проверять, что Мила-оператор ведёт гостей правильно: один набор сценариев (yaml) для двух прогонов — экспресс внутри через подписку за минуты после каждой правки и живой через бота раз в сутки; полный сброс гостя перед сценарием; подложенный провал обязан упасть. Применять при каждой правке промпта, моста или навыков продаж и при вопросе «готова ли Мила».
 
 # Экзамен: экспресс и живой
 

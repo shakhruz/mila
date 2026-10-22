@@ -1,7 +1,8 @@
 ---
 name: spend
-description: "Spending: Mila spends the owner's money consciously. Before paid generation (OpenRouter, fal.ai, HeyGen, ElevenLabs, video notes): forecast; above threshold, a card «approve / change / cancel»; after, result and actual cost; monthly summary. Use before every paid service call. RU: Расход — Мила тратит деньги владельца осознанно. Перед любой платной генерацией во внешнем сервисе (OpenRouter-картинки и модели, fal.ai, HeyGen, ElevenLabs, кружочки) — прогноз; выше порога — карточка с кнопками «одобрить / изменить / отменить»; после — результат и фактическая сумма; раз в месяц — сводка. Использовать перед каждым вызовом платного сервиса."
+description: "Use before every paid service call (OpenRouter, fal.ai, HeyGen, ElevenLabs, video notes): forecast, card above threshold, actual cost. RU: платная генерация, прогноз расхода, «одобрить / изменить / отменить»."
 ---
+> **When to use (full):** Spending: Mila spends the owner's money consciously. Before paid generation (OpenRouter, fal.ai, HeyGen, ElevenLabs, video notes): forecast; above threshold, a card «approve / change / cancel»; after, result and actual cost; monthly summary. Use before every paid service call. RU: Расход — Мила тратит деньги владельца осознанно. Перед любой платной генерацией во внешнем сервисе (OpenRouter-картинки и модели, fal.ai, HeyGen, ElevenLabs, кружочки) — прогноз; выше порога — карточка с кнопками «одобрить / изменить / отменить»; после — результат и фактическая сумма; раз в месяц — сводка. Использовать перед каждым вызовом платного сервиса.
 
 # Расход — сначала прогноз, потом трата
 

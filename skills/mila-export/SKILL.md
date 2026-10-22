@@ -1,7 +1,8 @@
 ---
 name: mila-export
-description: "Export Mila to an archive and revive her from it. No passwords or keys (secret scanner), manifest and sha256; restore never overwrites. Mila belongs 100% to the owner. Triggers: \"make a copy of Mila\", \"export yourself\", \"move Mila to another machine\", \"restore Mila from archive\". RU: Выгрузка Милы в архив и возрождение из него — «сделай копию Милы», «выгрузи себя», «перенеси Милу на другую машину», «восстанови Милу из архива». Архив без паролей и ключей (сканер секретов), с манифестом и sha256; восстановление не перезаписывает существующее. Мила принадлежит владельцу на 100%."
+description: "Use on \"make a copy of Mila\", \"export yourself\", \"move Mila to another machine\", \"restore Mila from archive\": archive without secrets. RU: «сделай копию Милы», «выгрузи себя», «перенеси Милу», «восстанови Милу»."
 ---
+> **When to use (full):** Export Mila to an archive and revive her from it. No passwords or keys (secret scanner), manifest and sha256; restore never overwrites. Mila belongs 100% to the owner. Triggers: "make a copy of Mila", "export yourself", "move Mila to another machine", "restore Mila from archive". RU: Выгрузка Милы в архив и возрождение из него — «сделай копию Милы», «выгрузи себя», «перенеси Милу на другую машину», «восстанови Милу из архива». Архив без паролей и ключей (сканер секретов), с манифестом и sha256; восстановление не перезаписывает существующее. Мила принадлежит владельцу на 100%.
 
 # mila-export — Мила принадлежит владельцу
 

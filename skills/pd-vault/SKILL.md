@@ -1,7 +1,8 @@
 ---
 name: pd-vault
-description: "Personal data vault (core layer 2a, on by default): phone numbers, e-mails, card numbers, passports, PINFL in what Mila stores or passes on become short labels like ⟦тел·1⟧; values sit encrypted in the Mila's home. Use when writing memory, cards, journals, reports, notes to other Milas, exports; when the owner asks «what's the number of …» (reveal — only to him, in his DM). RU: Хранилище личных данных (слой 2а ядра, включено по умолчанию): телефоны, почта, карты, паспорта, ПИНФЛ в том, что Мила хранит и передаёт, заменяются ярлыками; значения — зашифрованно в доме Милы. Раскрыть — только хозяину в личку."
+description: "Use when writing memory, cards, journals, reports, notes, exports, and on «what's the number of …»: personal data become labels like ⟦тел·1⟧. RU: телефоны, почта, карты, паспорта, ПИНФЛ; «какой номер у…»."
 ---
+> **When to use (full):** Personal data vault (core layer 2a, on by default): phone numbers, e-mails, card numbers, passports, PINFL in what Mila stores or passes on become short labels like ⟦тел·1⟧; values sit encrypted in the Mila's home. Use when writing memory, cards, journals, reports, notes to other Milas, exports; when the owner asks «what's the number of …» (reveal — only to him, in his DM). RU: Хранилище личных данных (слой 2а ядра, включено по умолчанию): телефоны, почта, карты, паспорта, ПИНФЛ в том, что Мила хранит и передаёт, заменяются ярлыками; значения — зашифрованно в доме Милы. Раскрыть — только хозяину в личку.
 
 # Personal data vault
 

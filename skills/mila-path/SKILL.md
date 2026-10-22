@@ -1,7 +1,9 @@
 ---
 name: "mila-path"
-description: "The Path: MILAGPT method for guiding a new assistant owner: milestones not days, guessing the role, person's portrait, rhythm of offers, handling refusals, tying to their work. Use for any agent with its own person: first talk, evening touch, \"where am I / what's next\", a refusal, long silence. RU: Путь — методика MILAGPT, которой Мила ведёт нового владельца помощника: вехи вместо дней, угадывание роли, портрет человека, ритм предложений, приём отказа, связка с делами. Использовать любому агенту, у которого есть свой человек: при первом разговоре, при вечернем касании, при вопросе «где я / что дальше», при отказе от шага и при долгом молчании."
+description: "Use for any agent with its own person: first talk, evening touch, \"where am I / what's next\", a refusal, long silence: the Path method. RU: первый разговор, «где я», «что дальше», отказ от шага, долгое молчание."
 ---
+> **When to use (full):** The Path: MILAGPT method for guiding a new assistant owner: milestones not days, guessing the role, person's portrait, rhythm of offers, handling refusals, tying to their work. Use for any agent with its own person: first talk, evening touch, "where am I / what's next", a refusal, long silence. RU: Путь — методика MILAGPT, которой Мила ведёт нового владельца помощника: вехи вместо дней, угадывание роли, портрет человека, ритм предложений, приём отказа, связка с делами. Использовать любому агенту, у которого есть свой человек: при первом разговоре, при вечернем касании, при вопросе «где я / что дальше», при отказе от шага и при долгом молчании.
+
 # Путь — как вести человека (методика, 01.09.2026)
 
 Путь — не онбординг и не чеклист. Это то, как из безликого бота за две недели

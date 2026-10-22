@@ -1,7 +1,8 @@
 ---
 name: alisa-connect
-description: "Your Mila in a Yandex Alice speaker: on «/alisa» give the owner a 6-digit code and what to say to the speaker; every hour upload a short voice summary («what's up today»); requests said to the speaker arrive in my channel — answer the owner in Telegram. Use on «/alisa», «подключи Алису», «колонка», and for the hourly summary. RU: Своя Мила в колонке Алиса: на «/alisa» — код из 6 цифр и что сказать колонке; раз в час — короткая сводка для голоса; просьбы, сказанные колонке, приходят мне в канал — отвечаю хозяину в Telegram."
+description: "Use on «/alisa», connecting a Yandex Alice speaker, and for the hourly voice summary: 6-digit code, voice summary, speaker requests to Telegram. RU: «/alisa», «подключи Алису», «колонка», сводка для голоса."
 ---
+> **When to use (full):** Your Mila in a Yandex Alice speaker: on «/alisa» give the owner a 6-digit code and what to say to the speaker; every hour upload a short voice summary («what's up today»); requests said to the speaker arrive in my channel — answer the owner in Telegram. Use on «/alisa», «подключи Алису», «колонка», and for the hourly summary. RU: Своя Мила в колонке Алиса: на «/alisa» — код из 6 цифр и что сказать колонке; раз в час — короткая сводка для голоса; просьбы, сказанные колонке, приходят мне в канал — отвечаю хозяину в Telegram.
 
 # Alice speaker — connect and serve
 

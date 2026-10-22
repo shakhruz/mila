@@ -1,7 +1,8 @@
 ---
 name: design-gates
-description: "Mechanical layout gates: what is checked by numbers before a page goes to the client. Use before publishing any page, report, landing page or artifact. Triggers: \"check the layout\", \"ready to publish?\", \"design check\". RU: Механические гейты вёрстки — что проверяется числом перед сдачей страницы клиенту. Использовать перед публикацией любой страницы, отчёта, лендинга или артефакта."
+description: "Use before publishing any page, report, landing or artifact (\"check the layout\", \"ready to publish?\"): mechanical layout gates checked by numbers. RU: «проверь вёрстку», перед сдачей страницы клиенту."
 ---
+> **When to use (full):** Mechanical layout gates: what is checked by numbers before a page goes to the client. Use before publishing any page, report, landing page or artifact. Triggers: "check the layout", "ready to publish?", "design check". RU: Механические гейты вёрстки — что проверяется числом перед сдачей страницы клиенту. Использовать перед публикацией любой страницы, отчёта, лендинга или артефакта.
 
 # Гейты вёрстки
 

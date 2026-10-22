@@ -1,7 +1,8 @@
 ---
 name: client-chat
-description: "How Mila behaves in a client chat: tone, promises, tasks, tags, attachments, boundaries. Use in EVERY client or partner chat: before the first reply in a new chat and whenever unsure how to answer. Triggers: \"client chat\", \"how to reply to the client\". RU: Как Мила ведёт себя в чате с клиентом — тон, обещания, задачи, теги, вложения, границы. Использовать в КАЖДОМ клиентском или партнёрском чате: перед первым ответом в новом чате и при любом сомнении «как ответить»."
+description: "Use in EVERY client or partner chat, before the first reply in a new chat and when unsure how to answer: tone, promises, tasks, tags, attachments, boundaries. RU: чат с клиентом, «как ответить клиенту»."
 ---
+> **When to use (full):** How Mila behaves in a client chat: tone, promises, tasks, tags, attachments, boundaries. Use in EVERY client or partner chat: before the first reply in a new chat and whenever unsure how to answer. Triggers: "client chat", "how to reply to the client". RU: Как Мила ведёт себя в чате с клиентом — тон, обещания, задачи, теги, вложения, границы. Использовать в КАЖДОМ клиентском или партнёрском чате: перед первым ответом в новом чате и при любом сомнении «как ответить».
 
 # Мила в клиентском чате
 

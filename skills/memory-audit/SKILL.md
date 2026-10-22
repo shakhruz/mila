@@ -1,6 +1,6 @@
 ---
 name: memory-audit
-description: "Audit of Mila's persistent memory. Scans ./memory/ for dead weight to archive, duplicates, broken [[links]], files missing from MEMORY.md, stale notes. Reports recommendations; deletes nothing without the owner's approval. Use on \"memory audit\", \"check memory\", \"clean up memory\". RU: Аудит постоянной памяти Mila — вектор «профилактика памяти» саморазвития (риск-ориентированное мышление ISO 9001: профилактика вместо реакции). Сканирует `./memory/`: находит мёртвый груз (устаревшее / выполненное → в архив), дубли, битые `[[ссылки]]` (на несуществующие файлы), файлы не в индексе MEMORY.md, что пора актуализировать. Выдаёт отчёт-список с рекомендациями (архивировать / слить / починить / дописать). НЕ удаляет без аппрува хозяин. Use when хозяин says \"аудит памяти\", \"memory audit\", \"проверь память\", \"почисти память\", \"что в памяти устарело\"."
+description: "Use on \"memory audit\", \"check memory\", \"clean up memory\": scan ./memory/ for stale, duplicates, broken links; deletes nothing without approval. RU: «аудит памяти», «проверь память», «почисти память», «что устарело»."
 triggers:
   - аудит памяти
   - memory audit
@@ -9,6 +9,7 @@ triggers:
   - что устарело в памяти
   - профилактика памяти
 ---
+> **When to use (full):** Audit of Mila's persistent memory. Scans ./memory/ for dead weight to archive, duplicates, broken [[links]], files missing from MEMORY.md, stale notes. Reports recommendations; deletes nothing without the owner's approval. Use on "memory audit", "check memory", "clean up memory". RU: Аудит постоянной памяти Mila — вектор «профилактика памяти» саморазвития (риск-ориентированное мышление ISO 9001: профилактика вместо реакции). Сканирует `./memory/`: находит мёртвый груз (устаревшее / выполненное → в архив), дубли, битые `[[ссылки]]` (на несуществующие файлы), файлы не в индексе MEMORY.md, что пора актуализировать. Выдаёт отчёт-список с рекомендациями (архивировать / слить / починить / дописать). НЕ удаляет без аппрува хозяин. Use when хозяин says "аудит памяти", "memory audit", "проверь память", "почисти память", "что в памяти устарело".
 
 # memory-audit — профилактика постоянной памяти
 

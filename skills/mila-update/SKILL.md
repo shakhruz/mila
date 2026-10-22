@@ -1,7 +1,8 @@
 ---
 name: mila-update
-description: "Mila update: my core version, any new release and what it brings; update only after the owner's \"yes\" (backup and rollback); install a skill from admin-Mila; weekly recommend a power or role. Use on \"update yourself\", \"what version are you\", \"what's new\", \"install the skill\". RU: Обновление Милы — какая версия ядра у меня стоит, есть ли новый релиз, что он даст, обновиться только после «да» хозяина (с бэкапом и откатом), поставить навык от Милы-администратора, раз в неделю рекомендовать силу или роль из каталога. Открывать на «обновись», «какая у тебя версия», «что нового», записку администратора «проверь обновление» или «поставь навык», и в недельном ритме."
+description: "Use on \"update yourself\", \"what version are you\", \"what's new\", \"install the skill\": version, release, update after \"yes\". RU: «обновись», «какая у тебя версия», «что нового», «поставь навык», «проверь обновление»."
 ---
+> **When to use (full):** Mila update: my core version, any new release and what it brings; update only after the owner's "yes" (backup and rollback); install a skill from admin-Mila; weekly recommend a power or role. Use on "update yourself", "what version are you", "what's new", "install the skill". RU: Обновление Милы — какая версия ядра у меня стоит, есть ли новый релиз, что он даст, обновиться только после «да» хозяина (с бэкапом и откатом), поставить навык от Милы-администратора, раз в неделю рекомендовать силу или роль из каталога. Открывать на «обновись», «какая у тебя версия», «что нового», записку администратора «проверь обновление» или «поставь навык», и в недельном ритме.
 
 # mila-update — я обновляюсь сама, но только с «да» хозяина
 

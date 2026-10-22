@@ -1,8 +1,10 @@
 ---
 name: dialog-close
-description: "Close a dialog with a record: a deal, a refusal, or 14 days of silence after our last touch. Outcome + reason + move to CRM + clearing promises. Triggers: \"close the dialog\", \"deal done\", \"client said no\". RU: Закрытие диалога с записью: сделка, отказ или 14 дней тишины после нашего касания. Итог + причина + перенос в CRM + снятие обещаний."
+description: "Use on \"close the dialog\", \"deal done\", \"client said no\", or 14 days of silence: outcome + reason + CRM + clear promises. RU: «закрой диалог», «сделка», «клиент отказал», 14 дней тишины."
 metadata: {"nanobot":{"emoji":"✅"}}
 ---
+> **When to use (full):** Close a dialog with a record: a deal, a refusal, or 14 days of silence after our last touch. Outcome + reason + move to CRM + clearing promises. Triggers: "close the dialog", "deal done", "client said no". RU: Закрытие диалога с записью: сделка, отказ или 14 дней тишины после нашего касания. Итог + причина + перенос в CRM + снятие обещаний.
+
 # ✅ Закрытие диалога
 Когда: сделка (won) · отказ (lost) · вопрос решён (closed_ok) · тишина 14 дней после нашего последнего касания (предлагаю владельцу закрыть, сам не закрываю).
 1. По слову владельца: `dialogs_close(who, outcome, reason, by_chat_id)`. При **lost причина обязательна** — словами человека («дорого», «нашли других», «отложили до весны»).

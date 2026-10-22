@@ -1,8 +1,10 @@
 ---
 name: escalate-to-owner
-description: "Escalate to the owner with ONE card: money, legal matters, dissatisfaction, personal data, a request for the owner himself, three \"no\" in a row. Triggers: \"escalate\", \"ask the owner\", \"needs the owner's decision\". RU: Эскалация владельцу ОДНОЙ карточкой: деньги, юридическое, недовольство, персональные данные, просьба о владельце, три «нет» подряд."
+description: "Use on \"escalate\", \"ask the owner\", \"needs the owner's decision\": money, legal, dissatisfaction, personal data, three \"no\" — ONE card. RU: эскалация владельцу, деньги, юридическое, недовольство."
 metadata: {"nanobot":{"emoji":"🚨"}}
 ---
+> **When to use (full):** Escalate to the owner with ONE card: money, legal matters, dissatisfaction, personal data, a request for the owner himself, three "no" in a row. Triggers: "escalate", "ask the owner", "needs the owner's decision". RU: Эскалация владельцу ОДНОЙ карточкой: деньги, юридическое, недовольство, персональные данные, просьба о владельце, три «нет» подряд.
+
 # 🚨 Эскалация владельцу
 Когда: деньги · юридическое · недовольство/жалоба (сигнал escalation) · персональные данные · прямая просьба о владельце · три «нет» подряд.
 Одна карточка, не пересказ переписки:

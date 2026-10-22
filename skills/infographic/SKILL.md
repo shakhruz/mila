@@ -1,7 +1,8 @@
 ---
 name: infographic
-description: "NotebookLM-style infographics: one pencil-sketch image (genimage, gemini-3-pro), multi-page PDF, Uzbek in Cyrillic and Latin; fallback branded HTML. Use to explain a complex idea in one picture. Triggers: \"make an infographic\", \"draw it as a diagram\", \"explain with a picture\", \"PDF infographic\". RU: Инфографика в стиле NotebookLM: карандашный скетч-шедевр одной картинкой (genimage, gemini-3-pro), серия страниц в PDF, версии на узбекском в кириллице и латинице; запасной путь — фирменный HTML. Применять, чтобы объяснить сложную мысль одной картинкой: отчёт, урок, продукт, исследование, пост. Триггеры — «сделай инфографику», «нарисуй схемой», «наглядно по отчёту», «PDF с инфографикой», «объясни картинкой», «инфографику на узбекском»."
+description: "Use on \"make an infographic\", \"draw it as a diagram\", \"explain with a picture\", \"PDF infographic\": NotebookLM-style sketch, PDF, Uzbek. RU: «сделай инфографику», «нарисуй схемой», «объясни картинкой»."
 ---
+> **When to use (full):** NotebookLM-style infographics: one pencil-sketch image (genimage, gemini-3-pro), multi-page PDF, Uzbek in Cyrillic and Latin; fallback branded HTML. Use to explain a complex idea in one picture. Triggers: "make an infographic", "draw it as a diagram", "explain with a picture", "PDF infographic". RU: Инфографика в стиле NotebookLM: карандашный скетч-шедевр одной картинкой (genimage, gemini-3-pro), серия страниц в PDF, версии на узбекском в кириллице и латинице; запасной путь — фирменный HTML. Применять, чтобы объяснить сложную мысль одной картинкой: отчёт, урок, продукт, исследование, пост. Триггеры — «сделай инфографику», «нарисуй схемой», «наглядно по отчёту», «PDF с инфографикой», «объясни картинкой», «инфографику на узбекском».
 
 # Инфографика — сложная мысль одной картинкой
 

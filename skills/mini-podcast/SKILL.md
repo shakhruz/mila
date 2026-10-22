@@ -1,7 +1,8 @@
 ---
 name: mini-podcast
-description: "Two-voice mini-podcast (like NotebookLM Audio Overview): lively dialog script, ElevenLabs Text to Dialogue (eleven_v3), 1-4 minute mp3 with loudness check. Use to retell a report, lesson, article or news by ear. Triggers: \"make a podcast\", \"voice it as a dialog\", \"audio overview\", \"so I can listen\". RU: Мини-подкаст двумя голосами (как Audio Overview в NotebookLM): сценарий живой беседы → ElevenLabs Text to Dialogue (eleven_v3) → mp3 на 1–4 минуты с проверкой громкости. Применять, чтобы пересказать отчёт, урок, статью или новость на слух. Триггеры — «сделай подкаст», «озвучь диалогом», «короткий подкаст по отчёту», «аудиообзор», «чтобы можно было послушать»."
+description: "Use on \"make a podcast\", \"voice it as a dialog\", \"audio overview\", \"so I can listen\": two-voice mp3 via ElevenLabs. RU: «сделай подкаст», «озвучь диалогом», «аудиообзор», «чтобы можно было послушать»."
 ---
+> **When to use (full):** Two-voice mini-podcast (like NotebookLM Audio Overview): lively dialog script, ElevenLabs Text to Dialogue (eleven_v3), 1-4 minute mp3 with loudness check. Use to retell a report, lesson, article or news by ear. Triggers: "make a podcast", "voice it as a dialog", "audio overview", "so I can listen". RU: Мини-подкаст двумя голосами (как Audio Overview в NotebookLM): сценарий живой беседы → ElevenLabs Text to Dialogue (eleven_v3) → mp3 на 1–4 минуты с проверкой громкости. Применять, чтобы пересказать отчёт, урок, статью или новость на слух. Триггеры — «сделай подкаст», «озвучь диалогом», «короткий подкаст по отчёту», «аудиообзор», «чтобы можно было послушать».
 
 # Мини-подкаст — двое ведущих пересказывают материал
 

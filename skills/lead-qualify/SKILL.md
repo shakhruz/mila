@@ -1,8 +1,10 @@
 ---
 name: lead-qualify
-description: "Lead qualification: when a \"price\" or \"intent\" signal fires, fill the lead card up to four fields, one question at a time. Triggers: \"qualify the lead\", \"client asked the price\", \"wants to buy\". RU: Квалификация лида: сработал сигнал «цена» или «намерение» — довожу карточку до четырёх полей, один вопрос за раз."
+description: "Use on \"qualify the lead\", \"client asked the price\", \"wants to buy\": fill the lead card to four fields, one question at a time. RU: квалификация лида, сигнал «цена» или «намерение», «хочет купить»."
 metadata: {"nanobot":{"emoji":"🎯"}}
 ---
+> **When to use (full):** Lead qualification: when a "price" or "intent" signal fires, fill the lead card up to four fields, one question at a time. Triggers: "qualify the lead", "client asked the price", "wants to buy". RU: Квалификация лида: сработал сигнал «цена» или «намерение» — довожу карточку до четырёх полей, один вопрос за раз.
+
 # 🎯 Квалификация лида
 
 Язык гостя, польза и проба не позже третьего ответа, счёт карточкой — [guest-path](../guest-path/SKILL.md).

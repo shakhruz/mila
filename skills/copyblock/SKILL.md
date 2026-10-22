@@ -1,7 +1,8 @@
 ---
 name: copyblock
-description: "Give text the person will copy-paste onward as a monospace block, so it copies with one tap on a phone. Use on \"send it as a message\", \"for copying\", \"forward this to him\", \"draft for the client\", and for commands, payment details, addresses and keys. RU: Текст, который человек понесёт дальше копипастой, отдавать моноширинным блоком — копируется одним тапом с телефона. Применять при словах «дай сообщением», «для копирования», «перешли ему», «черновик клиенту», а также к командам, реквизитам, адресам и ключам."
+description: "Use on \"send it as a message\", \"for copying\", \"forward this to him\", \"draft for the client\", commands, payment details, keys: give a monospace block. RU: «дай сообщением», «для копирования», «перешли ему», реквизиты."
 ---
+> **When to use (full):** Give text the person will copy-paste onward as a monospace block, so it copies with one tap on a phone. Use on "send it as a message", "for copying", "forward this to him", "draft for the client", and for commands, payment details, addresses and keys. RU: Текст, который человек понесёт дальше копипастой, отдавать моноширинным блоком — копируется одним тапом с телефона. Применять при словах «дай сообщением», «для копирования», «перешли ему», «черновик клиенту», а также к командам, реквизитам, адресам и ключам.
 
 # copyblock — текст, который копируют одним тапом
 

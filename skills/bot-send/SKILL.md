@@ -1,7 +1,8 @@
 ---
 name: bot-send
-description: "Message a person or send a broadcast from my operator's public bot, only on the owner's word in his DM: one person who wrote to the bot, or a broadcast with a preview \"to N, text\" sent after the owner's ✅. Use on \"message the client from the bot\", \"send to subscribers\", \"do a broadcast\". RU: Написать человеку или сделать рассылку от бота моего оператора (публичного бота хозяина) — только по слову хозяина в его личке: одному, кто писал боту; рассылка — превью «кому N, текст» и отправка после ✅ хозяина. Применять на «напиши клиенту от бота», «разошли подписчикам», «сделай рассылку», «ответь ему от имени бота»."
+description: "Use on \"message the client from the bot\", \"send to subscribers\", \"do a broadcast\": send from the owner's public bot, only on his word, preview then ✅. RU: «напиши клиенту от бота», «разошли подписчикам», «сделай рассылку»."
 ---
+> **When to use (full):** Message a person or send a broadcast from my operator's public bot, only on the owner's word in his DM: one person who wrote to the bot, or a broadcast with a preview "to N, text" sent after the owner's ✅. Use on "message the client from the bot", "send to subscribers", "do a broadcast". RU: Написать человеку или сделать рассылку от бота моего оператора (публичного бота хозяина) — только по слову хозяина в его личке: одному, кто писал боту; рассылка — превью «кому N, текст» и отправка после ✅ хозяина. Применять на «напиши клиенту от бота», «разошли подписчикам», «сделай рассылку», «ответь ему от имени бота».
 
 # bot-send — сообщения и рассылки через моего оператора
 

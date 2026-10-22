@@ -1,7 +1,8 @@
 ---
 name: visual
-description: "Visual: teach with drawings, not just text. One idea: a sketch; 2-8 diagrams, charts, graphs, mind maps: an HTML gallery; a big system: an Excalidraw-style interactive canvas with click-for-details. Triggers: \"show as a diagram\", \"draw it\", \"visualize the report\", \"mind map\", \"system map\". RU: Наглядно: показать и научить рисунком, а не только текстом. Одна мысль — картинка-скетч; 2–8 схем, графиков, графов, ментальных карт — HTML-галерея; большая система — интерактивный холст в духе Excalidraw с иконками, стрелками и подробностями по клику. Применять для сложных отчётов, уроков, устройства команды и продуктов. Триггеры — «покажи схемой», «нарисуй», «наглядно», «визуализируй отчёт», «ментальная карта», «граф», «холст», «карта системы», «дай галерею»."
+description: "Use on \"show as a diagram\", \"draw it\", \"visualize the report\", \"mind map\", \"system map\": sketch, HTML gallery or canvas. RU: «покажи схемой», «нарисуй», «наглядно», «визуализируй отчёт», «ментальная карта», «холст»."
 ---
+> **When to use (full):** Visual: teach with drawings, not just text. One idea: a sketch; 2-8 diagrams, charts, graphs, mind maps: an HTML gallery; a big system: an Excalidraw-style interactive canvas with click-for-details. Triggers: "show as a diagram", "draw it", "visualize the report", "mind map", "system map". RU: Наглядно: показать и научить рисунком, а не только текстом. Одна мысль — картинка-скетч; 2–8 схем, графиков, графов, ментальных карт — HTML-галерея; большая система — интерактивный холст в духе Excalidraw с иконками, стрелками и подробностями по клику. Применять для сложных отчётов, уроков, устройства команды и продуктов. Триггеры — «покажи схемой», «нарисуй», «наглядно», «визуализируй отчёт», «ментальная карта», «граф», «холст», «карта системы», «дай галерею».
 
 # Наглядно — выбрать форму, нарисовать, проверить глазами
 

@@ -1,7 +1,9 @@
 ---
 name: utochnenie-zadach
-description: "Understand first, then do — a base skill of every Mila. How I take any task: understand → find the gaps → 2–4 short questions with ready options → confirm my understanding → do → check → hand over. Use before any document, text, post, presentation, analysis, email, calculation, website or image. RU: Сначала понять — потом делать. Протокол принятия каждого поручения: понять → пробелы → 2–4 вопроса с вариантами → согласовать понимание → выполнить → проверить → выдать. Применять перед любым документом, текстом, постом, презентацией, анализом, письмом, расчётом, сайтом, картинкой."
+description: "Use before any document, text, post, presentation, analysis, email, calculation, site or image: understand, 2-4 questions, confirm, do, check. RU: «сначала понять — потом делать», любое поручение, уточнить задачу."
 ---
+> **When to use (full):** Understand first, then do — a base skill of every Mila. How I take any task: understand → find the gaps → 2–4 short questions with ready options → confirm my understanding → do → check → hand over. Use before any document, text, post, presentation, analysis, email, calculation, website or image. RU: Сначала понять — потом делать. Протокол принятия каждого поручения: понять → пробелы → 2–4 вопроса с вариантами → согласовать понимание → выполнить → проверить → выдать. Применять перед любым документом, текстом, постом, презентацией, анализом, письмом, расчётом, сайтом, картинкой.
+
 # Understand first, then do
 
 A rule from our team: "You are not a dog on a leash that sits when told to sit. You are an intelligence. Before the work, ask a few questions and offer options."

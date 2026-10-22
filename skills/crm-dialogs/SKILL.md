@@ -1,6 +1,6 @@
 ---
 name: crm-dialogs
-description: "Dialog CRM: intake log, whose turn, promises, gone-cold conversations, reminders, report. Commands /inbox /hod /obeschania /ostyli /dialog /zakryt /ne-klient /rezhim /lid /otchet-dialogi via dialogs_* tools, five of them run without the model. Triggers: \"whose turn\", \"open promises\", \"cold leads\". RU: CRM диалогов: приёмный журнал, чей ход, обещания, остывшие, напоминания, отчёт. Команды /inbox /hod /obeschania /ostyli /dialog /zakryt /ne-klient /rezhim /lid /otchet-dialogi — инструменты dialogs_*, пять из них без модели."
+description: "Use on \"whose turn\", \"open promises\", \"cold leads\", /inbox /hod /obeschania /ostyli /dialog /lid /otchet-dialogi: dialog CRM via dialogs_* tools. RU: «чей ход», «обещания», «остывшие», отчёт по диалогам."
 metadata: {"nanobot":{"emoji":"🗂","always":true}}
 commands:
   - cmd: inbox
@@ -34,6 +34,7 @@ commands:
     desc: "Сводка за день или неделю: /otchet-dialogi [week]"
     prompt: "Вызови dialogs_report(window=\"{args}\" или \"day\") и отдай ответ дословно."
 ---
+> **When to use (full):** Dialog CRM: intake log, whose turn, promises, gone-cold conversations, reminders, report. Commands /inbox /hod /obeschania /ostyli /dialog /zakryt /ne-klient /rezhim /lid /otchet-dialogi via dialogs_* tools, five of them run without the model. Triggers: "whose turn", "open promises", "cold leads". RU: CRM диалогов: приёмный журнал, чей ход, обещания, остывшие, напоминания, отчёт. Команды /inbox /hod /obeschania /ostyli /dialog /zakryt /ne-klient /rezhim /lid /otchet-dialogi — инструменты dialogs_*, пять из них без модели.
 
 > **Requires (SELFHOST-1018):** the `dialogs_*` tools come from the dialogs MCP server that runs next to hosted Milas (it reads the operator's `crm/dialogs.db`). It is not part of this repository yet. Without it every command answers one line: «На этой Миле журнала диалогов нет — он работает на размещённых Милах» — and does not guess. RU: инструменты `dialogs_*` даёт MCP-сервер диалогов на размещённых Милах; в открытом коде его пока нет — без него навык честно говорит, что журнала нет.
 
