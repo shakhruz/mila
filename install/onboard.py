@@ -73,7 +73,11 @@ def saved_token():
 def write_private(path, text):
     os.makedirs(os.path.dirname(path), mode=0o700, exist_ok=True)
     os.chmod(os.path.dirname(path), 0o700)
-    fd = os.open(path + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        os.unlink(path + ".tmp")   # старый tmp с чужими правами: O_CREAT не меняет права существующего файла
+    except FileNotFoundError:
+        pass
+    fd = os.open(path + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(text)
     os.replace(path + ".tmp", path)
@@ -194,21 +198,23 @@ def step_pair(tok, me, check):
     wait = int(os.environ.get("MILA_PAIR_WAIT", "300"))
     say("…", "3/3 Send this code to @%s in Telegram (a private message):  %s" % (me.get("username", "your bot"), code))
     say(" ", "    waiting up to %d s; Ctrl-C to stop" % wait)
-    offset, end = None, time.time() + wait
+    # Читаем без offset и ничего не подтверждаем: всё, что писали боту до и во время onboard, остаётся для Милы (Качество 22.10)
+    end = time.time() + wait
     while time.time() < end:
-        p = {"timeout": 20, "allowed_updates": json.dumps(["message"])}
-        if offset is not None:
-            p["offset"] = offset
-        r = tg(tok, "getUpdates", p, timeout=30)
+        r = tg(tok, "getUpdates", {"timeout": 20, "allowed_updates": json.dumps(["message"])}, timeout=30)
         if not r.get("ok"):
-            if r.get("error_code") == 409 or "terminated by other getUpdates" in str(r.get("description", "")):
+            desc = str(r.get("description", ""))
+            if "webhook" in desc.lower():
+                say("✗", "3/3 the bot has a webhook set, so it can't be read here. Remove it (Bot API deleteWebhook) "
+                         "and run `mila onboard` again.")
+                return False
+            if r.get("error_code") == 409 or "terminated by other getUpdates" in desc:
                 say("✗", "3/3 something else is reading this bot (a Claude Code session or the receiver daemon). "
                          "Close it for a minute (`mila fix` restarts it later) and run `mila onboard` again.")
                 return False
             time.sleep(2)
             continue
         for u in r.get("result", []):
-            offset = u["update_id"] + 1
             m = u.get("message") or {}
             if (m.get("chat") or {}).get("type") != "private":
                 continue
@@ -217,10 +223,11 @@ def step_pair(tok, me, check):
                 if not uid.isdigit():
                     continue
                 set_owner(uid)
-                tg(tok, "getUpdates", {"offset": offset, "timeout": 0})   # подтвердить прочитанное: код не придёт в сессию
                 tg(tok, "sendMessage", {"chat_id": uid, "text": "Paired ✓ You are my owner. Start Claude Code with `mila` in your terminal."})
                 say("✓", "3/3 owner paired (id %s): allowFrom + allowlist, OWNER_ID in settings.json" % uid)
                 return True
+        if r.get("result"):
+            time.sleep(2)   # в очереди есть непрочитанное — не крутимся вхолостую
     say("✗", "3/3 no message with the code arrived. Run `mila onboard` again.")
     return False
 

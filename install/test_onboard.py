@@ -27,7 +27,11 @@ class TG(BaseHTTPRequestHandler):
             else:
                 time.sleep(0.2)
                 res = []
-                if S["code"] and "offset=" not in body:
+                S.setdefault("bodies", []).append(body)
+                if S.get("webhook"):
+                    r = {"ok": False, "error_code": 409, "description": "Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first"}
+                    b = json.dumps(r).encode(); self.send_response(200); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b); return
+                if S["code"]:
                     res = [{"update_id": 10, "message": {"chat": {"type": "group", "id": -5}, "from": {"id": 999}, "text": S["code"]}},
                            {"update_id": 11, "message": {"chat": {"type": "private", "id": 777}, "from": {"id": 777}, "text": "hi"}},
                            {"update_id": 12, "message": {"chat": {"type": "private", "id": S["owner"]}, "from": {"id": S["owner"]}, "text": S["code"].upper()}}]
@@ -96,5 +100,14 @@ S["bad_token"] = False
 os.remove(os.path.join(T, "tg", "access.json")); S["conflict"] = True; S["code"] = None
 rc, out = run()
 chk("бота читает другой процесс (409): честная подсказка, выход 1", rc == 1 and "something else is reading this bot" in out)
+chk("ничего не подтверждено: getUpdates ни разу с offset (старые сообщения остаются Миле)", not any("offset" in b for b in S.get("bodies", [])))
+S["conflict"] = False; S["webhook"] = True
+rc, out = run()
+chk("у бота webhook: своя подсказка (deleteWebhook), выход 1", rc == 1 and "webhook" in out and "something else" not in out)
+S["webhook"] = False
+tmp = os.path.join(T, "tg", ".env.tmp"); open(tmp, "w").write("old"); os.chmod(tmp, 0o644)
+os.remove(os.path.join(T, "tg", ".env"))
+rc, out = run(["--check"]); rc, out = run(stdin="%s\n" % TOKEN)
+chk("старый .env.tmp 644 не мешает: .env снова 600", stat.S_IMODE(os.stat(os.path.join(T, "tg", ".env")).st_mode) == 0o600)
 print("итог %d/%d" % (ok, n))
 sys.exit(0 if ok == n else 1)
