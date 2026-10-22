@@ -21,7 +21,7 @@
 Нет доступа — навык не падает: одна строка хозяину.
 Что обновляется и что никогда — release.json релиза + неприкосновенный список ниже (он сильнее манифеста).
 Пути: {claude}=~/.claude (CLAUDE_CONFIG_DIR), {work}=~/work (MILA_WORK), {home}=~. Только stdlib."""
-import argparse, fnmatch, glob, hashlib, json, os, re, shutil, subprocess, sys, tarfile, tempfile, time
+import argparse, fnmatch, glob, hashlib, json, os, re, shutil, stat, subprocess, sys, tarfile, tempfile, time
 
 # FLEET-1021 (пилот test20 21.10): раскатка с хоста — MILA_HOME=/srv/…/<slug>/home (дом Милы вместо ~), запуск от root,
 # MILA_CHOWN=uid[:gid] — после записи всё, что тронули (и папка mila-update), отдаётся хозяину дома.
@@ -297,6 +297,24 @@ def backup(paths, tag):
     return b
 
 
+def readable(p, deep=True):
+    """PERMS-1022 (Админ: суточная копия companion-backup падала на new/<тег>/было-* с правами 600): что записал apply —
+    читаемо для группы и прочих: файлы go+r, каталоги go+rx. Ссылки не трогаем, лишних прав на запись не даём."""
+    def one(q):
+        try:
+            st = os.lstat(q)
+            if stat.S_ISLNK(st.st_mode): return
+            add = 0o055 if stat.S_ISDIR(st.st_mode) else 0o044
+            if (st.st_mode & add) != add: os.chmod(q, stat.S_IMODE(st.st_mode) | add)
+        except OSError:
+            pass
+    if not os.path.lexists(p): return
+    one(p)
+    if deep and os.path.isdir(p) and not os.path.islink(p):
+        for root, dirs, files in os.walk(p):
+            for n in dirs + files: one(os.path.join(root, n))
+
+
 def put(src, dst, kind):
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     if kind == "dir":
@@ -350,6 +368,10 @@ def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_labe
     json.dump({"version": m.get("version"), "tag": tag, "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "channel": channel or CFG["channel"],
                "sha": sha_, "source": src_label or REPO, "files": files}, open(VERSION, "w"), ensure_ascii=False, indent=1)
     touched = [r["dst"] for r in todo] + [os.path.join(newdir, r["name"]) for r in side] + [os.path.join(newdir, "было-" + r["name"]) for r in kept] + [VERSION]
+    for q in touched: readable(q)
+    if side or kept:   # путь до new/<тег> — только сами каталоги (go+rx), не всё содержимое STATE (журнал и бэкапы не открываем)
+        for q in (STATE, os.path.join(STATE, "new")): readable(q, deep=False)
+        readable(newdir)
     jlog({"event": "update", "tag": tag, "version": m.get("version"), "yes": yes, "backup": b, "added": added, "touched": touched,
           "updated": [r["name"] for r in todo if r["cur"] is not None], "new_beside": [r["name"] for r in side],
           "renamed": {r["name"]: ren[r["name"]] for r in rows if r["name"] in ren and r["cur"] is not None}, "renamed_kept_edit": [r["name"] for r in kept]})
