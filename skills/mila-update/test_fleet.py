@@ -12,7 +12,7 @@ def run(*args, chown=None, nofilter=False):
     calls = []
     env = dict(os.environ, MILA_HOME=home, HOME=os.path.join(T, "admin-home")); env.pop("CLAUDE_CONFIG_DIR", None); env.pop("MILA_WORK", None)
     if chown: env["MILA_CHOWN"] = chown
-    code = ("import tarfile\n" + ("del tarfile.data_filter\n" if nofilter else "") + "import os,sys,json,runpy\nC=[]\nos.lchown=lambda p,u,g: C.append((p,u,g))\nsys.argv=%r\n"
+    code = ("import tarfile\n" + ("if hasattr(tarfile, \"data_filter\"): del tarfile.data_filter\n" if nofilter else "") + "import os,sys,json,runpy\nC=[]\nos.lchown=lambda p,u,g: C.append((p,u,g))\nsys.argv=%r\n"
             "try:\n  runpy.run_path(%r, run_name='__main__')\nexcept SystemExit as e:\n  print(e) if e.code not in (None, 0) else None\nopen(%r,'w').write(json.dumps(C))\n") % (["update.py"] + list(args), os.path.join(H, "update.py"), os.path.join(T, "calls.json"))
     r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env)
     try: calls = json.load(open(os.path.join(T, "calls.json")))
