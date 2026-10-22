@@ -49,7 +49,8 @@ property of the code: it moves per task, per client, per day.
 Two things are deliberately separate from this repository:
 
 - **The Telegram plugin** — the channel itself is a standalone Claude Code
-  plugin, on its way to the Anthropic plugin marketplace. This kit uses it; it
+  plugin ([shakhruz/mila-telegram](https://github.com/shakhruz/mila-telegram));
+  we plan to submit it to the Anthropic plugin marketplace. This kit uses it; it
   does not contain it.
 - **The fleet runtime** — the operators run on a different core entirely. The
   companion talks to them, it is not built from them.
