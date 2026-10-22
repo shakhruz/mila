@@ -6,7 +6,7 @@ ok=0; n=0; chk(){ n=$((n+1)); if eval "$2" >/dev/null 2>&1; then ok=$((ok+1)); e
 # Источник — копия репо с веткой на текущем коммите: так тест работает и в detached HEAD (CI, проверка Качества),
 # где rev-parse --abbrev-ref даёт «HEAD» и git clone --branch HEAD падает.
 SRC=$T/src; git clone -q "$H" "$SRC"; git -C "$SRC" checkout -q -B mila-test "$(git -C "$H" rev-parse HEAD)"; B=mila-test
-run(){ HOME=$T MILA_SKIP_CHECKS=1 MILA_REPO="$SRC" MILA_REF="$B" bash "$H/install/get.sh"; }   # без MILA_DIR — папка по умолчанию
+run(){ HOME=$T MILA_SKIP_PLUGIN=1 MILA_SKIP_CHECKS=1 MILA_REPO="$SRC" MILA_REF="$B" bash "$H/install/get.sh"; }   # без MILA_DIR — папка по умолчанию
 run > $T/o1.txt 2>&1
 chk "клон в ~/mila (по умолчанию) и установка навыков в ~/.claude/skills" "[ -d $T/mila/.git ] && [ -d $T/.claude/skills ] && ls $T/.claude/skills | grep -q mila-update"
 chk "в конце — шаги «дальше» и mila doctor" "grep -q 'mila doctor' $T/o1.txt"
@@ -22,4 +22,10 @@ chk "старая ~/mila-companion обновляется на месте, вт�
 T4=$(mktemp -d); mkdir -p "$T4/mila"; git -C "$T4/mila" init -q; echo x > "$T4/mila/notes.txt"; git -C "$T4/mila" add -A; git -C "$T4/mila" -c user.email=a@b -c user.name=a commit -qm x
 HOME=$T4 MILA_SKIP_CHECKS=1 MILA_REPO="$SRC" MILA_REF="$B" bash "$H/install/get.sh" > $T/o6.txt 2>&1; rc=$?
 chk "~/mila — чужой git-проект: честный отказ, выход 1, проект не тронут" "[ $rc -eq 1 ] && grep -q 'already used' $T/o6.txt && [ -f $T4/mila/notes.txt ] && [ ! -d $T4/mila/skills ] && [ \$(git -C $T4/mila log --oneline | wc -l) -eq 1 ]"; rm -rf $T4
+# плагин Telegram тем же запуском: заглушка claude пишет свои вызовы
+T5=$(mktemp -d); mkdir -p $T5/bin; printf '#!/bin/sh\necho "$@" >> %s/calls\n' "$T5" > $T5/bin/claude; chmod +x $T5/bin/claude
+HOME=$T5 PATH="$T5/bin:$PATH" MILA_SKIP_CHECKS=1 MILA_REPO="$SRC" MILA_REF="$B" bash "$H/install/get.sh" > $T/o7.txt 2>&1
+chk "плагин: marketplace add shakhruz/mila-telegram, затем install mila-telegram@mila" "grep -qx 'plugin marketplace add shakhruz/mila-telegram' $T5/calls && grep -q '^plugin install mila-telegram@mila' $T5/calls && grep -q 'mila-telegram@mila installed' $T/o7.txt"
+rm -f $T5/calls; HOME=$T5 PATH="$T5/bin:$PATH" MILA_SKIP_CHECKS=1 MILA_REPO="$SRC" MILA_REF="$B" MILA_INSTALL_ARGS=--dry-run bash "$H/install/get.sh" > $T/o8.txt 2>&1
+chk "--dry-run: плагин не ставится, только «would run»" "[ ! -e $T5/calls ] && grep -q 'would run' $T/o8.txt"; rm -rf $T5
 echo "итог $ok/$n"; rm -rf $T; [ $ok -eq $n ]

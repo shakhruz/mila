@@ -2,7 +2,9 @@
 # Mila — one-command install / установка одной командой:
 #   curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 # Checks what is needed (Claude Code, Bun, git), clones the kit to ~/mila (or updates it; an older ~/mila-companion is updated in place), runs install/install.sh.
-# Env: MILA_DIR (where to clone), MILA_REF (branch/tag; default — latest stable tag vX.Y.Z, canary: MILA_REF=main), MILA_REPO, MILA_INSTALL_ARGS.
+# Then installs the Telegram plugin: claude plugin marketplace add shakhruz/mila-telegram + claude plugin install mila-telegram@mila.
+# Env: MILA_DIR (where to clone), MILA_REF (branch/tag; default — latest stable tag vX.Y.Z, canary: MILA_REF=main), MILA_REPO, MILA_INSTALL_ARGS,
+#      MILA_PLUGIN_MARKET (default shakhruz/mila-telegram), MILA_SKIP_PLUGIN=1 — without the plugin step.
 set -euo pipefail
 REPO="${MILA_REPO:-https://github.com/shakhruz/mila}"
 DIR="${MILA_DIR:-}"
@@ -34,13 +36,22 @@ else
   echo "  cloning into $DIR"; git clone -q --depth 1 --branch "$REF" "$REPO" "$DIR"
 fi
 bash "$DIR/install/install.sh" ${MILA_INSTALL_ARGS:-}
+# Плагин Telegram — тем же запуском (комиссия 22.10): повторный запуск ничего не ломает, оба шага у claude идемпотентны
+MARKET="${MILA_PLUGIN_MARKET:-shakhruz/mila-telegram}"
+PLUGIN_OK=0
+echo "Telegram plugin"
+if [[ "${MILA_SKIP_PLUGIN:-0}" == "1" ]]; then echo "  skipped (MILA_SKIP_PLUGIN=1)"
+elif [[ " ${MILA_INSTALL_ARGS:-} " == *" --dry-run "* ]]; then echo "  dry run: would run  claude plugin marketplace add $MARKET  and  claude plugin install mila-telegram@mila"
+elif ! command -v claude >/dev/null 2>&1; then echo "  ✗ claude not found — install Claude Code, then run the same command again"
+elif claude plugin marketplace add "$MARKET" >/dev/null 2>&1 && claude plugin install mila-telegram@mila --scope user >/dev/null 2>&1; then
+  echo "  ✓ mila-telegram@mila installed"; PLUGIN_OK=1
+else echo "  ✗ could not install it — in a Claude Code session: /plugin marketplace add $MARKET, then /plugin install mila-telegram@mila"
+fi
 cat <<'NEXT'
 
 Next / дальше:
   1. Create a bot at @BotFather and keep its token.
-  2. In a Claude Code session:
-       /plugin marketplace add shakhruz/mila-telegram
-       /plugin install mila-telegram@mila
+  2. Start Claude Code with `mila` and save the token:
        /mila-telegram:configure <token>
   3. Restart with `mila`, message your bot, then in the session:
        /mila-telegram:access pair <code>

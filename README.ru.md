@@ -56,13 +56,11 @@ Telegram-плагин - отдельный открытый репозитори
 curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 ```
 
-Она проверит Claude Code, Bun и git, склонирует набор в `~/mila` и запустит `install/install.sh` (заменяемые файлы сохраняются как `<файл>.bak-ГГГГММДД-ЧЧММСС`). Хотите сначала посмотреть — склонируйте и запустите `./install/install.sh --dry-run`: покажет, что будет затронуто.
+Она проверит Claude Code, Bun и git, склонирует набор в `~/mila`, запустит `install/install.sh` и поставит плагин Telegram `mila-telegram` (заменяемые файлы сохраняются как `<файл>.bak-ГГГГММДД-ЧЧММСС`). Хотите сначала посмотреть — склонируйте и запустите `./install/install.sh --dry-run`: покажет, что будет затронуто.
 
 Затем в сессии Claude Code:
 
 ```
-/plugin marketplace add shakhruz/mila-telegram
-/plugin install mila-telegram@mila
 /mila-telegram:configure <токен бота от @BotFather>
 ```
 

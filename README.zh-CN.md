@@ -23,11 +23,11 @@ Mila 是更大愿景的一部分 —— 阅读我们的宣言（英文）：[mil
 curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 ```
 
+该命令会检查 Claude Code、Bun 和 git，把套件克隆到 `~/mila`，并安装 Telegram 插件 `mila-telegram`。
+
 然后在 Claude Code 会话中运行：
 
 ```
-/plugin marketplace add shakhruz/mila-telegram
-/plugin install mila-telegram@mila
 /mila-telegram:configure <从 @BotFather 获取的 token>
 ```
 

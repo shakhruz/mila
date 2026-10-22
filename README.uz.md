@@ -30,11 +30,11 @@ Qutidan 3 ta til — **inglizcha, ruscha, o‘zbekcha**; o‘zingiznikini bitta 
 curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
 ```
 
+Buyruq Claude Code, Bun va git’ni tekshiradi, to‘plamni `~/mila` ga yuklaydi va Telegram plaginini `mila-telegram` o‘rnatadi.
+
 Keyin Claude Code sessiyasida:
 
 ```
-/plugin marketplace add shakhruz/mila-telegram
-/plugin install mila-telegram@mila
 /mila-telegram:configure <@BotFather bergan token>
 ```
 
