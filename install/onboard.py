@@ -107,7 +107,11 @@ def step_token(check):
     if check:
         return None, None
     for _ in range(3):
-        tok = getpass.getpass("   Paste the bot token from @BotFather (input is hidden): ").strip()
+        try:
+            tok = getpass.getpass("   Paste the bot token from @BotFather (input is hidden): ").strip()
+        except EOFError:
+            say("✗", "1/3 no terminal to type the token — run `mila onboard` in a terminal")
+            return None, None
         if not TOKEN_RE.match(tok):
             say("✗", "   That does not look like a bot token (123456789:AA…). Try again.")
             continue
@@ -230,7 +234,10 @@ def step_pair(tok, me, check):
         res = r.get("result", [])
         if len(res) >= 100:   # глубже 100 без подтверждения не заглянуть: код может быть 101-м (Качество 22.10)
             say("…", "3/3 the bot has 100+ unread messages from before, so the code may be behind them.")
-            ans = input("    Mark those old messages as read so the code can get through? They will not reach Mila. [y/N] ").strip().lower()
+            try:
+                ans = input("    Mark those old messages as read so the code can get through? They will not reach Mila. [y/N] ").strip().lower()
+            except EOFError:   # без терминала (curl | bash) — это «нет»
+                ans = ""
             if ans not in ("y", "yes", "д", "да"):
                 say("✗", "3/3 stopped: nothing was marked read. Run `mila onboard` again when you are ready.")
                 return False
