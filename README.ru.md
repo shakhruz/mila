@@ -46,8 +46,9 @@ Telegram-плагин - отдельный открытый репозитори
 [English](README.md) · [Полный справочник (EN)](docs/REFERENCE.md) · [Сравнение с OpenClaw, NanoClaw, Hermes Agent (EN)](README.md#how-mila-compares)
 
 **Честные минусы Милы.** Только Telegram: нет WhatsApp, Slack и Discord. Нужен Claude Code, вход — своей подпиской Claude или своим
-API-ключом; сама Мила работает только на Claude (гостям можно отвечать другими моделями через OpenRouter). macOS и Linux;
-Windows — только через WSL. Каналы в Claude Code пока в предварительном режиме, поэтому запускатель использует флаг разработки.
+API-ключом; сама Мила работает только на Claude (гости на других моделях через OpenRouter — в облачной версии уже, в открытом ядре —
+со следующим выпуском). Мила отвечает, пока работают ваш компьютер и сессия: закрыт ноутбук — Мила молчит, нужен всегда
+включённый компьютер или сервер. macOS и Linux; Windows — только через WSL. Каналы в Claude Code пока в предварительном режиме, поэтому запускатель использует флаг разработки.
 
 ## Что внутри
 
@@ -127,6 +128,7 @@ MILAGPT - небольшая команда: **Шахруз Ашот Аширо�
 
 ## Сообщество
 
+<!-- Discord: badge + invite link go here when the invite is ready -->
 Вопросы, идеи, покажите, что делает ваша Мила: [GitHub Discussions](https://github.com/shakhruz/mila/discussions).
 Ошибки — [Issues](https://github.com/shakhruz/mila/issues). Уязвимости — [SECURITY.md](SECURITY.md).
 

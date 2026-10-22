@@ -48,8 +48,11 @@ mila onboard
 
 之后运行 `mila` 启动。`mila onboard --check` 只显示三步状态，不做任何更改。机器人没有反应时，运行 `mila doctor`。
 
+**Mila 的真实短板。** 只支持 Telegram。需要 Claude Code 以及你自己的 Claude 套餐或 API 密钥。只有在你的电脑和会话运行时 Mila 才会回复：笔记本合上，Mila 就不回复，需要一台常开的电脑或服务器。支持 macOS 和 Linux；Windows 只能通过 WSL。
+
 ## 社区
 
+<!-- Discord: badge + invite link go here when the invite is ready -->
 提问、分享想法、展示你的 Mila 在做什么：[GitHub Discussions](https://github.com/shakhruz/mila/discussions)。问题反馈：[Issues](https://github.com/shakhruz/mila/issues)。
 
 完整说明见 [English README](README.md)（英文）和 [docs/REFERENCE.md](docs/REFERENCE.md)（英文）。

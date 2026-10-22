@@ -55,8 +55,11 @@ mila onboard
 
 Keyin — `mila`. `mila onboard --check` hech narsani o‘zgartirmasdan uch qadamni ko‘rsatadi. Bot jim bo‘lsa — `mila doctor`.
 
+**Milaning ochiq kamchiliklari.** Faqat Telegram. Claude Code va o‘z Claude rejangiz yoki API kalitingiz kerak. Mila kompyuteringiz va sessiya ishlayotgan paytda javob beradi: noutbuk yopiq — Mila jim, doim yoqilgan kompyuter yoki server kerak. macOS va Linux; Windows — faqat WSL orqali.
+
 ## Hamjamiyat
 
+<!-- Discord: badge + invite link go here when the invite is ready -->
 Savollar, g‘oyalar, Milangiz nima qilayotganini ko‘rsating: [GitHub Discussions](https://github.com/shakhruz/mila/discussions). Xatolar — [Issues](https://github.com/shakhruz/mila/issues).
 
 To‘liq ma’lumot — [English README](README.md) va [docs/REFERENCE.md](docs/REFERENCE.md).

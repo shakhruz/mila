@@ -86,8 +86,9 @@ Mila takes a narrower job: a digital employee for a business, in Telegram.
 | Price | free to self-host; hosted from $50/month | free, self-host only | free; enterprise on request | free; Nous Portal $0-200/month |
 
 **Mila's honest minuses.** Telegram only: no WhatsApp, Slack or Discord. It needs Claude Code, signed in with your own Claude plan
-or API key — Mila herself runs only on Claude (guests can be served by other models through OpenRouter). macOS and Linux;
-Windows only through WSL. Channels in Claude Code are a research preview, so the launcher uses a development flag for now
+or API key — Mila herself runs only on Claude (guests on other models through OpenRouter: in the hosted version today, open core — next
+release). She answers while your machine and the session run: a closed laptop means a silent Mila, so use an always-on
+computer or a server. macOS and Linux; Windows only through WSL. Channels in Claude Code are a research preview, so the launcher uses a development flag for now
 (see Quick start).
 
 Facts about other projects: their READMEs and docs, checked 17.10.2026; approvals row re-checked 21.10.2026 against [NanoClaw security](https://docs.nanoclaw.dev/concepts/security) and [Hermes security](https://hermes-agent.nousresearch.com/docs/user-guide/security) -
@@ -197,6 +198,7 @@ Start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Community
 
+<!-- Discord: badge + invite link go here when the invite is ready -->
 Questions, ideas, show what your Mila does: [GitHub Discussions](https://github.com/shakhruz/mila/discussions).
 Bugs: [Issues](https://github.com/shakhruz/mila/issues). Security: [SECURITY.md](SECURITY.md).
 
