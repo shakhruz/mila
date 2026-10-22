@@ -9,7 +9,13 @@ U="python3 $REPO/skills/mila-update/update.py"; ok=0; n=0
 chk() { n=$((n+1)); if eval "$2"; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 cp -R "$REPO" "$T/rel"; rm -rf "$T/rel/.git"
 umask 077   # строгий umask, как у Мил в контейнерах
+mkdir -p "$CLAUDE_CONFIG_DIR/channels/telegram"; echo '{"x":1}' > "$CLAUDE_CONFIG_DIR/settings.json"; echo "TOKEN=x" > "$CLAUDE_CONFIG_DIR/channels/telegram/.env"
+mkdir -p "$HOME/secrets"; echo k > "$HOME/secrets/k.key"; chmod 600 "$CLAUDE_CONFIG_DIR/settings.json" "$CLAUDE_CONFIG_DIR/channels/telegram/.env" "$HOME/secrets/k.key"
+chmod -R go-rwx "$T/rel/skills"   # релиз с закрытыми правами: открыть должен сам apply
 $U apply --src "$T/rel" --yes "тест: база" >/dev/null 2>&1
+SK="$CLAUDE_CONFIG_DIR/skills/visual"
+chk "навык, поставленный apply заново: файлы go+r, каталоги go+rx (umask 077, релиз 600)" "[ -f $SK/SKILL.md ] && [ \$(find $SK -type f ! -perm -044 | wc -l) -eq 0 ] && [ \$(find $SK -type d ! -perm -055 | wc -l) -eq 0 ]"
+chk "settings.json, channels/.env и секреты apply не трогает — по-прежнему 600" "python3 -c \"import os,sys; sys.exit(0 if all(os.stat(f).st_mode & 0o777 == 0o600 for f in sys.argv[1:]) else 1)\" $CLAUDE_CONFIG_DIR/settings.json $CLAUDE_CONFIG_DIR/channels/telegram/.env $HOME/secrets/k.key"
 # правка хозяина в навыке ядра + новая версия навыка в релизе → копия релиза ляжет в new/<тег>/
 echo "моя правка" >> "$CLAUDE_CONFIG_DIR/skills/visual/SKILL.md"; chmod 600 "$CLAUDE_CONFIG_DIR/skills/visual/SKILL.md"
 echo "# v2" >> "$T/rel/skills/visual/SKILL.md"; chmod -R go-rwx "$T/rel/skills/visual"
