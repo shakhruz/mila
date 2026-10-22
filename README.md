@@ -45,7 +45,7 @@ on fire. You talk to her from your phone, by text or voice, like to a person on 
   spending limits, mailings with your yes.
 - **Telegram-native.** Your chats, your groups, your clients - Mila works where your business already talks.
   No new app to install.
-- **One Mila, two wallets.** Your Claude Code subscription works for you and your work chats; customers and guests are served pay-as-you-go via [OpenRouter](https://openrouter.ai), so the cost grows only with the customers Mila serves (guest routing: hosted version today, open core with the next mila-telegram release). Your files stay
+- **One Mila, two wallets.** Your own Claude plan (or your own Anthropic API key) runs Mila for you, signed in by you; customers and guests are served pay-as-you-go through an API key via [OpenRouter](https://openrouter.ai), so the cost grows only with the customers Mila serves (guest routing: hosted version today, open core with the next mila-telegram release). Your files stay
   in your own home folder, conversations go only to the model providers you choose; Mila belongs to you 100% and moves with you (`mila export` / `mila restore`).
 - **Safe by default.** Nothing goes out on your behalf without your yes; a send-guard blocks messages that would
   leak one conversation into another; spending above the limit needs your approval.
@@ -145,6 +145,14 @@ The archive has `manifest.json` (format 1, sha256 of each file, core version) an
 After the restore you re-enter by hand: the bot token, your Claude login, service keys (the checklist is printed).
 Chat history and transcripts are exported only with `--with-history` (other people's data - keep it closed).
 Details: [skills/mila-export](skills/mila-export/SKILL.md). To save the memory on a schedule, use `mila backup` (see above in the reference).
+
+## Claude — by Anthropic's rules
+
+Mila runs on Claude Code exactly as Anthropic publishes it, unmodified. Every owner installs it and signs in personally:
+with their own Claude plan (Pro or Max) or their own Anthropic API key. Sign-in happens on Anthropic's own page; Mila never
+sees or stores it. A partner who sets Mila up for someone does not run their clients on the partner's subscription, does not
+pay for, resell or intermediate their Claude usage, and does not collect anyone's Claude login. Customers and guests who write
+to your bot are served through an API key, billed to the key's owner. Source: [Claude Code — legal and compliance](https://code.claude.com/docs/en/legal-and-compliance).
 
 ## Safety
 

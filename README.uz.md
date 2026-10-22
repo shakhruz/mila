@@ -14,7 +14,7 @@ Mila — biznesingiz uchun hamkasb: mijozlaringizga javob beradi, va’dalaringi
 
 - **Raqamli xodim, universal agent emas.** Mijoz suhbatlari, va’dalar va vazifalar, egasining «ha»si uchun kartochkalar, haftalik ritm, xarajat limitlari.
 - **Telegramda yashaydi.** Yangi ilova o‘rnatish shart emas.
-- **Bitta Mila, ikki hamyon.** Claude Code obunangiz — siz va ish chatlaringiz uchun; mijozlar va mehmonlarga Mila [OpenRouter](https://openrouter.ai) orqali tokenlarda, sarflanganicha toʻlov bilan javob beradi: xarajat faqat mijozlar bilan birga oʻsadi (mehmonlarni yoʻnaltirish: bulutli versiyada hozir bor, ochiq yadroda — mila-telegram ning keyingi chiqishi bilan). Fayllaringiz o‘z uy papkangizda qoladi; suhbatlar faqat siz tanlagan model provayderlariga boradi; Mila 100% sizniki.
+- **Bitta Mila, ikki hamyon.** O‘zingizning Claude obunangiz (yoki o‘z Anthropic API kalitingiz) — siz uchun, unga o‘zingiz kirasiz; mijozlar va mehmonlarga Mila API kalit orqali [OpenRouter](https://openrouter.ai) tokenlarida, sarflanganicha toʻlov bilan javob beradi: xarajat faqat mijozlar bilan birga oʻsadi (mehmonlarni yoʻnaltirish: bulutli versiyada hozir bor, ochiq yadroda — mila-telegram ning keyingi chiqishi bilan). Fayllaringiz o‘z uy papkangizda qoladi; suhbatlar faqat siz tanlagan model provayderlariga boradi; Mila 100% sizniki.
 - **Xavfsiz.** Sizning «ha»ingizsiz sizning nomingizdan hech narsa yuborilmaydi.
 - **Ochiq yadro, Apache-2.0.**
 
@@ -39,5 +39,13 @@ Keyin Claude Code sessiyasida:
 ```
 
 `mila` bilan qayta ishga tushiring, botga yozing, juftlang (`/telegram:access pair <kod>`) va kirishni yoping: `/telegram:access policy allowlist`. Bot jim bo‘lsa — `mila doctor`.
+
+## Claude — Anthropic qoidalari bo‘yicha
+
+Mila Claude Code’da Anthropic chiqargan holida, o‘zgartirishsiz ishlaydi. Har bir egasi uni o‘zi o‘rnatadi va o‘zi kiradi:
+o‘z Claude obunasi (Pro yoki Max) yoki o‘z Anthropic API kaliti bilan. Kirish — Anthropic sahifasida; Mila uni ko‘rmaydi va saqlamaydi.
+Milani boshqa odamga sozlab beradigan hamkor mijozlarni o‘z obunasida yuritmaydi, ularning Claude uchun to‘lamaydi, uni qayta sotmaydi
+va birovning kirish ma’lumotlarini yig‘maydi. Botingizga yozgan mijoz va mehmonlarga API kalit orqali, kalit egasi hisobidan xizmat ko‘rsatiladi.
+Manba: [Claude Code — legal and compliance](https://code.claude.com/docs/en/legal-and-compliance).
 
 To‘liq ma’lumot — [English README](README.md) va [docs/REFERENCE.md](docs/REFERENCE.md).
