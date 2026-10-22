@@ -108,11 +108,11 @@ Then, inside a Claude Code session:
 ```
 /plugin marketplace add shakhruz/mila-telegram
 /plugin install mila-telegram@mila
-/telegram:configure <bot token from @BotFather>
+/mila-telegram:configure <bot token from @BotFather>
 ```
 
-Restart with `mila`, message your bot, pair (`/telegram:access pair <code>`), then lock it down with
-`/telegram:access policy allowlist`. If the bot goes quiet, run `mila doctor`.
+Restart with `mila`, message your bot, pair (`/mila-telegram:access pair <code>`), then lock it down with
+`/mila-telegram:access policy allowlist`. If the bot goes quiet, run `mila doctor`.
 
 When it works, `mila doctor` looks like this (yellow lines are hints, not errors):
 

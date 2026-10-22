@@ -38,6 +38,6 @@ cat <<'NEXT'
 
 Next / дальше:
   1. Create a bot at @BotFather and keep its token.
-  2. In Claude Code: /plugin install the Telegram plugin, then /telegram:configure <token> (see README → Install).
+  2. In Claude Code: /plugin install the Telegram plugin, then /mila-telegram:configure <token> (see README → Install).
   3. Check everything:  mila doctor   — all lines 🟢 or 🟡 with a hint.
 NEXT

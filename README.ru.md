@@ -63,11 +63,11 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 ```
 /plugin marketplace add shakhruz/mila-telegram
 /plugin install mila-telegram@mila
-/telegram:configure <токен бота от @BotFather>
+/mila-telegram:configure <токен бота от @BotFather>
 ```
 
-Перезапустите через `mila`, напишите боту, сопрягите (`/telegram:access pair <код>`) и закройте доступ:
-`/telegram:access policy allowlist`. Бот молчит - `mila doctor`. Сервер - [deploy/README.md](deploy/README.md).
+Перезапустите через `mila`, напишите боту, сопрягите (`/mila-telegram:access pair <код>`) и закройте доступ:
+`/mila-telegram:access policy allowlist`. Бот молчит - `mila doctor`. Сервер - [deploy/README.md](deploy/README.md).
 
 Когда всё работает, `mila doctor` выглядит так (жёлтые строки — подсказки, не ошибки):
 

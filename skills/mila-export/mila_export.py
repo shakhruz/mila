@@ -278,8 +278,8 @@ def restore_md(m):
 3. Разложите: `mila restore <архив>` (сначала `--dry-run`). Существующие файлы не перезаписываются: расхождения
    лежат в `~/.claude/mila-restore/<время>/conflicts/`; `--overwrite` заменяет их, оставляя копию.
 4. **Введите заново то, чего в архиве нет по замыслу (секреты):**
-   - токен бота: `/telegram:configure <токен от @BotFather>`; допуск людей: `/telegram:access pair`, затем
-     `/telegram:access policy allowlist` (в архиве только шаблон `access.template.json` без id);
+   - токен бота: `/mila-telegram:configure <токен от @BotFather>`; допуск людей: `/mila-telegram:access pair`, затем
+     `/mila-telegram:access policy allowlist` (в архиве только шаблон `access.template.json` без id);
    - вход в Claude: `claude` → `/login` (подписка владельца, чужую не используйте);
    - ключи сервисов (имена из окружения исходной Милы): {names};
    - MCP-серверы, подключённые у исходной Милы: {mcps} — подключите заново (`claude mcp add`);
@@ -402,7 +402,7 @@ def cmd_restore(a):
                       "conflicts_dir": os.path.join(side, "conflicts") if done["conflict"] and not a.dry_run else None}, ensure_ascii=False))
     re_ = m["reenter"]
     print("\nВведите заново (секретов в архиве нет по замыслу):")
-    print("  [ ] токен бота: /telegram:configure <токен от @BotFather>; допуск людей: /telegram:access pair (шаблон — channels/telegram/access.template.json)")
+    print("  [ ] токен бота: /mila-telegram:configure <токен от @BotFather>; допуск людей: /mila-telegram:access pair (шаблон — channels/telegram/access.template.json)")
     print("  [ ] вход в Claude: claude → /login (своя подписка)")
     print("  [ ] плагин: /plugin marketplace add shakhruz/mila-telegram → /plugin install mila-telegram@mila")
     if re_["env_names"]: print("  [ ] ключи сервисов (имена): %s" % ", ".join(re_["env_names"]))

@@ -235,15 +235,15 @@ cat <<NEXT
   2. Create a bot with @BotFather, then inside Claude Code:
        /plugin marketplace add shakhruz/mila-telegram
        /plugin install mila-telegram@mila
-       /telegram:configure <token>
+       /mila-telegram:configure <token>
 
   3. Start the daemon and check the channel:
        systemctl --user enable --now mila-telegram-receiver
        mila doctor
 
   Then pair from the phone, and lock the door:
-       /telegram:access pair <code>
-       /telegram:access policy allowlist
+       /mila-telegram:access pair <code>
+       /mila-telegram:access policy allowlist
 NEXT
 
 echo

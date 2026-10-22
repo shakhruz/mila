@@ -156,14 +156,14 @@ Then, inside a Claude Code session:
 ```
 /plugin marketplace add shakhruz/mila-telegram
 /plugin install mila-telegram@mila
-/telegram:configure <bot token from @BotFather>
+/mila-telegram:configure <bot token from @BotFather>
 ```
 
 Restart with `mila`, message your bot, and pair:
 
 ```
-/telegram:access pair <the code the bot replies with>
-/telegram:access policy allowlist
+/mila-telegram:access pair <the code the bot replies with>
+/mila-telegram:access policy allowlist
 ```
 
 That last line matters. Pairing exists to capture your own ID; leave it on and

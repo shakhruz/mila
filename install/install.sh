@@ -357,6 +357,6 @@ fi
 echo "Done. Next, inside Claude Code:"
 echo "  /plugin marketplace add shakhruz/mila-telegram"
 echo "  /plugin install mila-telegram@mila"
-echo "  /telegram:configure <your bot token>"
+echo "  /mila-telegram:configure <your bot token>"
 echo
 echo "Then start a session with:  mila"

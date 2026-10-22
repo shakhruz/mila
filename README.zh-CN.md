@@ -28,10 +28,10 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 ```
 /plugin marketplace add shakhruz/mila-telegram
 /plugin install mila-telegram@mila
-/telegram:configure <从 @BotFather 获取的 token>
+/mila-telegram:configure <从 @BotFather 获取的 token>
 ```
 
-用 `mila` 重新启动，给你的机器人发一条消息，完成配对（`/telegram:access pair <验证码>`），然后关闭对外访问（仅允许白名单用户）：`/telegram:access policy allowlist`。机器人没有反应时，运行 `mila doctor`。
+用 `mila` 重新启动，给你的机器人发一条消息，完成配对（`/mila-telegram:access pair <验证码>`），然后关闭对外访问（仅允许白名单用户）：`/mila-telegram:access policy allowlist`。机器人没有反应时，运行 `mila doctor`。
 
 ## Claude —— 遵守 Anthropic 的规则
 

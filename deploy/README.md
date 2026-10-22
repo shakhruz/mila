@@ -64,7 +64,7 @@ Inside Claude Code:
 ```
 /plugin marketplace add shakhruz/mila-telegram
 /plugin install mila-telegram@mila
-/telegram:configure <token from @BotFather>
+/mila-telegram:configure <token from @BotFather>
 ```
 
 Then:
@@ -81,8 +81,8 @@ passed it.
 Finally, from the client's phone: message the bot, then in the session
 
 ```
-/telegram:access pair <code>
-/telegram:access policy allowlist
+/mila-telegram:access pair <code>
+/mila-telegram:access policy allowlist
 ```
 
 That last line matters. Until it runs, anyone who guesses the bot's username

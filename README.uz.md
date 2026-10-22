@@ -35,10 +35,10 @@ Keyin Claude Code sessiyasida:
 ```
 /plugin marketplace add shakhruz/mila-telegram
 /plugin install mila-telegram@mila
-/telegram:configure <@BotFather bergan token>
+/mila-telegram:configure <@BotFather bergan token>
 ```
 
-`mila` bilan qayta ishga tushiring, botga yozing, juftlang (`/telegram:access pair <kod>`) va kirishni yoping: `/telegram:access policy allowlist`. Bot jim bo‘lsa — `mila doctor`.
+`mila` bilan qayta ishga tushiring, botga yozing, juftlang (`/mila-telegram:access pair <kod>`) va kirishni yoping: `/mila-telegram:access policy allowlist`. Bot jim bo‘lsa — `mila doctor`.
 
 ## Claude — Anthropic qoidalari bo‘yicha
 

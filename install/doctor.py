@@ -114,7 +114,7 @@ def check_token(rep):
     token, src = read_token()
     if not token:
         rep.add(BAD, "токен", "не найден",
-                "получи токен у @BotFather и выполни /telegram:configure <токен>")
+                "получи токен у @BotFather и выполни /mila-telegram:configure <токен>")
         return None
     if not re.match(r"^\d{8,12}:[A-Za-z0-9_-]{30,}$", token):
         rep.add(BAD, "токен", "не похож на токен Telegram (%d символов)" % len(token),
@@ -174,14 +174,14 @@ def check_access(rep):
 
     if not allow:
         rep.add(WARN, "личка", "никто не допущен",
-                "напиши боту и выполни /telegram:access pair <код>")
+                "напиши боту и выполни /mila-telegram:access pair <код>")
     else:
         rep.add(OK, "личка", "допущено %d, политика «%s»" % (len(allow), policy))
 
     if policy == "pairing" and allow:
         rep.add(WARN, "личка", "режим сопряжения всё ещё открыт",
                 "любой, кто найдёт бота, получит код. Закрой: "
-                "/telegram:access policy allowlist")
+                "/mila-telegram:access policy allowlist")
 
     if len(allow) > 1 and not owners:
         rep.add(WARN, "владельцы", "в личку допущены %d, список owners пуст" % len(allow),
