@@ -12,6 +12,12 @@
       "kind": "dir"
     },
     {
+      "what": "старые имена навыков — алиасы до v1.6.0 (только для обновления: старые пути скриптов)",
+      "src": "legacy/skills/*",
+      "dst": "{claude}/skills/*",
+      "kind": "dir"
+    },
+    {
       "what": "хуки и инструменты",
       "src": "install/*.py",
       "dst": "{claude}/hooks/*",
@@ -94,5 +100,5 @@
     "znakomstvo": "onboarding",
     "OBDUMYVANIE.md": "THINKING-BUDGET.md"
   },
-  "renamed_note": "v1.4.0 international names; old names are aliases (MOVED.md + script wrappers, no SKILL.md) until v1.6.0"
+  "renamed_note": "v1.4.0 international names; old names are aliases in legacy/skills/ (MOVED.md + script wrappers, no SKILL.md), delivered by mila-update to homes that had them, until v1.6.0; fresh installs don't get them"
 }

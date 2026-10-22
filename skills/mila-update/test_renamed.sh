@@ -16,7 +16,7 @@ r = sys.argv[1]; m = json.load(open(f"{r}/release.json")); ren = m.pop("renamed"
 for o, n in ren.items():
     if o.endswith(".md"):
         shutil.copy(f"{r}/canon/{n}", f"{r}/canon/{o}"); os.remove(f"{r}/canon/{n}"); continue
-    shutil.rmtree(f"{r}/skills/{o}"); shutil.move(f"{r}/skills/{n}", f"{r}/skills/{o}")
+    shutil.rmtree(f"{r}/legacy/skills/{o}", ignore_errors=True); shutil.rmtree(f"{r}/skills/{o}", ignore_errors=True); shutil.move(f"{r}/skills/{n}", f"{r}/skills/{o}")
     p = f"{r}/skills/{o}/SKILL.md"; s = open(p).read().replace(f"name: {n}", f"name: {o}", 1); open(p, "w").write(s)
 m["version"], m["tag"] = "1.3.0", "v1.3.0"; json.dump(m, open(f"{r}/release.json", "w"), ensure_ascii=False, indent=2)
 PY
