@@ -35,7 +35,9 @@ DEFAULT_CFG = {"channel": "stable", "auto": False, "repo": DEFAULT_REPO, "owner_
 
 def load_cfg():
     try: c = json.load(open(CONFIG, encoding="utf-8"))
-    except Exception: c = {}
+    except FileNotFoundError: c = {}
+    except Exception as e:   # журнала ещё нет (загрузка модуля) — вслух в stderr, настройки по умолчанию
+        print("mila-update: mila-update.json не прочитан (%s) — беру настройки по умолчанию" % str(e)[:120], file=sys.stderr); c = {}
     return dict(DEFAULT_CFG, **(c if isinstance(c, dict) else {}))
 
 
@@ -89,9 +91,16 @@ def jlog(rec):
     open(JOURNAL, "a").write(json.dumps(rec, ensure_ascii=False) + "\n")
 
 
+def soft_err(where, e):
+    """Сбой, после которого идём дальше, — не молча: строка в журнал (Качество 22.10). Сам журнал не пишется — не падаем."""
+    try: jlog({"event": "error", "where": where, "error": ("%s: %s" % (type(e).__name__, e))[:200]})
+    except Exception: pass
+
+
 def load_version():
     try: return json.load(open(VERSION))
-    except Exception: return {}
+    except FileNotFoundError: return {}
+    except Exception as e: soft_err("load_version", e); return {}
 
 
 def no_access(detail=""):
@@ -147,7 +156,7 @@ def yanked():
         if r.returncode: return set(), False
         try: j = json.load(open(os.path.join(d, "yanked.json"), encoding="utf-8"))
         except FileNotFoundError: return set(), True
-        except Exception: return set(), False
+        except Exception as e: soft_err("yanked.json", e); return set(), False
         rows = j.get("yanked", []) if isinstance(j, dict) else j
         return {(x.get("tag") if isinstance(x, dict) else x) for x in rows if x}, True
     finally:
@@ -361,7 +370,7 @@ def cmd_apply(a):
 
 def git_sha(d):
     try: return subprocess.run(["git", "-C", d, "rev-parse", "HEAD"], capture_output=True, text=True, timeout=20).stdout.strip()
-    except Exception: return ""
+    except Exception as e: soft_err("git_sha", e); return ""
 
 
 # ── ночной шаг: каналы, сухой прогон, health, авто-откат, карточка ───────────────────────────
@@ -435,7 +444,8 @@ def cmd_health(a):
 def changelog_card(src, tag, version):
     """Раздел версии из CHANGELOG.md → до 3 строк «Для хозяина»; без такого блока — первые пункты раздела."""
     try: t = open(os.path.join(src, "CHANGELOG.md"), encoding="utf-8").read()
-    except Exception: return ""
+    except FileNotFoundError: return ""
+    except Exception as e: soft_err("changelog", e); return ""
     ver = re.escape((version or "").strip()); tg = re.escape(tag)
     mm = re.search(r"^##\s+(?:%s|v?%s)\b[^\n]*\n(.*?)(?=^##\s|\Z)" % (tg, ver), t, re.S | re.M) if (version or tag) else None
     if not mm: return ""
@@ -594,6 +604,7 @@ def cmd_rollback(a):
         if never(p) and p != VERSION: continue
         if os.path.isdir(p) and not os.path.islink(p): shutil.rmtree(p)
         elif os.path.lexists(p): os.remove(p)
+    skipped = []
     with tarfile.open(u["backup"]) as t:
         ok = []
         for m in t.getmembers():
@@ -601,10 +612,13 @@ def cmd_rollback(a):
             if not in_home_lex(name) or (never(name) and name != VERSION): continue
             if m.issym() and not in_home_lex(os.path.join(os.path.dirname(name), m.linkname)): continue
             if not (m.isfile() or m.isdir() or m.issym()): continue
+            if hasattr(tarfile, "data_filter"):   # фильтр «data»: без setuid, без записи для group/other, без ссылок наружу
+                try: tarfile.data_filter(m, "/")
+                except tarfile.FilterError as e: skipped.append(name); soft_err("rollback filter " + name, e); continue
             ok.append(m); RUN_TOUCHED.add(name)
-        t.extractall("/", members=ok, **({"filter": "tar"} if hasattr(tarfile, "tar_filter") else {}))
-    jlog({"event": "rollback", "of": u.get("tag") or u.get("skill"), "backup": u["backup"]})
-    print(json.dumps({"ok": True, "vernula": u.get("tag") or u.get("skill"), "iz": u["backup"]}, ensure_ascii=False))
+        t.extractall("/", members=ok, **({"filter": "data"} if hasattr(tarfile, "data_filter") else {}))
+    jlog({"event": "rollback", "of": u.get("tag") or u.get("skill"), "backup": u["backup"], "skipped": skipped})
+    print(json.dumps(dict({"ok": True, "vernula": u.get("tag") or u.get("skill"), "iz": u["backup"]}, **({"propushcheno": skipped} if skipped else {})), ensure_ascii=False))
 
 
 SKILL_REF = re.compile(r"(?:~/\.claude/skills/([A-Za-z0-9._-]+)/|(?<![\w./-]))((?:scripts|templates|examples|knowledge|assets|fonts|data)/[^\s`'\"()<>*?{}\[\],;]+)")

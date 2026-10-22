@@ -66,5 +66,9 @@ rm "$T/pkg/novaya-sila/.env"; $U rollback >/dev/null
 chk "откат установки навыка" "[ ! -e $CLAUDE_CONFIG_DIR/skills/novaya-sila ]"
 $U installed > "$T/i.json"
 chk "installed: ядро и личные раздельно" "grep -q moy-lichny $T/i.json && python3 -c \"import json,sys; d=json.load(open('$T/i.json')); sys.exit(0 if 'visual' in d['yadro'] and 'moy-lichny' in d['lichnye'] else 1)\""
+cp "$CLAUDE_CONFIG_DIR/mila-update/version.json" "$T/v.bak"; echo "{битый" > "$CLAUDE_CONFIG_DIR/mila-update/version.json"
+$U status >/dev/null 2>&1
+chk "битый version.json — не молча: строка error в журнале" "grep -q '\"event\": \"error\", \"where\": \"load_version\"' $CLAUDE_CONFIG_DIR/mila-update/journal.jsonl"
+cp "$T/v.bak" "$CLAUDE_CONFIG_DIR/mila-update/version.json"
 chk "заголовки всех SKILL.md репо разбираются YAML (нужен pyyaml)" "python3 $REPO/tools/check_frontmatter.py $REPO/skills $REPO/templates >/dev/null"
 echo "итог $ok/$n"; rm -rf "$T"
