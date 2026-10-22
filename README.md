@@ -93,7 +93,15 @@ Something wrong or out of date? Open an issue - we fix it the same day.
 
 ## Quick start
 
-≈ 5 minutes. You need: Claude Code (with a Claude subscription), [Bun](https://bun.sh), a Telegram bot token from `@BotFather`.
+≈ 5 minutes.
+
+**You need:**
+- macOS or Linux. On Windows — inside [WSL](https://learn.microsoft.com/windows/wsl/install).
+- [Claude Code](https://code.claude.com/docs/en/setup), tested on 2.1.305 (`claude --version`), signed in with your own Claude Pro or Max plan, or your own Anthropic API key.
+- [Bun](https://bun.sh) and git.
+- A Telegram bot token from `@BotFather`.
+- `~/.local/bin` on your `PATH` — the `mila` launcher goes there (the installer tells you if it is missing: `export PATH="$HOME/.local/bin:$PATH"`).
+- Your Telegram chat id, so Mila answers you and the chats you connect, nobody else. After pairing (below) it is the number in `allowFrom` of `~/.claude/channels/telegram/access.json`. Put it into `MILA_OWNER_ID` and run the installer again: `MILA_OWNER_ID=<your id> ~/mila/install/install.sh`.
 
 One command:
 
