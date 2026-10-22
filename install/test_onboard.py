@@ -31,6 +31,15 @@ class TG(BaseHTTPRequestHandler):
                 if S.get("webhook"):
                     r = {"ok": False, "error_code": 409, "description": "Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first"}
                     b = json.dumps(r).encode(); self.send_response(200); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b); return
+                if S.get("flood") and S["code"]:
+                    if "offset" in body:
+                        S["acked"] = True; res = []
+                    elif S.get("acked"):
+                        res = [{"update_id": 500, "message": {"chat": {"type": "private", "id": S["owner"]}, "from": {"id": S["owner"]}, "text": S["code"]}}]
+                    else:
+                        res = [{"update_id": 300 + i, "message": {"chat": {"type": "private", "id": 7}, "from": {"id": 7}, "text": "old %d" % i}} for i in range(100)]
+                    r = {"ok": True, "result": res}
+                    b = json.dumps(r).encode(); self.send_response(200); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b); return
                 if S["code"]:
                     res = [{"update_id": 10, "message": {"chat": {"type": "group", "id": -5}, "from": {"id": 999}, "text": S["code"]}},
                            {"update_id": 11, "message": {"chat": {"type": "private", "id": 777}, "from": {"id": 777}, "text": "hi"}},
@@ -109,5 +118,11 @@ tmp = os.path.join(T, "tg", ".env.tmp"); open(tmp, "w").write("old"); os.chmod(t
 os.remove(os.path.join(T, "tg", ".env"))
 rc, out = run(["--check"]); rc, out = run(stdin="%s\n" % TOKEN)
 chk("старый .env.tmp 644 не мешает: .env снова 600", stat.S_IMODE(os.stat(os.path.join(T, "tg", ".env")).st_mode) == 0o600)
+os.remove(os.path.join(T, "tg", "access.json")); S["flood"] = True; S["acked"] = False
+rc, out = run(stdin="n\n")
+chk("100+ старых в очереди, «нет»: ничего не подтверждено, честный выход 1", rc == 1 and "100+ unread" in out and not S["acked"])
+S["acked"] = False
+rc, out = run(stdin="y\n")
+chk("100+ старых, «да»: старые подтверждены, код 101-м дошёл, хозяин записан", rc == 0 and S["acked"] and os.path.exists(os.path.join(T, "tg", "access.json")) and "first message" in out)
 print("итог %d/%d" % (ok, n))
 sys.exit(0 if ok == n else 1)

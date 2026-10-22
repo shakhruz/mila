@@ -136,7 +136,7 @@ mila onboard
 
 1. **Bot token** — paste it (hidden), Telegram confirms it, it is saved with mode 600.
 2. **Claude** — if you are not signed in, Anthropic's own sign-in opens; Mila never sees it.
-3. **Pair** — you get a 6-character code, send it to your bot from Telegram; you become the owner (allowlist + `OWNER_ID`).
+3. **Pair** — you get a 6-character code, send it to your bot from Telegram; you become the owner (allowlist + `OWNER_ID`). Mila sees that code as your first message when she starts — that's normal.
 
 Then start Mila with `mila`. `mila onboard --check` shows the three steps without changing anything; if the bot goes quiet, run
 `mila doctor`. Prefer the plugin's own commands? `/mila-telegram:configure <token>` and `/mila-telegram:access pair <code>` still work.

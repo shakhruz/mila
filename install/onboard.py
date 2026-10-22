@@ -225,8 +225,18 @@ def step_pair(tok, me, check):
                 set_owner(uid)
                 tg(tok, "sendMessage", {"chat_id": uid, "text": "Paired ✓ You are my owner. Start Claude Code with `mila` in your terminal."})
                 say("✓", "3/3 owner paired (id %s): allowFrom + allowlist, OWNER_ID in settings.json" % uid)
+                say(" ", "    Mila will see your code as your first message when she starts — that's normal.")
                 return True
-        if r.get("result"):
+        res = r.get("result", [])
+        if len(res) >= 100:   # глубже 100 без подтверждения не заглянуть: код может быть 101-м (Качество 22.10)
+            say("…", "3/3 the bot has 100+ unread messages from before, so the code may be behind them.")
+            ans = input("    Mark those old messages as read so the code can get through? They will not reach Mila. [y/N] ").strip().lower()
+            if ans not in ("y", "yes", "д", "да"):
+                say("✗", "3/3 stopped: nothing was marked read. Run `mila onboard` again when you are ready.")
+                return False
+            tg(tok, "getUpdates", {"offset": res[-1]["update_id"] + 1, "timeout": 0})
+            continue
+        if res:
             time.sleep(2)   # в очереди есть непрочитанное — не крутимся вхолостую
     say("✗", "3/3 no message with the code arrived. Run `mila onboard` again.")
     return False

@@ -55,7 +55,7 @@ mila onboard
 
 Keyin — `mila`. `mila onboard --check` hech narsani o‘zgartirmasdan uch qadamni ko‘rsatadi. Bot jim bo‘lsa — `mila doctor`.
 
-**Milaning ochiq kamchiliklari.** Faqat Telegram. Claude Code va o‘z Claude rejangiz yoki API kalitingiz kerak. Mila kompyuteringiz va sessiya ishlayotgan paytda javob beradi: noutbuk yopiq — Mila jim, doim yoqilgan kompyuter yoki server kerak. macOS va Linux; Windows — faqat WSL orqali.
+**Milaning ochiq kamchiliklari.** Faqat Telegram. Claude Code va o‘z Claude rejangiz yoki API kalitingiz kerak. Mila kompyuteringiz va sessiya ishlayotgan paytda javob beradi: noutbuk yopiq — Mila jim, doim yoqilgan kompyuter yoki server kerak. macOS va Linux; Windows — faqat WSL orqali. Claude Code’da kanallar hali sinov rejimida, shuning uchun ishga tushirgich hozircha ishlab chiqish bayrog‘idan foydalanadi.
 
 ## Hamjamiyat
 
