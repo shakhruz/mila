@@ -15,6 +15,20 @@ import json
 import sys
 
 
+def _incoming(r):
+    """Текст входящего записи транскрипта или None. MIDTURN-1025 (Качество): сообщение, пришедшее посреди хода,
+    Claude Code пишет отдельной записью type=attachment, attachment.type=queued_command, текст — в prompt."""
+    m = r.get("message") or {}
+    c = m.get("content")
+    if r.get("type") == "user" and m.get("role") == "user":
+        return c if isinstance(c, str) else " ".join(
+            (x.get("text", "") if isinstance(x, dict) else str(x)) for x in (c or []))
+    a = r.get("attachment")
+    if r.get("type") == "attachment" and isinstance(a, dict) and a.get("type") == "queued_command" and isinstance(a.get("prompt"), str):
+        return a["prompt"]
+    return None
+
+
 def main():
     try:
         data = json.load(sys.stdin)
@@ -37,14 +51,22 @@ def main():
             continue
         m = r.get("message") or {}
         c = m.get("content")
-        if r.get("type") == "user" and m.get("role") == "user":
-            s = c if isinstance(c, str) else " ".join(
-                (x.get("text", "") if isinstance(x, dict) else str(x)) for x in (c or []))
+        s = _incoming(r)
+        if s is not None:
             # реакция (👍, ❤) — не вопрос, ответа не требует (просьба Мила качества)
             is_reaction = "type=\"reaction\"" in s or "[реакция]" in s
             # в режиме «наблюдатель» сообщение, где бота не звали, ответа не требует
             is_observe = "observe_only=\"true\"" in s
-            if "<channel" in s and "source=\"telegram\"" in s and not is_reaction and not is_observe:
+            # NO-REPLY-1025: тик маховика (сам велит «хозяину не пиши»), записка файловой почты, сигнал сторожа (watch-*)
+            # и поручение старшей с ответом запиской (canon/CHATS-ROUTING.md) ответа в чат не требуют — иначе хук толкает
+            # Милу писать хозяину про тик. Только если ТАКОВЫ ВСЕ теги записи (b, Качество: «тик + вопрос хозяина» в одной
+            # записи — вопрос не теряем); message_id — атрибут своего тега, не текст.
+            tags = s.split("<channel ")[1:]
+            def _quiet(t):
+                mid = t.split(">", 1)[0].split("message_id=\"", 1)[1].split("\"", 1)[0] if "message_id=\"" in t.split(">", 1)[0] else ""
+                return mid.startswith(("tick-", "filemail-", "watch-")) or (mid.startswith("senior-") and "не сообщением в чат" in t)
+            no_reply = bool(tags) and all(_quiet(t) for t in tags)
+            if "<channel" in s and "source=\"telegram\"" in s and not is_reaction and not is_observe and not no_reply:
                 last_channel_idx = i
                 j = s.find("chat_id=\"")
                 if j >= 0:
@@ -71,9 +93,7 @@ def main():
             import os as _os2, re as _re2
             me = (_os2.environ.get("BOT_USERNAME") or "").lstrip("@").lower()
             last_in = lines[last_channel_idx]
-            body = json.loads(last_in).get("message", {}).get("content")
-            body = body if isinstance(body, str) else " ".join(
-                (x.get("text", "") if isinstance(x, dict) else str(x)) for x in (body or []))
+            body = _incoming(json.loads(last_in)) or ""
             inner = body.split(">", 1)[1] if ">" in body else body
             mentions = {m.lower() for m in _re2.findall(r"@([A-Za-z0-9_]{5,})", inner)}
             if me and mentions and me not in mentions:

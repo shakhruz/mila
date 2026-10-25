@@ -23,8 +23,16 @@ PAT = [
     ("card", re.compile(r"(?<!\d)(?:\d{4}[ -]?){3}\d{4}(?!\d)")),
     ("pinfl", re.compile(r"(?<!\d)[3-6]\d{13}(?!\d)")),
     ("phone", re.compile(r"(?<![\w+])(?:\+?998[ -]?\(?\d{2}\)?|\+\d{1,3}[ -]?\(?\d{2,4}\)?|\b8[ -]?\(?\d{3}\)?)[ -]?\d{2,3}[ -]?\d{2}[ -]?\d{2,3}(?!\d)")),
-    ("passport", re.compile(r"(?<![A-Za-z])[A-Z]{2} ?\d{7}(?!\d)")),
+    # местный номер без +998: только с разделителями — «90 123 45 67», «(90) 123-45-67»; голые 9 цифр — рядом со словом «тел/номер»
+    ("phone", re.compile(r"(?<![\w+])\(?(?:20|33|50|55|6[1-9]|7[0-9]|88|9[0-9])\)?[ -]\d{3}[ -]?\d{2}[ -]?\d{2}(?!\d)")),
+    ("phone", re.compile(r"(?i)(?:тел|номер|phone|tel|nomer|raqam|звон|позвон|whats\s?app|ватсап|вотсап|aloqa\s+uchun|qo['ʻ’]ng['ʻ’]iroq)\w*(?:[ \t]+[^\W\d]+){0,3}?[:.]?[ \t]*(?P<v>\d{9})(?!\d)")),
+    # паспорт/ID: латиница или кириллица-двойник, любой регистр (AB, ab, АВ)
+    # паспорт: «AB 1234567» с пробелом — только две заглавные латиницей; строчные и кириллица-двойник — слитно (ab1234567, АВ1234567)
+    # или после слова «паспорт» — иначе «на 1500000 сум», «ок 1200000» стали бы паспортом и деньги пропали бы из журналов
+    ("passport", re.compile(r"(?i)(?:паспорт|passport|pasport)\w*[:.]?\s*(?P<v>[A-ZА-Я]{2} ?\d{7})(?!\d)")),
+    ("passport", re.compile(r"(?<![A-Za-zА-Яа-я])(?:[A-Z]{2} ?|[A-Za-zАВЕКМНОРСТХаевкмнорстх]{2})\d{7}(?!\d)")),
 ]
+_CYR = str.maketrans("АВЕКМНОРСТХаевкмнорстх", "ABEKMHOPCTXaebkmhopctx")
 
 
 def _luhn(d):
@@ -43,11 +51,20 @@ def find(text):
     hits, taken = [], []
     for kind, rx in PAT:
         for m in rx.finditer(text):
-            v = m.group(0)
+            g = "v" if "v" in rx.groupindex else 0   # шаблон с контекстом: метка только на значение
+            v, ms, me = m.group(g), m.start(g), m.end(g)
             if kind == "card" and not _luhn(re.sub(r"\D", "", v)): continue
-            if any(m.start() < e and s < m.end() for s, e in taken): continue
-            if LABEL_RE.search(text[max(0, m.start() - 2):m.end() + 2]): continue
-            hits.append((m.start(), m.end(), kind, v)); taken.append((m.start(), m.end()))
+            if any(ms < e and s < me for s, e in taken): continue
+            # голые 9 цифр рядом с «чат/телеграм/id» — это id Telegram, не телефон: метка сломала бы адресацию
+            if kind == "phone" and g == "v":
+                # исключения — только про ЭТОТ номер: между его подсказкой и им («номер заказа 9…», «номер чата 3…»)
+                # или сразу после него до запятой/цифры («номер 335550101 в телеграме»); соседний «счёт 9… оплачен, тел 9…» не мешает
+                before = text[m.start():ms]; after = re.split(r"[,.;\n\d]", text[me:me + 25])[0]
+                if re.search(r"(?i)чат|айди|\bid\b|\btg\b|заказ|чек|сч[её]т|договор|накладн|order|buyurtma", before + " " + after): continue
+                if re.search(r"(?i)телеграм|telegram", after) and not re.search(r"(?i)телеграм|telegram", before): continue
+            if kind == "phone" and g == 0 and not v.lstrip().startswith(("+", "(")) and re.search(r"(?i)(?:сумм\w*|сум|so['ʻ’]?m|\$|usd|руб\w*|итог\w*|оплат\w*)[:=]?\s*$", text[max(0, ms - 20):ms]): continue   # «сумма 50 000 00 00» — деньги; только вплотную: «оплата по номеру 90…» — телефон
+            if LABEL_RE.search(text[max(0, ms - 2):me + 2]): continue
+            hits.append((ms, me, kind, v)); taken.append((ms, me))
     return sorted(hits)
 
 
@@ -90,7 +107,10 @@ def save(v):
 
 
 def _norm(kind, v):
-    return v.lower() if kind == "email" else re.sub(r"[^\dA-Z+]", "", v.upper())
+    if kind == "email": return v.lower()
+    if kind == "phone":   # +998 90…, 998 90…, 90… — один человек, одна метка
+        d = re.sub(r"\D", "", v); return "+998" + d[-9:] if len(d) in (9, 12) and (len(d) == 9 or d.startswith("998")) else "+" + d
+    return re.sub(r"[^\dA-Z]", "", v.translate(_CYR).upper())
 
 
 def mask(text, v=None):
@@ -98,6 +118,7 @@ def mask(text, v=None):
     own = v is None
     hits = find(text)
     if not hits: return text, []
+    if own: _key()   # без ключа — ничего не меняю: иначе метка в тексте, а значения нигде
     v = v or load(); added = []
     out, pos = [], 0
     for s, e, kind, val in hits:
@@ -119,14 +140,16 @@ def main(a):
     if c == "mask":
         t, _ = mask(sys.stdin.read()); sys.stdout.write(t); return 0
     if c == "mask-file":
-        v = load(); total = []
+        _key(); v = load(); total = []   # ключ — ДО правки файлов
+        todo = []
         for f in a[1:]:
             try: t = open(f, encoding="utf-8").read()
             except (OSError, UnicodeDecodeError): continue
             m, added = mask(t, v)
-            if m != t:
-                tmp = f + ".pdtmp"; open(tmp, "w", encoding="utf-8").write(m); os.replace(tmp, f); total += added
-        if total: save(v)
+            if m != t: todo.append((f, m)); total += added
+        if total: save(v)   # значения — в хранилище ДО правки файлов: упадёт сохранение — файлы целы
+        for f, m in todo:
+            tmp = f + ".pdtmp"; open(tmp, "w", encoding="utf-8").write(m); os.replace(tmp, f)
         print(json.dumps({"masked_new": total}, ensure_ascii=False)); return 0
     if c == "scan":
         found = 0

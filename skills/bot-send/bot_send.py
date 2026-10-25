@@ -18,6 +18,9 @@ TZ = timezone(timedelta(hours=5))
 QUIET = (22, 8)            # с 22:00 до 08:00 по Ташкенту
 RATE = 20                  # сообщений в секунду, не больше
 PREVIEW_TTL = 3600         # превью рассылки живёт час
+RETRY_MAX = 3              # 429 одному человеку — не больше трёх повторов
+PAUSE_AUTO = 3600          # c (Качество, закон 3): пауза Telegram дольше часа — остаток только по новому ✅ владельца
+RETRY_CAP = 60             # и не дольше минуты ожидания за раз
 # CARD-MASK-1019 (утечка 19.10): номер карты (13–19 цифр, Луна) наружу не уходит — маска ****1234
 _PAN = re.compile(r"(?<![\d+])(?:\d[ -]?){12,}\d(?![\d])")
 
@@ -89,8 +92,10 @@ class BotSend:
     def stop_add(self, uid, why):
         s = self.stoplist(); s.add(str(uid)); self._wj(self.stop_f, sorted(s)); self._log({"stop": str(uid), "why": why})
 
-    def quiet(self):
-        h = self.now().hour; return h >= QUIET[0] or h < QUIET[1]
+    def clock(self): return self.now().timestamp()   # c: одно время для сроков (превью, пауза, очередь) — тесты с подменой now двигают всё
+
+    def quiet(self, ts=None):
+        h = (datetime.fromtimestamp(ts, TZ) if ts else self.now()).hour; return h >= QUIET[0] or h < QUIET[1]
 
     # ── одно сообщение ──
     def _markup(self, buttons):
@@ -105,7 +110,7 @@ class BotSend:
 
     def send(self, user, text, buttons=None, kind="personal"):
         """bot_send: человеку, который писал боту. user — id (число) или @username (ищется движком в known)."""
-        uid = str(user).lstrip("@")
+        uid = str(user).strip().lstrip("@")
         text = mask_cards(str(text or "").strip())
         if not text: return {"ok": False, "error": "пустой текст"}
         if len(text) > 4096: return {"ok": False, "error": "текст длиннее 4096 знаков"}
@@ -116,7 +121,8 @@ class BotSend:
             mid = r["result"]["message_id"]; self.record(uid, text, mid); self._log({"kind": kind, "to": uid, "mid": mid})
             return {"ok": True, "message_id": mid}
         code, desc = r.get("error_code"), str(r.get("description", ""))
-        if code == 403 or re.search(r"blocked|deactivated|chat not found", desc, re.I): self.stop_add(uid, "403: " + desc[:80])
+        # в стоп-лист — только сам человек ушёл (403: заблокировал/удалён); «chat not found» — чаще наш неверный адрес (@username), не его отказ
+        if code == 403 or re.search(r"blocked|deactivated", desc, re.I): self.stop_add(uid, "403: " + desc[:80])
         if code == 429: return {"ok": False, "retry_after": (r.get("parameters") or {}).get("retry_after", 5), "error": "лимит Telegram"}
         self._log({"kind": kind, "to": uid, "error": f"{code} {desc[:120]}"})
         return {"ok": False, "error": f"{code} {desc[:120]}"}
@@ -124,11 +130,13 @@ class BotSend:
     # ── рассылка ──
     def preview(self, user_ids, text, segment=""):
         """Шаг 1: превью владельцу. Возвращает preview_id и N (без стоп-листа и незнакомых)."""
-        text = mask_cards(text)
+        text = mask_cards(str(text or "").strip())
+        if not text: return {"error": "пустой текст — рассылку не собираю", "n": 0}
         stop = self.stoplist()
-        to = [str(u) for u in dict.fromkeys(user_ids) if self.known(str(u)) and str(u) not in stop]
+        to = [u for u in dict.fromkeys(str(x).strip().lstrip("@") for x in user_ids) if self.known(u) and u not in stop]   # 111 и "111" — один человек
+        if not to: return {"error": "некому: никто из списка не писал боту или все в стоп-листе", "n": 0}
         pid = uuid.uuid4().hex[:10]
-        pv = self._rj(self.prev_f, {}); now = time.time()
+        pv = self._rj(self.prev_f, {}); now = self.clock()
         pv = {k: v for k, v in pv.items() if now - v["t"] < PREVIEW_TTL}
         pv[pid] = {"t": now, "to": to, "text": str(text), "segment": segment}; self._wj(self.prev_f, pv)
         return {"preview_id": pid, "n": len(to), "segment": segment, "text": str(text),
@@ -138,18 +146,45 @@ class BotSend:
     def confirm(self, pid):
         """Шаг 2: после «✅» владельца. В тихие часы — в очередь на 08:00."""
         pv = self._rj(self.prev_f, {}); p = pv.pop(pid, None); self._wj(self.prev_f, pv)
-        if not p or time.time() - p["t"] > PREVIEW_TTL: return {"ok": False, "error": "превью нет или устарело — сделайте новое"}
+        if p and p.get("not_before", 0) > self.clock():
+            # c2: «да» владельца сейчас на этот текст и этот остаток — уйдёт в срок Telegram, сам он ничего не досылает
+            q = self._rj(self.queue_f, []); q.append(dict(p, t=self.clock(), qid=pid)); self._wj(self.queue_f, q)
+            self._log({"kind": "broadcast", "queued": len(p["to"]), "segment": p["segment"], "not_before": p["not_before"]})
+            return {"ok": True, "queued": len(p["to"]), "note": "уйдёт после " + datetime.fromtimestamp(p["not_before"], TZ).strftime("%d.%m %H:%M") + " по Ташкенту",
+                    "buttons": [[{"label": "Отменить отправку " + datetime.fromtimestamp(p["not_before"], TZ).strftime("%d.%m"), "choice": "bc_cancel_" + pid}]]}   # c3 (Качество): до срока владелец может отменить
+        if not p or self.clock() - p["t"] > PREVIEW_TTL: return {"ok": False, "error": "превью нет или устарело — сделайте новое"}
         if self.quiet():
-            q = self._rj(self.queue_f, []); q.append(p); self._wj(self.queue_f, q)
+            q = self._rj(self.queue_f, []); q.append(dict(p, qid=pid)); self._wj(self.queue_f, q)   # c4: qid и ночной — отменяемо
             self._log({"kind": "broadcast", "queued": len(p["to"]), "segment": p["segment"]})
-            return {"ok": True, "queued": len(p["to"]), "note": "тихие часы — уйдёт в 08:00 по Ташкенту"}
+            return {"ok": True, "queued": len(p["to"]), "note": "тихие часы — уйдёт в 08:00 по Ташкенту",
+                    "buttons": [[{"label": "Отменить отправку 08:00", "choice": "bc_cancel_" + pid}]]}
         return self._run(p)
 
     def _run(self, p):
-        sent = failed = 0; t0 = time.time(); k = 0
-        for uid in p["to"]:
+        sent = failed = 0; t0 = time.time(); k = 0; stop = self.stoplist()
+        for i, uid in enumerate(p["to"]):
+            if uid in stop: continue   # b: отписался, пока рассылка ждала (очередь, пауза) — не пишем
             r = self.send(uid, p["text"], kind="broadcast")
-            while r.get("retry_after"): self.sleep(float(r["retry_after"])); r = self.send(uid, p["text"], kind="broadcast")
+            # b (Разработка): Telegram велит ждать дольше минуты — лимит на весь бот, дальше будет 429 каждому.
+            # Останавливаю рассылку, остаток — в очередь с not_before, ушедшим второй раз не шлю.
+            if r.get("retry_after") and float(r["retry_after"]) > RETRY_CAP:
+                until = self.clock() + float(r["retry_after"]); left = p["to"][i:]
+                when = datetime.fromtimestamp(until, TZ).strftime("%d.%m %H:%M") + " по Ташкенту"
+                if float(r["retry_after"]) > PAUSE_AUTO or self.quiet(until):
+                    # c: вчерашнее согласие не считается — остаток не уходит сам, владельцу новое превью на тот же текст
+                    pid = uuid.uuid4().hex[:10]; pv = self._rj(self.prev_f, {})
+                    pv[pid] = {"t": until, "not_before": until, "to": left, "text": p["text"], "segment": p["segment"]}; self._wj(self.prev_f, pv)
+                    self._log({"kind": "broadcast", "segment": p["segment"], "sent": sent, "failed": failed, "paused_ask": len(left)})
+                    return {"ok": False, "paused": True, "sent": sent, "failed": failed, "left": len(left), "n": len(left), "until": when, "preview_id": pid,
+                            "card": f"Рассылка встала: ушло {sent}, осталось {len(left)}. Telegram разрешит после {when}. Отправить остаток тогда?",
+                            "buttons": [[{"label": f"✅ Отправить {len(left)}", "choice": "bc_ok_" + pid}, {"label": "Отмена", "choice": "bc_no_" + pid}]]}
+                q = self._rj(self.queue_f, []); q.append(dict(p, to=p["to"][i:], not_before=until)); self._wj(self.queue_f, q)
+                self._log({"kind": "broadcast", "segment": p["segment"], "sent": sent, "failed": failed, "paused": len(p["to"]) - i})
+                return {"ok": False, "paused": True, "sent": sent, "failed": failed, "left": len(p["to"]) - i,
+                        "until": datetime.fromtimestamp(until, TZ).strftime("%d.%m %H:%M") + " по Ташкенту", "note": "Telegram ограничил рассылку — остаток уйдёт сам после срока"}
+            tries = 0
+            while r.get("retry_after") and tries < RETRY_MAX:
+                self.sleep(min(float(r["retry_after"]), RETRY_CAP)); tries += 1; r = self.send(uid, p["text"], kind="broadcast")
             sent += bool(r.get("ok")); failed += not r.get("ok"); k += 1
             if k % RATE == 0:
                 el = time.time() - t0
@@ -158,13 +193,22 @@ class BotSend:
         self._log({"kind": "broadcast", "segment": p["segment"], "sent": sent, "failed": failed})
         return {"ok": True, "sent": sent, "failed": failed}
 
+    def cancel(self, qid):
+        """c3: «Отменить» у отложенного остатка — до срока; после ухода — уже нечего отменять."""
+        if not qid: return {"ok": False, "error": "отменять нечего — нет номера отправки"}   # c4: None/"" не снимает чужие записи
+        q = self._rj(self.queue_f, []); keep = [p for p in q if p.get("qid") != qid]
+        if len(keep) == len(q): return {"ok": False, "error": "отменять нечего — уже ушло или не было"}
+        self._wj(self.queue_f, keep); self._log({"kind": "broadcast", "cancelled": qid})
+        return {"ok": True, "cancelled": sum(len(p["to"]) for p in q if p.get("qid") == qid)}
+
     def flush_queue(self):
         """Вызывать кроном каждые 10 мин: вне тихих часов отправляет отложенные рассылки."""
         if self.quiet(): return {"ok": True, "waiting": len(self._rj(self.queue_f, []))}
-        q = self._rj(self.queue_f, []); self._wj(self.queue_f, [])
-        return {"ok": True, "flushed": [self._run(p) for p in q]}
+        q = self._rj(self.queue_f, []); now = self.clock()
+        due = [p for p in q if p.get("not_before", 0) <= now]; self._wj(self.queue_f, [p for p in q if p.get("not_before", 0) > now])   # b: пауза Telegram — ждёт своего срока
+        return {"ok": True, "flushed": [self._run(p) for p in due]}
 
     def unsubscribe_text(self, uid, text):
         """Входящее «стоп / отписаться / to'xtat» — в стоп-лист (движок зовёт на каждом входящем)."""
-        if re.fullmatch(r"\s*(стоп|stop|отписаться|отписка|to['ʻ’]?xtat|bekor)\s*[.!]?\s*", str(text or ""), re.I): self.stop_add(uid, "сам: " + text.strip()[:20]); return True
+        if re.fullmatch(r"\s*/?(стоп|stop|отписаться|отписка|to['ʻ’]?xtat|bekor)\s*[.!]?\s*", str(text or ""), re.I): self.stop_add(uid, "сам: " + text.strip()[:20]); return True
         return False

@@ -344,6 +344,60 @@ def newborn_block(where=""):
     return "знакомство ещё не пройдено — обновление ядра после него (USER.md «знакомство: пройдено»)"
 
 
+ONFAIL_MIN = (2, 1, 295)   # с этой версии Claude Code знает "onFailure" у хука (шаблон и test_send_guard: CC 2.1.295+)
+
+
+def cc_version():
+    """Версия Claude Code этой Милы: env MILA_CC_VERSION (раскатка с хоста от root — там свой claude), иначе `claude --version`.
+    Не узнали — None (ключ не дописываем: старая CC могла бы отбросить весь хук сторожа — Качество 24.10)."""
+    v = os.environ.get("MILA_CC_VERSION", "")
+    if not v:
+        try:
+            v = subprocess.run(["claude", "--version"], capture_output=True, text=True, timeout=10).stdout
+        except (OSError, subprocess.SubprocessError):
+            v = ""
+    m = re.search(r"(\d+)\.(\d+)\.(\d+)", v or "")
+    return tuple(int(x) for x in m.groups()) if m else None
+
+
+def migrate_settings(tag):
+    """SG-ONFAIL-1024 (Вебмастер 24.10): у установок через install.sh хук send-guard записан без "onFailure": "block" —
+    упал сторож, и сообщение уходит. Единственная правка settings.json при обновлении: дописать этот ключ хукам send-guard
+    (больше ничего не трогаем; бэкап рядом; путь — только внутри дома, без симлинка). Нет правки — None."""
+    p = os.path.join(CLAUDE, "settings.json")
+    if os.path.islink(p) or not os.path.isfile(p) or not inside_home(p):
+        return None
+    ver = cc_version()
+    if ver is None or ver < ONFAIL_MIN:
+        jlog({"event": "migrate_skipped", "what": "send-guard onFailure=block", "why": "старая или неизвестная версия Claude Code",
+              "cc": ".".join(map(str, ver)) if ver else "?"})
+        return None
+    try:
+        raw = open(p, encoding="utf-8").read(); cfg = json.loads(raw)
+    except (OSError, ValueError):
+        return None
+    changed = 0
+    for e in ((cfg.get("hooks") or {}).get("PreToolUse") or []) if isinstance(cfg, dict) else []:
+        for hk in (e.get("hooks") or []) if isinstance(e, dict) else []:
+            if isinstance(hk, dict) and "send-guard.py" in str(hk.get("command", "")) and hk.get("onFailure") != "block":
+                hk["onFailure"] = "block"; changed += 1
+    if not changed:
+        return None
+    b = backup([p], tag + "-settings")
+    st = os.lstat(p); tmp = p + ".new"
+    try: os.unlink(tmp)                                   # хвост прошлого сбоя; unlink по ссылке не идёт
+    except FileNotFoundError: pass
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, stat.S_IMODE(st.st_mode))
+    try:
+        if os.geteuid() == 0: os.fchown(fd, st.st_uid, st.st_gid)   # от root (MILA_HOME) — хозяин тот же, что у старого файла
+        os.write(fd, json.dumps(cfg, ensure_ascii=False, indent=2).encode())
+    finally:
+        os.close(fd)
+    os.replace(tmp, p)
+    jlog({"event": "migrate", "what": "send-guard onFailure=block", "hooks": changed, "backup": b})
+    return p
+
+
 def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_label=""):
     """Бэкап → запись → версия и журнал. Возвращает словарь результата (печатает вызывающий)."""
     tag = tag or m.get("tag")
@@ -361,13 +415,16 @@ def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_labe
     for r in kept: put(r["dst"], os.path.join(newdir, "было-" + r["name"]), r["kind"])   # правка хозяина под старым именем — до замены алиасом
     for r in todo: put(r["src"], r["dst"], r["kind"])
     for r in side: put(r["src"], os.path.join(newdir, r["name"]), r["kind"])
+    mig = migrate_settings(tag)   # SG-ONFAIL-1024: точечная миграция настроек (settings.json целиком не перезаписываем — он в never)
+    if mig: touched_extra = [mig]
+    else: touched_extra = []
     files = dict(load_version().get("files", {}))
     for r in rows:
         if r in todo or r["state"] == "как есть": files[r["dst"]] = r["new"]
     os.makedirs(STATE, exist_ok=True)
     json.dump({"version": m.get("version"), "tag": tag, "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "channel": channel or CFG["channel"],
                "sha": sha_, "source": src_label or REPO, "files": files}, open(VERSION, "w"), ensure_ascii=False, indent=1)
-    touched = [r["dst"] for r in todo] + [os.path.join(newdir, r["name"]) for r in side] + [os.path.join(newdir, "было-" + r["name"]) for r in kept] + [VERSION]
+    touched = [r["dst"] for r in todo] + [os.path.join(newdir, r["name"]) for r in side] + [os.path.join(newdir, "было-" + r["name"]) for r in kept] + [VERSION] + touched_extra
     for q in touched: readable(q)
     if side or kept:   # путь до new/<тег> — только сами каталоги (go+rx), не всё содержимое STATE (журнал и бэкапы не открываем)
         for q in (STATE, os.path.join(STATE, "new")): readable(q, deep=False)

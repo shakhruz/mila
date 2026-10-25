@@ -23,7 +23,7 @@ chk("хозяину обычный текст — уходит", {"tool_name": R
 chk("чужому чату — стоп", {"tool_name": R, "tool_input": {"chat_id": "999", "text": "привет"}}, "deny")
 chk("в разрешённую группу — уходит", {"tool_name": R, "tool_input": {"chat_id": "-1001", "text": "Готово."}}, "pass")
 chk("извинение хозяину — стоп (закон 7)", {"tool_name": R, "tool_input": {"chat_id": "111", "text": "Извините, я не успела"}}, "deny")
-chk("ключ провайдера в тексте — стоп", {"tool_name": R, "tool_input": {"chat_id": "111", "text": "ключ sk-abcdefghijklmnopqrstuv"}}, "deny")
+chk("ключ провайдера в тексте — стоп", {"tool_name": R, "tool_input": {"chat_id": "111", "text": "ключ " + "sk-" + "abcdefghijklmnopqrstuv"}}, "deny")   # фальшивка склеивается — сканер ядра чист
 chk("серверный путь — стоп", {"tool_name": R, "tool_input": {"chat_id": "111", "text": "файл /srv/x"}}, "deny")
 chk("другой инструмент — не мешает", {"tool_name": "Bash", "tool_input": {"command": "ls"}}, "pass")
 chk("мусор на входе — не мешает (exit 0)", "не json", "pass")

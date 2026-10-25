@@ -8,7 +8,7 @@
 
 [![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
 
-**当前版本：[v1.5.2](https://github.com/shakhruz/mila/releases/latest)** · [更新内容](CHANGELOG.md)
+**当前版本：[v1.5.3](https://github.com/shakhruz/mila/releases/latest)** · [更新内容](CHANGELOG.md)
 
 Mila 是更大愿景的一部分 —— 阅读我们的宣言（英文）：[milagpt.io/en/manifest](https://milagpt.io/en/manifest/)
 

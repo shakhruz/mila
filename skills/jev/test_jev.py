@@ -56,4 +56,7 @@ p = os.path.join(T, ".claude", "jev-diff.jsonl"); open(p, "w").write("".join(jso
 rc, o = j("stats"); chk("stats: 60 решений, 95 % → готово к main", o["rows"] == 60 and o["same_pct"] == 95 and o["ready_for_main"] is True, o)
 open(p, "w").write("".join(json.dumps({"kind": "reply", "same": True, "len": 3}) + "\n" for i in range(10)))
 rc, o = j("stats"); chk("stats: 10 решений → мало данных", o["ready_for_main"] is False and "Мало" in o["say"], o)
+pr = subprocess.run([sys.executable, "-I", os.path.join(H, "jev.py"), "reply", "--text", "-", "--mentioned"], input="привет из stdin",
+                    capture_output=True, text=True, env=dict(os.environ, HOME=T, JEV_MODE="off"))
+chk("--text - : текст из stdin (не в argv)", json.loads(pr.stdout).get("decision") is True, pr.stdout)
 print(f"итог {ok}/{tot}")

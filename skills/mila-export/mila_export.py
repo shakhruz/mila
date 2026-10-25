@@ -42,24 +42,49 @@ SCANNERS = [
     ("github token (ghp_)", _p(r"\bgh[pousr]_[A-Za-z0-9]{30,}")),
     ("aws access key (AKIA)", _p(r"\b(AKIA|ASIA)[0-9A-Z]{16}\b")),
     ("resend key (re_)", _p(r"\bre_[A-Za-z0-9]{20,}")),
-    ("private key block", _p(r"-----BEGIN [A-Z ]*PRIVATE KEY")),
+    ("private key block", _p(r"-----BEGIN [A-Z ]*PRIV" r"ATE KEY")),
+    # c (25.10, края Силы): ключи нашего хозяйства, которые сканер пропускал
+    ("stripe/elevenlabs-style key (sk_)", _p(r"\b(?:sk|rk|pk)_(?:live_|test_)?[A-Za-z0-9]{24,}")),
+    ("google api key (AIza)", _p(r"\bAIza[0-9A-Za-z_-]{30,}")),
+    ("fal key (uuid:hex)", _p(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{32}\b")),
+    ("telegram bot token (any)", _p(r"(?<![0-9A-Za-z])\d{8,10}:[A-Za-z0-9_-]{35}(?![A-Za-z0-9_-])")),
+    ("bearer token", _p(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{20,}")),
+    ("jwt", _p(r"\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}")),
+    ("slack token (xox)", _p(r"\bxox[abprs]-[A-Za-z0-9-]{20,}")),
 ]
-KV = re.compile(r"""(?i)\b(?:password|passwd|pwd|api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret)["']?\s*[=:]\s*["']?([A-Za-z0-9/+_.\-]{8,})""")
+KV = re.compile(r"""(?i)\b(?:password|passwd|pwd|api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret)["']?\s*[=:]\s*["']?([^\s"',;]{8,})""")
+# c: переменная окружения с секретным именем — OPENROUTER_API_KEY=…, PD_KEY=…, BOT_TOKEN=…, DB_PASSWORD=…
+ENV_KV = re.compile(r"""\b[A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|PWD)\b["']?\s*[=:]\s*["']?([^\s"'#]{8,})""")   # d: только ЗАГЛАВНОЕ имя (переменная окружения); idempotency_key=, sort_key= в коде — не секрет
+# e (Качество 25.10): ENV_KV — только литерал: код и заглушки (process.env…, secrets.token_…(), $VAR, {{…}}, «...», <…>) — не секрет
+ENV_CODE = re.compile(r"""(?i)^(?:process\.env|os\.environ|os\.getenv|getenv|bun\.env|deno\.env|import\.meta|secrets\.|env\[|env\.|\$|\{\{|\(|\[|`)|\.\.\.|…|<|>|\(|\)|xxx|your|example|changeme|placeholder|dummy|fake""")
+RU_PASS = re.compile(r"(?i)(?:пароль|parol)\s*[:=—-]\s*(\S{8,})")
 
 
 def scan_bytes(data, rel="", allow=()):
     """список (строка, вид) находок; значения в ответ не попадают."""
     if any(fnmatch.fnmatch(rel, g) for g in allow): return []
+    # g (Качество): сборки — *.min.js, *.umd.js, *.bundle.js, dist/ — сканирую, но только явные ключи (ключ, вшитый сборкой во фронт, — классическая утечка);
+    # присвоения KV/ENV_KV/«пароль» в них не ищу — там тысячи ложных KEY_*
+    built = bool(re.search(r"(?:\.min\.js|\.umd\.js|\.bundle\.js)$|(?:^|/)dist/", rel))
     text = data.decode("utf-8", "replace") if b"\0" not in data[:4096] else data.decode("latin-1")
     hits = []
-    for n, line in enumerate(text.split("\n"), 1):
-        if len(line) > 20000: line = line[:20000]
-        for kind, rx in SCANNERS:
-            if rx.search(line): hits.append((n, kind))
-        for m in KV.finditer(line):
-            v = m.group(1)
-            if PLACEHOLDER.match(v) or len(v) < 12: continue
-            if re.search(r"[A-Za-z]", v) and re.search(r"\d", v): hits.append((n, "password/key assignment"))
+    for n, full in enumerate(text.split("\n"), 1):
+        # c: длинная строка (минифицированный JSON) — куски с перекрытием, а не обрезка: секрет в конце тоже найдётся
+        parts = [full] if len(full) <= 20000 else [full[i:i + 20000] for i in range(0, len(full), 19800)]
+        found = set()
+        for line in parts:
+            for kind, rx in SCANNERS:
+                if kind not in found and rx.search(line): found.add(kind); hits.append((n, kind))
+            if len(full) > 500 or built: continue   # f: длинная строка — только явные ключи (SCANNERS), не присвоения
+            for rx, kind in ((KV, "password/key assignment"), (ENV_KV, "env secret assignment"), (RU_PASS, "пароль")):
+                for m in rx.finditer(line):
+                    v = m.group(1); name = m.group(0)[:m.start(1) - m.start(0)]
+                    if re.search(r"(?i)_?(?:FILE|PATH|DIR|NAME|URL|ENV)S?\b\W*$", name.rstrip(" =:\"'")): continue   # f: *_FILE/_PATH/_DIR — путь, не секрет
+                    # пароль короче ключа: присвоение пароля из 11 знаков раньше проходило (Качество 24.10) — для пароля порог 8
+                    short_ok = 8 if (kind == "пароль" or re.search(r"(?i)pass|pwd", m.group(0).split("=")[0].split(":")[0])) else 12
+                    if PLACEHOLDER.match(v) or len(v) < short_ok or kind in found: continue
+                    if ENV_CODE.search(v) or re.search(r"\.\w+\(|\w\(", v): continue   # f: выражение (pw.group(1), вызов, process.env…) — не литерал; для всех видов присвоений   # длина — общий порог: пароль 8, ключ 12
+                    if re.search(r"[A-Za-z]", v) and re.search(r"\d", v): found.add(kind); hits.append((n, kind))
     return hits
 
 

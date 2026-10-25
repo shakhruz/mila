@@ -13,7 +13,7 @@
 ![Mila](docs/preview.png)
 
 
-**Текущий выпуск: [v1.5.2](https://github.com/shakhruz/mila/releases/latest)** · [что нового](CHANGELOG.md)
+**Текущий выпуск: [v1.5.3](https://github.com/shakhruz/mila/releases/latest)** · [что нового](CHANGELOG.md)
 
 **Какую версию брать:** стабильная — [Releases](https://github.com/shakhruz/mila/releases) (теги `vX.Y.Z`); canary — ветка `main` (новее, может ломаться).
 

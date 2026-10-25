@@ -71,4 +71,21 @@ $U status >/dev/null 2>&1
 chk "битый version.json — не молча: строка error в журнале" "grep -q '\"event\": \"error\", \"where\": \"load_version\"' $CLAUDE_CONFIG_DIR/mila-update/journal.jsonl"
 cp "$T/v.bak" "$CLAUDE_CONFIG_DIR/mila-update/version.json"
 chk "заголовки всех SKILL.md репо разбираются YAML (нужен pyyaml)" "python3 $REPO/tools/check_frontmatter.py $REPO/skills $REPO/templates >/dev/null"
+# SG-ONFAIL-1024: миграция настроек — только onFailure: block хукам send-guard; остальное как было; бэкап; симлинк не трогаем
+S="$CLAUDE_CONFIG_DIR/settings.json"; cp "$S" "$T/s.bak"
+python3 - "$S" <<'PY'
+import json, sys; json.dump({"x": 1, "env": {"OWNER_ID": "1"}, "hooks": {"PreToolUse": [{"matcher": "m", "hooks": [{"type": "command", "command": "python3 /h/send-guard.py"}]},
+    {"matcher": "Bash", "hooks": [{"type": "command", "command": "python3 /h/other.py"}]}]}}, open(sys.argv[1], "w"))
+PY
+chmod 600 "$S"
+mig() { MILA_CC_VERSION=${CCV:-2.1.310} python3 -c "import sys; sys.argv=['u']; sys.path.insert(0,'$HERE'); import update; print(update.migrate_settings('vtest') or '')"; }
+r0=$(CCV=2.1.200 mig)
+chk "SG-ONFAIL: старая CC — не трогаем, в журнале migrate_skipped" "[ -z \"$r0\" ] && ! grep -q onFailure $S && grep -q '\"event\": \"migrate_skipped\"' $CLAUDE_CONFIG_DIR/mila-update/journal.jsonl"
+r1=$(mig)
+chk "SG-ONFAIL: send-guard получил onFailure: block, чужой хук и env — как были, права 600" "python3 -c \"import json,os;d=json.load(open('$S'));h=d['hooks']['PreToolUse'];assert h[0]['hooks'][0]['onFailure']=='block' and 'onFailure' not in h[1]['hooks'][0] and d['env']=={'OWNER_ID':'1'} and d['x']==1 and os.stat('$S').st_mode&0o777==0o600\" && [ -n \"$r1\" ]"
+chk "SG-ONFAIL: бэкап настроек и строка migrate в журнале" "ls $CLAUDE_CONFIG_DIR/mila-update/backups/*vtest_settings*.tgz >/dev/null 2>&1 && grep -q '\"event\": \"migrate\"' $CLAUDE_CONFIG_DIR/mila-update/journal.jsonl"
+r2=$(mig); chk "SG-ONFAIL: повтор — правок нет" "[ -z \"$r2\" ]"
+mv "$S" "$T/real.json"; ln -s "$T/real.json" "$S"; python3 -c "import json;d=json.load(open('$T/real.json'));d['hooks']['PreToolUse'][0]['hooks'][0].pop('onFailure');json.dump(d,open('$T/real.json','w'))"
+r3=$(mig); chk "SG-ONFAIL: settings.json — симлинк → не трогаем" "[ -z \"$r3\" ] && ! grep -q onFailure $T/real.json"
+rm -f "$S"; cp "$T/s.bak" "$S"
 echo "итог $ok/$n"; rm -rf "$T"

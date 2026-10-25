@@ -81,8 +81,8 @@ SECRET_PATTERNS = [
     (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), "aws-key-id"),
     (re.compile(r"\beyJ[\w-]{10,}\.[\w-]{10,}\.[\w-]+"), "jwt"),
     (re.compile(r"\b\d{8,10}:[A-Za-z0-9_-]{35}\b"), "telegram-token"),
-    (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?"
-                r"-----END [A-Z ]*PRIVATE KEY-----"), "private-key"),
+    (re.compile(r"-----BEGIN [A-Z ]*PRIV" r"ATE KEY-----[\s\S]*?"
+                r"-----END [A-Z ]*PRIV" r"ATE KEY-----"), "private-key"),
     (re.compile(r"(?i)\b(pass(?:word)?|secret|api[_-]?key|access[_-]?token|"
                 r"bearer)\b\s*[:=]\s*[\"']?([^\s\"',}]{8,})"), "assignment"),
 ]

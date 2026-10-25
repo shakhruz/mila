@@ -4,6 +4,7 @@
 решают простые правила, Мила работает как раньше.
 
   jev.py reply   --text T [--mentioned] [--reply-to-me] [--dm] [--from-bot]   — отвечать ли Миле на сообщение в группе
+  (--text - : текст из stdin, не виден в ps)
   jev.py who     --text T --names "Мила Контент,Чат Реклама,…"                  — кому адресовано (или «никому»)
   jev.py buttons --text T                                                       — мой ответ — выбор для человека? (А/Б → кнопки)
   jev.py stats                                                                  — сверка режима shadow: совпадение правил и Jev
@@ -202,6 +203,8 @@ def main():
     sp.add_parser("stats")
     p = sp.add_parser("config"); p.add_argument("--set", action="append")
     a = ap.parse_args()
+    if getattr(a, "text", None) == "-":   # JEV-STDIN-1022: текст из stdin — не виден в списке процессов (ps)
+        a.text = sys.stdin.read()[:4000]
     r = {"reply": cmd_reply, "who": cmd_who, "buttons": cmd_buttons, "stats": cmd_stats, "config": cmd_config}[a.cmd](a)
     print(json.dumps(r, ensure_ascii=False))
     sys.exit(1 if "error" in r else 0)

@@ -292,9 +292,24 @@ if not any('reply-required.py' in json.dumps(x) for x in hooks.get('Stop', [])):
 # SELFHOST-1018: PreToolUse(reply|edit_message) — send-guard блокирует отправку не туда, ключи, кухню; PostToolUse(reply) — task-sent
 # пишет исходящие и обещания; SessionStart — task-open показывает сорванные и горящие обещания
 SEND_RE = 'mcp__plugin_(mila-)?telegram_telegram__reply|mcp__plugin_(mila-)?telegram_telegram__edit_message'
+# SG-ONFAIL-1024: "onFailure" у хука — с CC 2.1.295; на старой CC ключ не пишем (строгая CC могла бы отбросить весь хук сторожа)
+import re as _re, subprocess as _sp
+try: _v = _sp.run(['claude', '--version'], capture_output=True, text=True, timeout=10).stdout
+except Exception: _v = ''
+_v = os.environ.get('MILA_CC_VERSION') or _v
+_m = _re.search(r'(\d+)\.(\d+)\.(\d+)', _v or '')
+ONFAIL_OK = bool(_m) and tuple(int(x) for x in _m.groups()) >= (2, 1, 295)
+if not ONFAIL_OK: print('  send-guard: onFailure пропущен — старая или неизвестная версия Claude Code (%s)' % ((_m and _m.group(0)) or '?'))
 sg = 'python3 ' + os.path.join(cfg_dir, 'hooks', 'send-guard.py')
 if not any('send-guard.py' in json.dumps(x) for x in hooks.get('PreToolUse', [])):
-    ck_missing.append(('PreToolUse', {'matcher': SEND_RE, 'hooks': [{'type': 'command', 'command': sg}]}))
+    ck_missing.append(('PreToolUse', {'matcher': SEND_RE, 'hooks': [dict({'type': 'command', 'command': sg}, **({'onFailure': 'block'} if ONFAIL_OK else {}))]}))
+# SG-ONFAIL-1024 (Вебмастер 24.10): сторож упал/завис → сообщение НЕ уходит. Уже записанный хук без onFailure — дописываем ключ
+for e in hooks.get('PreToolUse', []):
+    for hk in (e.get('hooks') or []) if isinstance(e, dict) else []:
+        if ONFAIL_OK and isinstance(hk, dict) and 'send-guard.py' in str(hk.get('command', '')) and hk.get('onFailure') != 'block':
+            hk['onFailure'] = 'block'
+            if ('_env', None) not in ck_missing:
+                ck_missing.append(('_env', None))   # «есть что записать», без новой записи хука
 tdir = os.path.join(cfg_dir, 'skills', 'mila-tasks', 'hooks')
 if os.path.isfile(os.path.join(tdir, 'task-sent.py')):
     if not any('task-sent.py' in json.dumps(x) for x in hooks.get('PostToolUse', [])):

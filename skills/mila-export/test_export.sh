@@ -37,7 +37,7 @@ chk "отказ называет файл" "grep -q 'work/memory/leak.md' $T/e1.
 chk "значение секрета не напечатано" "! grep -q aaaaaaaaaa $T/e1.err $T/e1.out"
 chk "архив не создан" "[ ! -e $T/out ] || [ -z \"\$(ls $T/out 2>/dev/null)\" ]"
 # все виды из спецификации
-for s in "sk-ant-api03-$(printf 'b%.0s' {1..40})" "1234567890:AA$(printf 'c%.0s' {1..34})" "ghp_$(printf 'd%.0s' {1..36})" "AKIA$(printf 'E%.0s' {1..16})" "re_$(printf 'f%.0s' {1..24})" "-----BEGIN RSA PRIVATE KEY-----" "password=Abcdef123456"; do
+for s in "sk-ant-api03-$(printf 'b%.0s' {1..40})" "1234567890:AA$(printf 'c%.0s' {1..34})" "ghp_$(printf 'd%.0s' {1..36})" "AKIA$(printf 'E%.0s' {1..16})" "re_$(printf 'f%.0s' {1..24})" "$(printf -- '-%.0s' {1..5})BEGIN RSA PRIV""ATE K""EY-----" "pa""ss""word=Abcdef123456" "pa""ss""word = \"Qw3rty98765\""; do   # фальшивки собираются при запуске — в файле их нет (сканер флота, 24.10)
   echo "x $s" > "$W/memory/leak.md"; $X export --home "$H" --name t --out "$T/out" >/dev/null 2>&1
   chk "сканер ловит: ${s:0:7}…" "[ $? -eq 3 ]"
 done
@@ -62,7 +62,7 @@ $X export --home "$H" --name np --out "$T/outnp" --no-people >/dev/null 2>&1
 chk "--no-people: students/ исключена, в RESTORE.md предупреждение" "! tar -tzf $T/outnp/*.tar.gz | grep -q students && grep -q 'третьим лицам' $R/RESTORE.md"
 rm -rf "$C/skills/moy-lichny/students"
 mv "$C/mila-update" "$T/mu"; $X export --home "$H" --name nv --out "$T/outnv" >/dev/null 2>&1; mv "$T/mu" "$C/mila-update"
-chk "нет version.json: версия берётся из release.json ядра" "tar -xzOf $T/outnv/*.tar.gz --include '*/manifest.json' | grep -q release.json || tar -xzf $T/outnv/*.tar.gz -O | grep -q '\"source\": \"release.json\"'"
+chk "нет version.json: версия берётся из release.json ядра" "python3 -c 'import sys,tarfile; t=tarfile.open(sys.argv[1]); sys.exit(0 if any(b\"release.json\" in t.extractfile(m).read() for m in t.getmembers() if m.name.endswith(\"manifest.json\")) else 1)' $T/outnv/*.tar.gz"   # манифест — через python tarfile: --include есть только у BSD tar (Сила 25.10)
 chk "ни одного значения секрета в архиве" "! grep -rq -e notreallyatoken -e qzv9wxfake -e zzz-not $R --include='*' -l"
 chk "сканер по распакованному: 0" "$X scan $R >/dev/null"
 chk "verify проходит" "$X verify $A >/dev/null"
