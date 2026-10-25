@@ -16,7 +16,13 @@
 import json, os, re, shutil, subprocess, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.dirname(HERE)
+def _repo():
+    """Репо — git-корень ТЕКУЩЕЙ папки (Качество b: иначе запуск из соседней папки проверял чужое и давал ложное «чисто»)."""
+    r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else os.path.dirname(HERE)
+
+
+REPO = _repo()
 PRIVATE = os.environ.get("PRIVACY_JSON") or os.path.expanduser("~/.config/mila/privacy.json")
 SKIP = re.compile(r"(^|/)(\.git/)|\.(png|jpe?g|gif|webp|mp4|mp3|wav|ogg|ttf|woff2?|zip|gz|bundle|pdf)$", re.I)
 NUM = re.compile(r"\d{5,}")
