@@ -73,4 +73,11 @@ chk("CARD-ALLOW: чужая карта при заданном cardAllow — в�
 n += 1; code, dec, out = run({"tool_name": R, "tool_input": {"chat_id": "111", "text": "Карта " + PS + " 100 USD"}})
 good = dec == "allow" and (json.loads(out)["hookSpecificOutput"]["updatedInput"]["text"] == "Карта ****" + P[-4:] + " 100 USD")
 ok += good; print(("✅ " if good else "❌ ") + "сумма сразу после номера («… 100 USD») — номер всё равно маской" + ("" if good else "  " + out[:200]))
+# ALBUM-2610: подпись к фото (caption) проверяется так же, как текст; маска — в своём поле, текст не смешивается
+chk("ключ провайдера в caption — стоп", {"tool_name": R, "tool_input": {"chat_id": "111", "text": "Готово", "caption": "ключ " + "sk-" + "abcdefghijklmnopqrstuv"}}, "deny")
+chk("серверный путь в caption — стоп", {"tool_name": R, "tool_input": {"chat_id": "111", "text": "Альбом", "caption": "файлы в " + "/srv/" + "mila/x"}}, "deny")
+n += 1; code, dec, out = run({"tool_name": R, "tool_input": {"chat_id": "111", "text": "Альбом", "caption": "Карта " + PS + " к оплате", "files": ["/tmp/a.png", "/tmp/b.png"]}})
+u = json.loads(out)["hookSpecificOutput"].get("updatedInput", {}) if dec == "allow" else {}
+good = dec == "allow" and u.get("text") == "Альбом" and u.get("caption") == "Карта ****" + P[-4:] + " к оплате" and u.get("files") == ["/tmp/a.png", "/tmp/b.png"]
+ok += good; print(("✅ " if good else "❌ ") + "карта в caption хозяину — маска в caption, текст и файлы как были")
 print(f"итог {ok}/{n}"); sys.exit(0 if ok == n else 1)

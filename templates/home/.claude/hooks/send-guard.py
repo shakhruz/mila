@@ -14,7 +14,9 @@ tool = p.get("tool_name") or ""
 if not (tool.endswith("__reply") or tool.endswith("__edit_message")):
     sys.exit(0)
 args = p.get("tool_input") or {}
-text = str(args.get("text") or "")
+_body = str(args.get("text") or "")
+_cap = str(args.get("caption") or "")   # ALBUM-2610 (Качество 26.10): подпись к фото/альбому уходит в Telegram так же — проверяю вместе с текстом
+text = (_body + "\n" + _cap).strip() if _cap else _body
 chat_id = str(args.get("chat_id") or "").strip()
 owner = (os.environ.get("OWNER_ID") or "").strip()
 fmt = (args.get("format") or "text").lower()
@@ -180,7 +182,7 @@ if not why:
     if _card_hits:   # личка/хозяин: уходит, но с маской
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow",
                                                  "permissionDecisionReason": "номер карты заменён маской",
-                                                 "updatedInput": dict(args, text=mask_cards(text))}}, ensure_ascii=False))
+                                                 "updatedInput": dict(args, text=mask_cards(_body), **({"caption": mask_cards(_cap)} if _cap else {}))}}, ensure_ascii=False))
     sys.exit(0)
 print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
                                          "permissionDecisionReason": "Не отправляю: " + "; ".join(why)}},
