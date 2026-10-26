@@ -487,6 +487,88 @@ def login_step(cursor, now=None):
     return cursor, False
 
 
+# ── LIMIT-PROBE-2610 (старшая 26.10 10:39: клиент обновил подписку в 10:30, а кормилец держал до «resets 2pm») ───────────
+# При лимите подписки — так же, как при потере входа: курсор назад к входящим, съеденным ходами 429; проба «ответь SKIP» раз в
+# PROBE_S и сразу после рестарта сессии; удачный ход = лимит снят раньше срока → «пропущено за простой: N» и всё по порядку.
+LIMIT_STATE = os.path.join(COMPANION_STATE, "limit-state.json")
+LIMIT_PROBE_TEXT = "[система] Проверка подписки после лимита: ответь одним словом SKIP. В Telegram не пиши."
+
+
+def _load_limit():
+    try:
+        return json.load(open(LIMIT_STATE, encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _save_limit(st):
+    try:
+        tmp = LIMIT_STATE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f: json.dump(st, f)
+        os.replace(tmp, LIMIT_STATE)
+    except Exception:
+        pass
+
+
+def limit_detect():
+    if _lw is None:
+        return None
+    try:
+        return _lw.detect(CLAUDE_DIR)
+    except Exception:
+        return None
+
+
+def limit_step(cursor, now=None):
+    """Один шаг сторожа лимита. → (cursor, держать_ли). Держит по limit_hold(); сверху — откат, проба, «пропущено»."""
+    now = now or time.time()
+    held, until, why = limit_hold()
+    st = _load_limit()
+    try:
+        pid = int(open(SESSION_PID).read().strip() or 0)
+    except Exception:
+        pid = 0
+    if held:
+        det = limit_detect() or {}
+        hit = det.get("hit") or {}
+        inc = str(hit.get("incident") or "limit")
+        if st.get("incident") != inc:   # новый простой лимита
+            since = hit.get("first_at") or now
+            new = rewind_to(cursor, since, det.get("last_ok"))
+            if new < cursor:
+                log("limit: курсор назад %d → %d — входящие, съеденные ходами 429, подам заново" % (cursor, new))
+                cursor = new
+                try:
+                    with open(CUR, "w") as f: f.write(str(cursor))
+                except Exception:
+                    pass
+                _pending.clear(); _save_pending()
+            st = {"incident": inc, "since": since, "probe_at": now, "pid": pid, "why": why}
+            _save_limit(st)
+        elif now - st.get("probe_at", 0) >= PROBE_S or (pid and pid != st.get("pid")):
+            st["pid"] = pid
+            try:
+                feed(LIMIT_PROBE_TEXT); st["probe_at"] = now; _save_limit(st); log("limit: проба снятия лимита подана")
+            except Exception as ex:
+                log_once("limit-probe", "limit: проба не подана (%s)" % type(ex).__name__)
+        log_once("limit-hold", "лимит подписки — держу входящие (%s), курсор на месте, проба раз в %d с" % (why, PROBE_S), every=300)
+        return cursor, True
+    if st.get("incident"):   # лимит снят — по сроку или раньше (пробой)
+        n = channel_events_after(cursor)
+        if n:
+            since = _lw.fmt_hm(st.get("since") or now, _lw.DEFAULT_TZ) if _lw else "?"
+            try:
+                feed("[система] Подписка снова работает. Пропущено за простой с %s: %d входящих — подаю по порядку. Каждому человеку — "
+                     "квитанция «Принято, №…» (tasks-discipline), без упрёков и оправданий; перед ответом сверь последний свой ответ в том чате — "
+                     "уже ответила, второй раз не отвечай." % (since, n))
+                log("limit: лимит снят — пропущено %d, подаю" % n)
+            except Exception as ex:
+                log_once("limit-pre", "limit: строка «пропущено» не подана (%s) — повторю" % type(ex).__name__)
+                return cursor, True
+        _save_limit({})
+    return cursor, False
+
+
 def main():
     try:
         cursor = int(open(CUR).read().strip() or 0)
@@ -516,9 +598,8 @@ def main():
             continue
         if size < cursor:
             continue
-        held, until, why = limit_hold()
+        cursor, held = limit_step(cursor)   # LIMIT-PROBE-2610: держу, откат, проба раз в PROBE_S, «пропущено»
         if held:
-            log_once("limit-hold", "лимит подписки — держу входящие (%s), курсор на месте" % why, every=300)
             time.sleep(5)
             continue
         if _pending:
