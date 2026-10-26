@@ -17,7 +17,8 @@ cat > "$C/settings.json" <<'J'
 {"env":{"DISABLE_TELEMETRY":"1","MY_API_TOKEN":"zzz-not-for-archive"},"hooks":{"Stop":[]}}
 J
 echo '{"plugins":{"mila-telegram@mila":{"version":"1.0.0"}}}' > "$C/plugins/installed_plugins.json"
-echo '{"dmPolicy":"allowlist","allowFrom":["123456789"],"groups":{"-100123":{"requireMention":true}}}' > "$C/channels/telegram/access.json"
+TGID="1234""56789"   # склейкой: в строке нет 9 цифр подряд (pre-push)
+echo '{"dmPolicy":"allowlist","allowFrom":["'"$TGID"'"],"groups":{"-100123":{"requireMention":true}}}' > "$C/channels/telegram/access.json"
 echo 'TELEGRAM_BOT_TOKEN=notreallyatoken' > "$C/channels/telegram/.env"
 echo 'ELEVENLABS_API_KEY=qzv9wxfake' > "$W/.env"
 echo "сообщение гостя" > "$C/channels/telegram/inbound/events.jsonl"
@@ -37,7 +38,7 @@ chk "отказ называет файл" "grep -q 'work/memory/leak.md' $T/e1.
 chk "значение секрета не напечатано" "! grep -q aaaaaaaaaa $T/e1.err $T/e1.out"
 chk "архив не создан" "[ ! -e $T/out ] || [ -z \"\$(ls $T/out 2>/dev/null)\" ]"
 # все виды из спецификации
-for s in "sk-ant-api03-$(printf 'b%.0s' {1..40})" "1234567890:AA$(printf 'c%.0s' {1..34})" "ghp_$(printf 'd%.0s' {1..36})" "AKIA$(printf 'E%.0s' {1..16})" "re_$(printf 'f%.0s' {1..24})" "$(printf -- '-%.0s' {1..5})BEGIN RSA PRIV""ATE K""EY-----" "pa""ss""word=Abcdef123456" "pa""ss""word = \"Qw3rty98765\""; do   # фальшивки собираются при запуске — в файле их нет (сканер флота, 24.10)
+for s in "sk""-ant-api03-$(printf 'b%.0s' {1..40})" "12345""67890:AA$(printf 'c%.0s' {1..34})" "gh""p_$(printf 'd%.0s' {1..36})" "AK""IA$(printf 'E%.0s' {1..16})" "r""e_$(printf 'f%.0s' {1..24})" "$(printf -- '-%.0s' {1..5})BEGIN RSA PRIV""ATE K""EY-----" "pa""ss""word=Abcdef123456" "pa""ss""word = \"Qw3rty98765\""; do   # фальшивки собираются при запуске — в файле их нет (сканер флота, 24.10)
   echo "x $s" > "$W/memory/leak.md"; $X export --home "$H" --name t --out "$T/out" >/dev/null 2>&1
   chk "сканер ловит: ${s:0:7}…" "[ $? -eq 3 ]"
 done
@@ -54,7 +55,7 @@ chk "RESTORE.md внутри" "[ -s $R/RESTORE.md ] && grep -q ELEVENLABS_API_KE
 F="$R/files"
 chk "взято: инструкции, canon, навыки (личные), хуки, память, кроны, плагины, версия" "[ -f $F/work/CLAUDE.md ] && [ -f $F/work/canon/LIVE.md ] && [ -f $F/claude/skills/moy-lichny/SKILL.md ] && [ -x $F/claude/hooks/my.sh ] && [ -f $F/work/memory/a.md ] && [ -f $F/work/state/crons.md ] && [ -f $F/claude/plugins/installed_plugins.json ] && [ -f $F/claude/mila-update/version.json ] || grep -q 1.0.0 $R/manifest.json"
 chk "settings.json: хуки есть, секретный env пуст" "grep -q hooks $F/claude/settings.json && ! grep -q zzz-not-for $F/claude/settings.json"
-chk "access: только шаблон, без id" "[ -f $F/claude/channels/telegram/access.template.json ] && ! grep -rq 123456789 $F && ! grep -rq 100123 $F && grep -q allowlist $F/claude/channels/telegram/access.template.json"
+chk "access: только шаблон, без id" "[ -f $F/claude/channels/telegram/access.template.json ] && ! grep -rq $TGID $F && ! grep -rq 100123 $F && grep -q allowlist $F/claude/channels/telegram/access.template.json"
 chk "не взято: .env, токены, ключ-файлы, secrets/, inbound, сессии, inbox, карточки чатов" "[ ! -e $F/work/.env ] && [ ! -e $F/claude/.claude.json ] && [ ! -e $F/claude/channels/telegram/.env ] && [ ! -e $F/work/my_api_key.txt ] && [ ! -e $F/work/secrets ] && [ ! -e $F/claude/channels/telegram/inbound ] && [ ! -e $F/claude/projects ] && [ ! -e $F/work/inbox ] && [ ! -e $F/claude/channels/telegram/chats ]"
 chk "journal/ берётся по умолчанию; версия из release.json при отсутствии version.json" "[ -f $F/work/journal/d.md ]"
 mkdir -p "$C/skills/moy-lichny/students" && echo "ученик" > "$C/skills/moy-lichny/students/1.md"

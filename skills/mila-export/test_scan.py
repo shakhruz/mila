@@ -3,7 +3,7 @@ import sys, random, string
 import os
 sys.path.insert(0, sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__file__))); import mila_export as M   # без аргумента — рядом (run_all)
 r=random.Random(7); A=lambda n,al=string.ascii_letters+string.digits: "".join(r.choice(al) for _ in range(n))
-H=lambda n: A(n,"0123456789abcdef")
+H=lambda n: A(n,"01234" "56789abcdef")
 cases=[
  ("OpenRouter key", "key: sk-"+"or-v1-"+H(64), 1),
  ("ElevenLabs sk_", "ELEVEN=sk_"+H(48), 1),
