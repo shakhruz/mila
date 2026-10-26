@@ -32,7 +32,7 @@ def _case(src, dst):
 def _word(w):
     low = w.lower()
     if re.search(r"c(?!h)|w", low) or (not w.isupper() and any(ch.isupper() for ch in w[1:])):
-        return w      # c без h, w и ВнутренниеЗаглавные в узбекской латинице не бывают: CPR, Claude, ChatGPT
+        return w      # c без h, w и ВнутренниеЗаглавные в узбекской латинице не бывают: SQL, Claude, ChatGPT
 
     for stem, cyr in EXCEPT.items():          # точное слово или слово с окончанием
         if low.startswith(stem) and (low == stem or low[len(stem):].isalpha()):
