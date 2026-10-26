@@ -60,6 +60,9 @@ FILES_MAX = 6                      # сколько свежих транскр�
 
 RE_RESET = re.compile(r"resets\s+(?P<when>[^()\n]+?)\s*\((?P<tz>[^)]+)\)")
 RE_LIMIT_TXT = re.compile(r"You've (?:hit|reached) your (?P<what>[^.·\n]+?) limit", re.I)
+# LOGIN-2610 (ROLLOUT №41, улика одной Милы 28.09): потерян вход — type=assistant, isApiErrorMessage=true, error=authentication_failed,
+# model=<synthetic>, текст «Not logged in · Please run /login». Ход съеден: человеку ничего не ушло.
+RE_AUTH_TXT = re.compile(r"Not logged in|Please run /login|Invalid API key|OAuth token (?:has )?expired|authentication_failed", re.I)
 KIND_RU = {"five_hour": "сессионный, окно 5 часов",
            "seven_day": "недельный",
            "model": "лимит модели"}
@@ -193,12 +196,12 @@ def _kind_from(text, ql):
 
 def scan_file(path):
     """Хвост одного транскрипта → {'hits': [...], 'last_ok': epoch, 'last_user': epoch}."""
-    hits, last_ok, last_user = [], None, None
+    hits, last_ok, last_user, auth = [], None, None, []
     for ln in _tail_lines(path):
         if not ln or '"type"' not in ln:
             continue
         # дешёвый предварительный фильтр: строки без признаков нам не нужны целиком
-        interesting = ('"apiErrorStatus"' in ln or '"rate_limit"' in ln or
+        interesting = ('"apiErrorStatus"' in ln or '"rate_limit"' in ln or '"authentication_failed"' in ln or "Not logged in" in ln or
                        "hit your" in ln or "reached your" in ln or '"assistant"' in ln
                        or '"user"' in ln)
         if not interesting:
@@ -215,7 +218,9 @@ def scan_file(path):
             if is_err:
                 st = d.get("apiErrorStatus")
                 text = _content_text(msg)
-                if st == 429 or d.get("error") == "rate_limit" or RE_LIMIT_TXT.search(text):
+                if d.get("error") == "authentication_failed" or (msg.get("model") == "<synthetic>" and RE_AUTH_TXT.search(text)):
+                    auth.append({"at": ts, "text": text.strip()[:120], "file": path})   # LOGIN-2610
+                elif st == 429 or d.get("error") == "rate_limit" or RE_LIMIT_TXT.search(text):
                     ql = d.get("quotaLimits") or {}
                     api_reset = ql.get("resetsAt")
                     # Человеку — время из ТЕКСТА (его же показывает Claude в окне);
@@ -245,7 +250,7 @@ def scan_file(path):
                                  "file": path, "sidechain": True})
             elif isinstance(msg.get("content"), str) and not d.get("isSidechain") and ts:
                 last_user = max(last_user or 0, ts)
-    return {"hits": hits, "last_ok": last_ok, "last_user": last_user, "file": path}
+    return {"hits": hits, "last_ok": last_ok, "last_user": last_user, "file": path, "auth": auth}
 
 
 def detect(claude_dir=CLAUDE_DIR, files=None, window_h=WINDOW_H, now=None):
@@ -487,6 +492,23 @@ def _read_pid(pid_file):
         return int(open(pid_file).read().strip() or 0)
     except Exception:                               # noqa: BLE001
         return 0
+
+
+def detect_auth(claude_dir=CLAUDE_DIR, files=None, window_h=WINDOW_H, now=None):
+    """LOGIN-2610: потерян ли вход. down — последний ход съеден «Not logged in» и удачного после нет;
+    since — первая такая запись подряд (начало простоя). → {down, since, last_at, count, last_ok}."""
+    now = now or time.time()
+    auth, last_ok = [], None
+    for f in (files or find_transcripts(claude_dir)):
+        r = scan_file(f)
+        auth.extend(r.get("auth") or [])
+        if r["last_ok"]:
+            last_ok = max(last_ok or 0, r["last_ok"])
+    auth = sorted((a for a in auth if a["at"] and now - a["at"] <= window_h * 3600), key=lambda a: a["at"])
+    after_ok = [a for a in auth if not last_ok or a["at"] > last_ok]
+    if not after_ok:
+        return {"down": False, "since": None, "last_at": auth[-1]["at"] if auth else None, "count": 0, "last_ok": last_ok}
+    return {"down": True, "since": after_ok[0]["at"], "last_at": after_ok[-1]["at"], "count": len(after_ok), "last_ok": last_ok}
 
 
 def hold(claude_dir=CLAUDE_DIR, pid_file=None, _cache={}):

@@ -339,6 +339,154 @@ def gate_message(p, m, own=None, ours=None):
     return True
 
 
+# ── LOGIN-2610 (ROLLOUT №41 «без повисших задач», улика одной Милы 28.09) ─────────────────────────────────────────
+# Пока вход потерян («Not logged in»), каждый поданный ход съеден, а проверка доставки считает его доставленным
+# (текст человека в транскрипте есть). Поэтому: 1) при первом обнаружении — курсор назад, к входящим за время простоя;
+# 2) держу входящие, раз в PROBE_S подаю пробу — удачный ответ на неё = вход вернулся; 3) после — строка «пропущено за
+# простой: N» и всё по порядку; 4) один раз на простой — 🔴 строка старшей (MILA_SENIOR_INBOX).
+LOGIN_STATE = os.path.join(COMPANION_STATE, "login-state.json")
+PROBE_S = int(os.environ.get("FEEDER_LOGIN_PROBE_S", "600"))
+REWIND_SLACK = 180
+SENIOR_INBOX = os.environ.get("MILA_SENIOR_INBOX", os.path.expanduser("~/work/inbox/to-admin.jsonl"))
+PROBE_TEXT = "[система] Проверка входа после «Not logged in»: ответь одним словом SKIP. В Telegram не пиши."
+
+
+def auth_down():
+    """→ detect_auth() или None (модуля нет / датчик упал)."""
+    if _lw is None or not hasattr(_lw, "detect_auth"):
+        return None
+    try:
+        return _lw.detect_auth(CLAUDE_DIR)
+    except Exception:
+        return None
+
+
+def _load_login():
+    try:
+        return json.load(open(LOGIN_STATE, encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _save_login(st):
+    try:
+        tmp = LOGIN_STATE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f: json.dump(st, f)
+        os.replace(tmp, LOGIN_STATE)
+    except Exception:
+        pass
+
+
+def _event_ts(e):
+    t = e.get("ts")
+    if isinstance(t, (int, float)):
+        return t / 1000.0 if t > 1e11 else float(t)
+    m = ((e.get("params") or {}).get("meta") or {}).get("ts")
+    if _lw is not None and m:
+        try: return _lw.iso_to_epoch(m)
+        except Exception: return None
+    return None
+
+
+def rewind_to(cursor, since, last_ok=None):
+    """Смещение первого входящего не раньше since−REWIND_SLACK среди уже поданных (до курсора); нет таких — курсор как был.
+    Не раньше последнего удачного хода (Качество 26.10): всё, что пришло до него, уже получило ответ — второй ответ не нужен."""
+    since = max(since - REWIND_SLACK, (last_ok or 0) + 1)
+    pos = 0
+    try:
+        with open(EV, "rb") as f:
+            for raw in f:
+                if pos >= cursor:
+                    break
+                try:
+                    e = json.loads(raw.decode("utf-8", "replace"))
+                except Exception:
+                    e = None
+                if e and e.get("method") == "notifications/claude/channel":
+                    t = _event_ts(e)
+                    if t and t >= since:
+                        return pos
+                pos += len(raw)
+    except OSError:
+        pass
+    return cursor
+
+
+def channel_events_after(cursor):
+    n = 0
+    try:
+        with open(EV, "rb") as f:
+            f.seek(cursor)
+            for raw in f:
+                if b'"notifications/claude/channel"' in raw:
+                    n += 1
+    except OSError:
+        pass
+    return n
+
+
+def alert_senior(au, waiting):
+    """Одна 🔴 строка старшей на простой: вход потерян, сколько входящих ждёт. Нет её ящика — только журнал кормильца."""
+    since = _lw.fmt_hm(au["since"], _lw.DEFAULT_TZ) if _lw else "?"
+    text = ("🔴 Вход потерян с %s (ответ сессии «Not logged in»): ждут %d входящих, держу их и подам после входа. Нужен /login." % (since, waiting))
+    log("login: " + text)
+    d = os.path.dirname(SENIOR_INBOX)
+    if not os.path.isdir(d):
+        return False
+    rec = {"id": "%s-login-%d" % (time.strftime("%Y-%m-%dT%H:%M"), int(au["since"])), "ts": time.strftime("%Y-%m-%dT%H:%M%z"),
+           "kind": "alert", "status": "open", "agent": os.environ.get("MILA_AGENT", ""), "text": text}
+    try:
+        with open(SENIOR_INBOX, "a", encoding="utf-8") as f: f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        return True
+    except OSError:
+        return False
+
+
+def login_step(cursor, now=None):
+    """Один шаг сторожа входа. → (cursor, держать_ли). Вызывается в цикле перед подачей."""
+    now = now or time.time()
+    st = _load_login(); au = auth_down()
+    try:
+        pid = int(open(SESSION_PID).read().strip() or 0)
+    except Exception:
+        pid = 0
+    if au and au.get("down"):
+        inc = int(au["since"])
+        if st.get("incident") != inc:   # первое обнаружение этого простоя
+            new = rewind_to(cursor, au["since"], au.get("last_ok"))
+            if new < cursor:
+                log("login: курсор назад %d → %d — входящие за простой подам заново" % (cursor, new))
+                cursor = new
+                try:
+                    with open(CUR, "w") as f: f.write(str(cursor))
+                except Exception:
+                    pass
+                _pending.clear(); _save_pending()   # их доставку не ждём — подадим заново
+            st = {"incident": inc, "since": au["since"], "probe_at": now, "pid": pid, "alerted": alert_senior(au, channel_events_after(cursor))}
+            _save_login(st)
+        elif now - st.get("probe_at", 0) >= PROBE_S or (pid and pid != st.get("pid")):   # рестарт сессии (вошли заново) — проба сразу
+            st["pid"] = pid
+            try:
+                feed(PROBE_TEXT); st["probe_at"] = now; _save_login(st); log("login: проба входа подана")
+            except Exception as ex:
+                log_once("login-probe", "login: проба не подана (%s)" % type(ex).__name__)
+        log_once("login-hold", "login: вход потерян — держу входящие, курсор на месте", every=300)
+        return cursor, True
+    if st.get("incident"):   # вход вернулся
+        n = channel_events_after(cursor)
+        if n:
+            since = _lw.fmt_hm(st.get("since") or now, _lw.DEFAULT_TZ) if _lw else "?"
+            try:
+                feed("[система] Вход вернулся. Пропущено за простой с %s: %d входящих — подаю по порядку. Каждому человеку — "
+                     "квитанция «Принято, №…» (tasks-discipline), без упрёков и оправданий; перед ответом сверь последний свой ответ в том чате — уже ответила, второй раз не отвечай." % (since, n))
+                log("login: вход вернулся — пропущено %d, подаю" % n)
+            except Exception as ex:
+                log_once("login-pre", "login: строка «пропущено» не подана (%s) — повторю" % type(ex).__name__)
+                return cursor, True
+        _save_login({})
+    return cursor, False
+
+
 def main():
     try:
         cursor = int(open(CUR).read().strip() or 0)
@@ -362,6 +510,12 @@ def main():
         nl = chunk.rfind(b"\n")
         if nl < 0:
             time.sleep(0.5); continue
+        cursor, lheld = login_step(cursor)   # LOGIN-2610: потерян вход — держу, назад курсор, проба, «пропущено»
+        if lheld:
+            time.sleep(5)
+            continue
+        if size < cursor:
+            continue
         held, until, why = limit_hold()
         if held:
             log_once("limit-hold", "лимит подписки — держу входящие (%s), курсор на месте" % why, every=300)
