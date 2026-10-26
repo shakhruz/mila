@@ -171,6 +171,10 @@ def check_card(kind, c):
         if len(keys) < 2: err.append("вариантов меньше двух")
         if len(keys) > 3: err.append("вариантов больше трёх — карточка не влезет в 6 кнопок")
         if len(set(keys)) != len(keys): err.append("ключи вариантов повторяются")
+        if any(not re.fullmatch(r"[a-z0-9]{1,8}", str(k or "")) for k in keys): err.append("ключ варианта — 1–8 латинских букв/цифр (пустой ключ ломает ответ)")
+        labels = [str(o.get("label") or "").strip() for o in c.get("options") or []]
+        if any(not x for x in labels): err.append("пустая подпись варианта")
+        if len(set(x[:40] for x in labels)) != len(labels): err.append("подписи вариантов совпадают (в первых 40 знаках) — нажатие не различить")
         if c.get("rec") and c["rec"] not in keys: err.append("рекомендация не из вариантов")
     else:
         if not c.get("to"): err.append("нет исполнителя (--to)")
@@ -190,6 +194,9 @@ def mark_shown(kind, c):
     except (OSError, ValueError):
         d = {}
     d[kind] = {"id": c["id"], "home": c.get("_home"), "ts": iso(now())}
+    # 26.10 (края, Сила): помню ВСЕ показанные карточки (до 20): нажатие на кнопку старого сообщения не должно уйти в последнюю карточку
+    seen = [x for x in d.get(kind + "_all", []) if x.get("id") != c["id"]][-19:]
+    d[kind + "_all"] = seen + [{"id": c["id"], "home": c.get("_home"), "ts": iso(now())}]
     with open(shown_path() + ".tmp", "w", encoding="utf-8") as f: json.dump(d, f, ensure_ascii=False)
     os.replace(shown_path() + ".tmp", shown_path())
 
@@ -202,19 +209,25 @@ def by_label(label):
         return None
     l = re.sub(r"^\[кнопка\]\s*", "", str(label)).replace("⭐", "").strip()
     fixed = {"💬 Поясни": "explain", "⏸ До завтра": "snooze", "🤷 Реши сама": "self", "✅ Да": "yes", "✏️ Изменить": "edit", "Нет": "no", "➡️ Другой Миле": "move"}
+    hits = []
     for kind in ("inbox", "proposals"):
-        sh = d.get(kind)
-        if not sh: continue
-        homes = [sh.get("home")]
-        k2, c, h = find(sh["id"], homes)
-        if not c: continue
-        if kind == "inbox":
-            o = next((o for o in c.get("options") or [] if o["label"][:40].strip() == l), None)
-            if o: return sh["id"], "pick", o["key"], homes
-        for lab, act in fixed.items():
-            if l == lab.replace("⭐", "").strip() and (act in ("explain", "snooze", "self")) == (kind == "inbox"):
-                return sh["id"], act, None, homes
-    return None
+        shown = d.get(kind + "_all") or ([d[kind]] if d.get(kind) else [])
+        for sh in reversed(shown):
+            homes = [sh.get("home")]
+            k2, c, h = find(sh["id"], homes)
+            if not c or not is_open(kind, c): continue   # отвеченные — не кандидаты
+            hit = None
+            if kind == "inbox":
+                o = next((o for o in c.get("options") or [] if o["label"][:40].strip() == l), None)
+                if o: hit = (sh["id"], "pick", o["key"], homes)
+            if not hit:
+                for lab, act in fixed.items():
+                    if l == lab.replace("⭐", "").strip() and (act in ("explain", "snooze", "self")) == (kind == "inbox"):
+                        hit = (sh["id"], act, None, homes); break
+            if hit and hit[0] not in [x[0] for x in hits]: hits.append(hit)
+    if len(hits) > 1:
+        return ("ambiguous", [x[0] for x in hits])   # подпись подходит к нескольким открытым карточкам — спросить, к какой
+    return hits[0] if hits else None
 
 
 def find(cid, homes):
@@ -226,7 +239,9 @@ def find(cid, homes):
 
 
 def tomorrow_9():
-    t = now() + dt.timedelta(days=1)
+    """«До завтра»: ночью (до 06:00) «завтра» для человека — это уже наступившее утро, 09:00 сегодня."""
+    n = now()
+    t = n if n.hour < 6 else n + dt.timedelta(days=1)
     return t.replace(hour=9, minute=0, second=0)
 
 
@@ -318,6 +333,8 @@ def main(argv=None):
     elif x.cmd == "button":
         hit = by_label(x.data)
         if not hit: print(json.dumps({"ok": False, "error": "не кнопка показанной карточки"}, ensure_ascii=False)); return 1
+        if hit[0] == "ambiguous":
+            print(json.dumps({"ok": False, "ambiguous": hit[1], "error": "кнопка подходит к %d открытым карточкам — спроси владельца, к какой, и ответь answer ID" % len(hit[1])}, ensure_ascii=False)); return 1
         cid, act, key, homes = hit
         if act in ("edit", "move"):
             out = {"ok": True, "ask": act, "id": cid}   # спросить текст правки / кому передать, потом answer --edit/--move

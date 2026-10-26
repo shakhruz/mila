@@ -1,9 +1,7 @@
 ---
 name: cards
-description: "Use every time I ask the owner for a decision or propose a task (\"ask the owner\", \"decision card\"): write the card via cards.py, not plain text. RU: «спроси владельца», вопрос-выбор, задача команде, карточка."
+description: "One card format for the owner: a question (choice) or a task for the team. Use every time I ask the owner for a decision or propose a task: write the card via cards.py, not plain text, so both the chat and the «Mila Office» mini-app see it. Triggers: \"ask the owner\", \"decision card\". RU: Один формат карточки владельцу — вопрос (выбор) и задача команде. Применять каждый раз, когда спрашиваю владельца о решении или предлагаю задачу: карточку пишу через cards.py, а не просто текстом, — тогда её видят и чат, и мини-апп «Офис Мил»."
 ---
-> **When to use (full):** One card format for the owner: a question (choice) or a task for the team. Use every time I ask the owner for a decision or propose a task: write the card via cards.py, not plain text, so both the chat and the «Mila Office» mini-app see it. Triggers: "ask the owner", "decision card". RU: Один формат карточки владельцу — вопрос (выбор) и задача команде. Применять каждый раз, когда спрашиваю владельца о решении или предлагаю задачу: карточку пишу через cards.py, а не просто текстом, — тогда её видят и чат, и мини-апп «Офис Мил».
-
 # Карточки владельцу · один формат для чата и мини-аппа
 
 вопросы ко мне и задачи команде — одной колодой, в чате и в «Офисе Мил». Файлы веду сама:
@@ -29,6 +27,7 @@ prio: 1 срочно · 2 важно · 3 когда будет время. `--c
     python3 ~/.claude/skills/cards/cards.py button "[кнопка] ⭐ Да, выкладывай"
 Ответ `ask: edit` / `ask: move` — спрашиваю одной строкой «Что поменять?» / «Какой Миле передать?», потом
 `answer <id> --edit "…"` / `--move <slug>`. «💬 Поясни» — объясняю подробнее и снова показываю ту же карточку.
+Ответ `{"ambiguous": [id…]}` — подпись подходит к нескольким открытым карточкам (нажата кнопка старого сообщения): одним вопросом уточняю у владельца, к какой («Да — про домен или про сайт?»), потом `answer <id> --pick …`. Сама не выбираю.
 Голос/текст вместо кнопки — `answer <id> --text "…"`. Вопрос потерял смысл — `answer <id> --close "почему"`.
 
 ## Границы
