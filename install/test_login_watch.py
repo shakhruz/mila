@@ -53,8 +53,8 @@ chk("сессию перезапустили (новый pid) — проба с�
 # 3) вход вернулся: удачный ход после простоя
 fed.clear(); open(TR, "a").write(ok_rec(now + 10))
 cur3, held = F.login_step(cur, now=now + 20)
-chk("вход вернулся → строка «пропущено за простой … 3 входящих … квитанция», держать перестала", not held and len(fed) == 1 and "3 входящих" in fed[0] and "Принято, №" in fed[0])
-chk("после — курсор у m1: все 3 входящих снова к подаче (будет 3 квитанции)", cur3 == off_m1 and F.channel_events_after(cur3) == 3)
+chk("вход вернулся → строка «пропущено за простой … 3 входящих … подтверждение», держать перестала", not held and len(fed) == 1 and "3 входящих" in fed[0] and "Принято, №" in fed[0])
+chk("после — курсор у m1: все 3 входящих снова к подаче (будет 3 подтверждения)", cur3 == off_m1 and F.channel_events_after(cur3) == 3)
 chk("состояние простоя очищено — второй раз «пропущено» не подаю", F._load_login() == {} and F.login_step(cur3, now=now + 30) == (cur3, False) and len(fed) == 1)
 # 4) края
 open(TR, "w").write(ok_rec(now - 10)); open(os.path.join(PROJ, "old.jsonl"), "w").write("")
