@@ -77,6 +77,12 @@ chk("в модель — без телефона, почты и карты (ме
 cf = os.path.join(T, "cnt.json"); E3 = dict(E2, PROVERKA_MAX="2", PROVERKA_COUNT=cf); n0 = len(seen)
 outs = [run("Мы растём в разрезе продаж.", env=E3)[1] for _ in range(3)]
 chk("лимит в сутки: 2 чтения моделью, третье — заметка «лимит», словарь работает", len(seen) - n0 == 2 and "лимит 2 в сутки" in outs[2] and "в разрезе продаж" not in outs[2])
+run("Паспорт AB 12" + "34567, ПИНФЛ 3" + "12345" + "67890" + "123, итого 1 500 000 сум, тел +998 90 " + "123 45 67.", env=E2)
+sent = seen[-1][0]["messages"][0]["content"]
+chk("маска — pd_vault ядра: паспорт и ПИНФЛ скрыты, сумма «1 500 000 сум» осталась", "⟦паспорт⟧" in sent and "⟦ПИНФЛ⟧" in sent and "⟦тел⟧" in sent and "1 500 000 сум" in sent and "34567" not in sent)
+import importlib.util as _iu; _sp = _iu.spec_from_file_location("pv2", os.path.join(HERE, "proverka.py")); PV = _iu.module_from_spec(_sp); _sp.loader.exec_module(PV)
+PV._pd_find = lambda: None
+chk("нет навыка pd-vault рядом — свой короткий список (телефон и почта скрыты)", "⟦тел⟧" in PV.mask_pd("звоните +998 90 " + "123 45 67") and "⟦почта⟧" in PV.mask_pd("пишите a@b.uz"))
 chk("без аргумента — справка, код 2", subprocess.run(PY, capture_output=True, text=True).returncode == 2)
 srv.shutdown()
 print("итог %d/%d" % (ok, n)); sys.exit(0 if ok == n else 1)

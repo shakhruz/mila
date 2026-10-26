@@ -23,8 +23,29 @@ _PD = [(re.compile(r"\+?\d[\d\s()-]{7,}\d"), "⟦тел⟧"), (re.compile(r"[\w.
        (re.compile(r"\b(?:\d[ -]?){13,19}\b"), "⟦карта⟧")]
 
 
+_LAB = {"phone": "⟦тел⟧", "email": "⟦почта⟧", "card": "⟦карта⟧", "passport": "⟦паспорт⟧", "pinfl": "⟦ПИНФЛ⟧"}
+
+
+def _pd_find():
+    """Одна правда на всё ядро (Качество 26.10): поиск личных данных — pd_vault.find из соседнего навыка pd-vault (паспорт, ПИНФЛ,
+    телефоны без ложных на суммах и id). Нет навыка рядом — свой короткий список."""
+    try:
+        import importlib.util
+        here = os.path.dirname(os.path.abspath(__file__))
+        spec = importlib.util.spec_from_file_location("pd_vault", os.path.join(os.path.dirname(here), "pd-vault", "pd_vault.py"))
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+        return m.find
+    except Exception:
+        return None
+
+
 def mask_pd(text):
-    """Перед отправкой второму провайдеру: телефоны, почта, номера карт → метки (смысл фразы для носителя тот же)."""
+    """Перед отправкой второму провайдеру: личные данные → метки (смысл фразы для носителя тот же). В хранилище ничего не пишу."""
+    find = _pd_find()
+    if find:
+        for s0, e0, kind, _v in sorted(find(text), reverse=True):
+            text = text[:s0] + _LAB.get(kind, "⟦данные⟧") + text[e0:]
+        return text
     for rx, lab in (_PD[2], _PD[0], _PD[1]):
         text = rx.sub(lab, text)
     return text
