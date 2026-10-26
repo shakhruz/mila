@@ -171,11 +171,62 @@ def source(a):
     return fetch(t)
 
 
+class ManifestRefused(Exception):
+    """Манифест релиза выходит за пределы дома — отказ ВСЕГО манифеста (цепочка поставки), а не «зону молча отбросить»."""
+
+
+def _inside(path, base):
+    rp, rb = os.path.realpath(path), os.path.realpath(base)
+    return rp == rb or rp.startswith(rb + os.sep)
+
+
+def _bad_src(path, root):
+    """Файл релиза: не вне папки релиза, не симлинк, не жёсткая ссылка (lstat, st_nlink == 1); у папки — то же для всего внутри."""
+    if not _inside(path, root): return "вне папки релиза"
+    todo = [path]
+    if os.path.isdir(path) and not os.path.islink(path):
+        for r, ds, fs in os.walk(path):
+            todo += [os.path.join(r, n) for n in ds + fs]
+    for p in todo:
+        st = os.lstat(p)
+        if stat.S_ISLNK(st.st_mode): return "символическая ссылка: " + os.path.relpath(p, root)
+        if stat.S_ISREG(st.st_mode) and st.st_nlink != 1: return "жёсткая ссылка: " + os.path.relpath(p, root)
+    return None
+
+
+# Единственные места ВНЕ {claude}/{work}, куда честный релиз вправе положить файл: запускатель «mila» (точные пути; список зашит в скрипт и сильнее манифеста).
+LAUNCHER_DST = ("{home}/.local/bin/mila",)   # только путь из release.json ядра (Разработка 26.10: остальные два были предположением — лишняя дверь вне дома)
+
+
+def _bad_dst(dst):
+    """Цель: внутри дома Милы ({claude} или {work}); ни один уровень пути от дома до файла не символическая ссылка."""
+    for base in (CLAUDE, WORK):
+        nd, nb = os.path.normpath(dst), os.path.normpath(base)
+        if nd == nb or nd.startswith(nb + os.sep):
+            cur = nb
+            for part in nd[len(nb):].split(os.sep):
+                if not part: continue
+                cur = os.path.join(cur, part)
+                if os.path.islink(cur): return "символическая ссылка на пути: " + cur
+            return None
+    nd = os.path.normpath(dst)
+    if nd in {os.path.normpath(P(x)) for x in LAUNCHER_DST}:      # запускатель: ни один уровень от домашней папки (и сам файл) не символическая ссылка
+        cur = os.path.normpath(HOME)
+        for part in nd[len(cur):].split(os.sep):
+            if not part: continue
+            cur = os.path.join(cur, part)
+            if os.path.islink(cur): return "символическая ссылка на пути запускателя: " + cur
+        return None
+    return "вне дома Милы: " + nd
+
+
 def plan(src):
-    """Пары (что, откуда, куда, вид) по манифесту релиза; запретное отбрасывается."""
+    """Пары (что, откуда, куда, вид) по манифесту релиза; запретное (список NEVER) отбрасывается; выход за дом — ManifestRefused."""
     m = json.load(open(os.path.join(src, "release.json")))
-    pairs = []
+    pairs, bad = [], []
     for z in m.get("zones", []):
+        if ".." in str(z.get("src", "")).split("/") or ".." in str(z.get("dst", "")).split("/"):
+            bad.append("«..» в зоне «%s»" % z.get("what")); continue
         skip = z.get("skip", [])
         for s in sorted(glob.glob(os.path.join(src, z["src"]))):
             name = os.path.basename(s.rstrip("/"))
@@ -184,7 +235,11 @@ def plan(src):
             if z["kind"] == "file" and not os.path.isfile(s): continue
             dst = P(z["dst"]).replace("*", name)
             if never(dst): continue
+            why = _bad_src(s, src) or _bad_dst(dst)
+            if why:
+                bad.append("%s → %s: %s" % (z.get("what"), name, why)); continue
             pairs.append({"what": z["what"], "name": name, "src": s, "dst": dst, "kind": z["kind"]})
+    if bad: raise ManifestRefused("; ".join(bad[:20]))
     return m, pairs
 
 
@@ -279,7 +334,9 @@ def summary(rows):
 
 
 def cmd_diff(a):
-    src = source(a); m, rows = compare(src)
+    src = source(a)
+    try: m, rows = compare(src)
+    except ManifestRefused as e: sys.exit(json.dumps({"error": "манифест релиза отклонён целиком — зона вне дома или подозрительная ссылка", "detail": str(e)}, ensure_ascii=False))
     if a.json: print(json.dumps({"release": m.get("version"), "rows": [{k: r[k] for k in ("what", "name", "dst", "state")} for r in rows]}, ensure_ascii=False, indent=1)); return
     print(json.dumps({"release": m.get("version"), "tag": m.get("tag"), "itog": {k: len(v) for k, v in summary(rows).items()},
                       "obnovitsya": summary(rows).get("обновится", []), "novoe": summary(rows).get("новое", []),
@@ -401,6 +458,7 @@ def migrate_settings(tag):
 def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_label=""):
     """Бэкап → запись → версия и журнал. Возвращает словарь результата (печатает вызывающий)."""
     tag = tag or m.get("tag")
+    if not tag: sys.exit(json.dumps({"error": "в манифесте нет tag (и не задан --tag) — не обновляюсь, бэкап не делаю"}, ensure_ascii=False))
     # RENAMED-1017 (v1.4.0, международные имена): release.json "renamed" {старое: новое}. По старому имени в релизе — алиас
     # (обёртки скриптов, без SKILL.md — навыком не грузится). Старую папку заменяем алиасом даже при правке хозяина, иначе навык задвоится;
     # его правку кладём в mila-update/new/<тег>/было-<старое> и называем в отчёте.
@@ -442,7 +500,9 @@ def cmd_apply(a):
     if not a.yes: sys.exit(json.dumps({"error": "нужно «да» хозяина: --yes \"<кто, где, когда>\" — без него не обновляюсь"}, ensure_ascii=False))
     nb = newborn_block("apply")
     if nb and not a.newborn_ok: sys.exit(json.dumps({"error": nb, "hint": "--newborn-ok — только по слову администратора"}, ensure_ascii=False))
-    src = source(a); m, rows = compare(src)
+    src = source(a)
+    try: m, rows = compare(src)
+    except ManifestRefused as e: sys.exit(json.dumps({"error": "манифест релиза отклонён целиком — зона вне дома или подозрительная ссылка", "detail": str(e)}, ensure_ascii=False))
     take = set((a.take or "").split(",")) - {""}
     print(json.dumps(do_apply(src, m, rows, a.yes, take, src_label=a.src or REPO, sha_=git_sha(src)), ensure_ascii=False, indent=1))
 
@@ -611,7 +671,11 @@ def cmd_nightly(a):
         if CFG.get("require_signed") and ch == "stable":
             if subprocess.run(["git", "-C", src, "verify-tag", ref], capture_output=True).returncode:
                 print(json.dumps(dict(res, status="rejected", tag=tag, reason="подпись тега не проверилась"), ensure_ascii=False)); return
-        m, rows = compare(src); errs = validate_release(src, m, rows)
+        try: m, rows = compare(src)
+        except ManifestRefused as e:
+            jlog({"event": "nightly", "result": "rejected", "tag": tag, "errors": ["манифест отклонён: " + str(e)]})
+            print(json.dumps(dict(res, status="rejected", tag=tag, reason="манифест отклонён целиком: " + str(e)), ensure_ascii=False)); return
+        errs = validate_release(src, m, rows)
         res.update({"tag": tag, "version": m.get("version"), "dry_run_summary": {k: v for k, v in summary(rows).items()}, "errors": errs})
         if errs:
             jlog({"event": "nightly", "result": "rejected", "tag": tag, "errors": errs})
