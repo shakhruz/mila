@@ -62,6 +62,7 @@ Two things are deliberately separate from this repository:
 | Piece | What it does |
 | --- | --- |
 | `skills/client-chat` | How the assistant behaves in a chat with a client: tone, promises, tasks, attachments, boundaries. Read before the first reply in any new chat. English in `SKILL.en.md`, Russian original in `SKILL.md`. |
+| `skills/screen` | Live screen: any TV or monitor opened at tv.milagpt.io becomes the assistant's screen — pair by a 6-digit code (digits or words), then show videos, pictures, menus, slides and playlists by plain words in Telegram; the screen key comes from the senior at birth (`~/secrets/screen.key` or `SCREEN_KEY`); inside a container it talks to the screen service on the host (`SCREEN_API` overrides). |
 | `skills/mila-session` | The four links of the Telegram channel and how to check each one when something goes quiet. |
 | `skills/communication` + `CHECKLIST.md` | How every outgoing message is built: result first, one screen, evidence per fact, no self-deprecation, the supplier's frame with a pushy client. The checklist is the 30-second version read before each send. |
 | `skills/mila-tasks` | Commitments ledger: tasks, promises to people, decisions waiting on the owner — append-only `ledger.jsonl`, closure only with machine-run proof, `task.py` (stdlib) and two hooks that catch promises in outgoing messages. |
