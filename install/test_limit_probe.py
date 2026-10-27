@@ -17,11 +17,15 @@ spec = importlib.util.spec_from_file_location("feeder", os.path.join(HERE, "comp
 F._lw = LW; F.CLAUDE_DIR = os.path.join(T, ".claude"); fed = []; F.feed = lambda text: fed.append(text)
 def fresh(): LW.hold.__defaults__[2].clear()   # кэш датчика 5 с — в тесте время идёт скачками
 now = time.time(); t_ok, t_hit = now - 3600, now - 1800; resets = now + 4 * 3600
+# CI 27.10 (Качество): «resets 2pm» был зашит — с 14:00 до ≈14:35 по Ташкенту сброс «уже прошёл», и тест падал по часам.
+# Время сброса в тексте — от resets, как пишет сама подписка: «resets 6:26pm (Asia/Tashkent)».
+import datetime as _dt, zoneinfo as _zi
+RESET_TXT = _dt.datetime.fromtimestamp(resets, _zi.ZoneInfo("Asia/Tashkent")).strftime("%I:%M%p").lstrip("0").lower()
 def iso(t): return time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime(t))
 def rec(**k): return json.dumps(k, ensure_ascii=False) + "\n"
 ok_rec = lambda t: rec(type="assistant", timestamp=iso(t), message={"role": "assistant", "model": "claude-x", "content": [{"type": "text", "text": "Готово."}]})
 hit_rec = lambda t: rec(type="assistant", timestamp=iso(t), error="rate_limit", apiErrorStatus=429, isApiErrorMessage=True, quotaLimits={"resetsAt": resets, "rateLimitType": "seven_day"},
-                        message={"role": "assistant", "model": "<synthetic>", "content": [{"type": "text", "text": "You've hit your weekly limit · resets 2pm (Asia/Tashkent)"}]})
+                        message={"role": "assistant", "model": "<synthetic>", "content": [{"type": "text", "text": "You've hit your weekly limit · resets %s (Asia/Tashkent)" % RESET_TXT}]})
 TR = os.path.join(PROJ, "s.jsonl"); open(TR, "w").write(ok_rec(t_ok) + hit_rec(t_hit) + hit_rec(t_hit + 60) + hit_rec(t_hit + 120))
 EV = os.path.join(ST, "inbound", "events.jsonl")
 def ev(t, mid): return json.dumps({"ts": int(t * 1000), "method": "notifications/claude/channel", "params": {"content": "текст", "meta": {"chat_id": "1", "message_id": mid, "ts": iso(t)}}}) + "\n"
