@@ -45,6 +45,8 @@ rc, o = j("stats"); chk("stats: 62 одинаковых согласия с пр
 rc, o = j("config", "--set", "mode=main"); chk("config: main без сверки с правдой — отказ", rc == 1 and "сверки" in o.get("error", ""), o)
 same = [{"text": "Мила, глянь отчёт", "truth": True}] * 150
 rc, o = j("check", "--file", sample(same)); chk("check: 150 одинаковых строк считаются одной → мало, не готово", o["rows"] == 1 and o["ready_for_main"] is False, o)
+pair = [{"text": "спасибо, сделаю", "chat_role": "lead", "to_other": True, "truth": False}, {"text": "спасибо, сделаю", "chat_role": "lead", "to_other": False, "truth": True}]
+rc, o = j("check", "--file", sample(pair)); chk("check: тот же текст, но «другому» и «мне» — две строки, не одна (дедуп по всем полям)", o["rows"] == 2, o)
 # правда: в чате, который веду (lead), отвечаю на всё, кроме адресованного другим; заглушка Jev говорит «да» на «Мила»/«помоги»
 good = [{"text": "Мила, вопрос %d" % i, "chat_role": "lead", "truth": True} for i in range(110)] + [{"text": "между собой %d" % i, "truth": False} for i in range(10)]
 rc, o = j("check", "--file", sample(good))

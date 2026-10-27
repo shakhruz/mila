@@ -203,10 +203,11 @@ def cmd_check(a):
             d = json.loads(l)
             if not isinstance(d, dict) or not isinstance(d.get("truth"), bool) or not str(d.get("text") or "").strip():
                 continue
-            h = hashlib.sha256(json.dumps([d.get("text"), d.get("chat_role"), d.get("quote_author"), d.get("mentioned"), d.get("dm")], ensure_ascii=False).encode()).hexdigest()
+            r = Row(d)   # ключ дедупа — все поля, по которым решают правила и Jev (Качество 27.10: иначе «мне или другому» склеивались)
+            h = hashlib.sha256(json.dumps([r.text, r.dm, r.mentioned, r.reply_to_me, r.from_bot, r.to_other, r.chat_role, r.quote_author], ensure_ascii=False).encode()).hexdigest()
             if h in seen:
                 continue                  # одинаковые пробы считаю один раз
-            seen.add(h); rows.append((Row(d), d["truth"]))
+            seen.add(h); rows.append((r, d["truth"]))
     except (OSError, ValueError) as e:
         return {"error": "файл сверки не прочитан: %s" % type(e).__name__}
     n = jev_ok = rules_ok = answered = 0
