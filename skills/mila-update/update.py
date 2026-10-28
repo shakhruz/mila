@@ -1041,6 +1041,9 @@ def cmd_install_skill(a):
         sys.exit(json.dumps({"error": "навык неполный: SKILL.md называет файлы, которых нет в папке — попросить у приславшего целую папку",
                              "missing": miss[:30]}, ensure_ascii=False))
     if not a.sender: sys.exit(json.dumps({"error": "нужно --from: кто прислал (Мила-администратор)"}, ensure_ascii=False))
+    if name == "mila-update" and not os.path.isdir(os.path.join(CLAUDE, "skills", "mila-update")) and not (a.yes or "").strip():
+        # UPDATE-BOOTSTRAP-2810 (часть Г): Миле клиента навык обновлений ставится только по «да» её хозяина (bootstrap-note → кнопка)
+        sys.exit(json.dumps({"error": "навык обновлений ставится впервые — нужно «да» хозяина: --yes \"<кто, где, когда, кнопка>\" (текст для него — update.py bootstrap-note)"}, ensure_ascii=False))
     for root, _, files in os.walk(d):
         for f in files:
             if SECRET.search(os.path.join(root, f)): sys.exit(json.dumps({"error": "в навыке файл с секретом: " + f}, ensure_ascii=False))
@@ -1051,6 +1054,19 @@ def cmd_install_skill(a):
     jlog({"event": "install-skill", "skill": name, "from": a.sender, "yes": a.yes or "", "backup": b,
           "added": [] if existed else [dst], "touched": [dst], "sha": sha(dst)})
     print(json.dumps(dict({"ok": True, "skill": name, "zamena": existed, "backup": b}, **({"missing": miss} if miss else {})), ensure_ascii=False))
+
+
+def cmd_bootstrap_note(a):
+    """UPDATE-BOOTSTRAP-2810 (часть Г): текст карточки хозяину Милы, у которой ещё нет навыка обновлений, — для его «да».
+    Что даст, что не тронет, кнопки. Ничего не пишет; администратор отправляет его через Милу клиента."""
+    who = (a.name or "").strip()[:60]
+    text = ("%sоставить мне навык обновлений.\n"
+            "Что даст: я буду сама проверять новые версии и показывать вам план — что получите, что изменится, что не тронется, риск. "
+            "Обновляюсь только по вашей кнопке на эту версию; через несколько дней покажу, стало ли лучше, и предложу вернуть прежнее, если хуже.\n"
+            "Что не тронет: ваши файлы, память, настройки и ключи. Сам навык ничего не меняет, пока вы не нажмёте «Обновиться».\n"
+            "Поставить?" % ((who + ", предлагаю п") if who else "Предлагаю п"))
+    print(json.dumps({"text": text, "buttons": [[{"label": "✅ Поставить", "data": "mila-update:bootstrap:yes"}, {"label": "⏸ Не сейчас", "data": "mila-update:bootstrap:later"}]]},
+                     ensure_ascii=False, indent=1))
 
 
 def cmd_remove_skill(a):
@@ -1082,6 +1098,7 @@ def main():
     p = sp.add_parser("nightly"); p.add_argument("--dry-run", action="store_true")
     p = sp.add_parser("config"); p.add_argument("--set", action="append")
     p = sp.add_parser("manual"); p.add_argument("--what"); p.add_argument("--why"); p.add_argument("--by")
+    p = sp.add_parser("bootstrap-note"); p.add_argument("--name")
     for c in ("diff", "apply", "plan"):
         p = sp.add_parser(c); p.add_argument("--src"); p.add_argument("--tag"); p.add_argument("--json", action="store_true"); p.add_argument("--yes")
         p.add_argument("--take", help="через запятую: что из «отличается» взять из релиза")
@@ -1091,7 +1108,7 @@ def main():
     p = sp.add_parser("remove-skill"); p.add_argument("name"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     a = ap.parse_args()
     try:
-        {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "plan": cmd_plan, "effect": cmd_effect, "manual": cmd_manual, "rollback": cmd_rollback,
+        {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "plan": cmd_plan, "effect": cmd_effect, "manual": cmd_manual, "bootstrap-note": cmd_bootstrap_note, "rollback": cmd_rollback,
          "install-skill": cmd_install_skill, "remove-skill": cmd_remove_skill, "installed": cmd_installed, "nightly": cmd_nightly,
          "config": cmd_config, "health": cmd_health, "slot": cmd_slot}[a.cmd.replace("_", "-")](a)
     finally:   # и при sys.exit внутри команды: что записали — хозяину дома (MILA_CHOWN)
