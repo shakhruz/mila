@@ -16,9 +16,9 @@ import json, sys; p = sys.argv[1]; d = json.load(open(p)); d["tag"] = "v1.5.1"; 
 PY
 $U plan --src "$T/rel" > "$T/p.txt"; $U plan --src "$T/rel" --json > "$T/p.json"
 chk "ничего не меняется → «Что изменится: ничего», риск «нет»" "grep -q 'Что изменится: ничего' $T/p.txt && grep -q '\"risk\": \"нет\"' $T/p.json"
-chk "«Что получите» — по-русски из «Для хозяина» нескольких версий новее v1.5.1 (≥ 4 строк), без v1.5.1" "python3 -c \"
+chk "«Что получите» — по-русски из «Для хозяина» нескольких версий новее v1.5.1 (≥ 4 строк из ≥ 2 версий), без v1.5.1" "python3 -c \"
 import json,sys,re; d=json.load(open('$T/p.json')); g=' '.join(d['get'])
-sys.exit(0 if len(d['get']) >= 4 and 'Сейф' not in g and not re.search(r'[A-Za-z]{4,}', g) else 1)\""
+sys.exit(0 if len(d['get']) >= 4 and len(d['get_versions']) >= 2 and 'v1.5.1' not in d['get_versions'] and 'Сейф' not in g and not re.search(r'[A-Za-z]{4,}', g) else 1)\""
 chk "текст ≤ 900 знаков, есть «Не тронется» и «Отменить можно»" "python3 -c \"import sys; sys.exit(len(open('$T/p.txt').read().rstrip('\\\\n')) > 900)\" && grep -q 'Не тронется' $T/p.txt && grep -q 'Отменить можно' $T/p.txt"
 echo "новая строка текста" >> "$T/rel/skills/visual/SKILL.md"
 $U plan --src "$T/rel" --json > "$T/p.json"; $U plan --src "$T/rel" > "$T/p.txt"

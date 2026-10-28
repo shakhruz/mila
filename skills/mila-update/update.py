@@ -791,7 +791,7 @@ def plan_text(src, m, rows, cur_tag, tag):
                 text = s; break
         if text: break
     if not text: text = "\n".join(head + (["Что получите:"] + gl[:2] if gl else []) + change_lines(False) + tail)[:900]
-    d = {"from": cur_tag, "to": tag, "get": [l for v, l in get], "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf}
+    d = {"from": cur_tag, "to": tag, "get": [l for v, l in get], "get_versions": sorted({v for v, l in get}, key=vkey), "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf}
     return text[:900], d
 
 
