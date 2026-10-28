@@ -595,10 +595,114 @@ def changelog_card(src, tag, version):
     return "\n".join(l.lstrip("-·• ").strip() and "· " + l.lstrip("-·• ").strip().replace("`", "") for l in lines[:3])
 
 
+def _owner_lines(body, n=3):
+    """Из раздела версии CHANGELOG — до n строк «Для хозяина»; без такого блока — первые пункты раздела."""
+    own = re.search(r"^\**(?:Для хозяина|For the owner)\**:?[ \t]*\n?(.*?)(?=^\**(?:Для Мил|For Milas)|^\*\*|\Z)", body, re.S | re.M | re.I)
+    lines = [l.strip() for l in (own.group(1) if own else body).splitlines() if l.strip().startswith(("-", "·", "•"))]
+    if not lines and own: lines = [l.strip() for l in own.group(1).splitlines() if l.strip()]
+    return [l.lstrip("-·• ").strip().replace("`", "") for l in lines if l.lstrip("-·• ").strip()][:n]
+
+
+def changelog_since(src, cur_tag, new_tag, per=2, total=6):
+    """UPDATE-PLAN-2810 (владелец 37034): «что получит» — строки «Для хозяина» ВСЕХ версий новее стоящей до новой включительно,
+    не только последней (Милы стоят на v1.5.1, а ядро ушло на две версии). Кандидаты (-rc) пропускаю."""
+    try: t = open(os.path.join(src, "CHANGELOG.md"), encoding="utf-8").read()
+    except OSError: return []
+    out = []
+    secs = list(re.finditer(r"^##\s+v?(\d+\.\d+\.\d+)(?![\w.-])([^\n]*)\n(.*?)(?=^##\s|\Z)", t, re.S | re.M))
+    for mm in secs:
+        v = "v" + mm.group(1)
+        if cur_tag and re.match(r"^v\d", cur_tag) and vkey(v) <= vkey(cur_tag): continue
+        if new_tag and re.match(r"^v\d", new_tag) and vkey(v) > vkey(new_tag): continue
+        title, body = mm.group(2), mm.group(3)
+        if not re.search(r"^\**(?:Для хозяина|For the owner)\**", body, re.M | re.I):   # блока для хозяина нет — заголовок версии, не пункты разработки
+            tt = re.split(r"\s[—–-]\s", title, 1)
+            out.append((v, "%s: %s" % (v, tt[1].strip() if len(tt) > 1 and tt[1].strip() else "внутренние правки"))); continue
+        for l in _owner_lines(body, per):
+            l = re.split(r"(?<=[.!?…])\s", l, 1)[0]   # первая фраза — карточка, а не changelog
+            out.append((v, l if len(l) <= 160 else l[:157].rstrip() + "…"))
+    return out[:total]
+
+
+CODE_EXT = (".py", ".mjs", ".js", ".ts", ".sh")
+
+
+def changed_files(r):
+    """Файлы, которые реально поменяются в паре (папка — по файлам; новое — всё)."""
+    s, d = r["src"], r["dst"]
+    if os.path.isfile(s): return [r["name"]] if sha(s) != sha(d) else []
+    out = []
+    for root, dirs, files in os.walk(s):
+        dirs[:] = [x for x in dirs if x != "__pycache__"]
+        for f in files:
+            if f.endswith(".pyc"): continue
+            fs = os.path.join(root, f); rel = os.path.relpath(fs, s); fd = os.path.join(d, rel)
+            if sha(fs) != sha(fd): out.append(os.path.join(r["name"], rel))
+    return out
+
+
+def risk_of(rows, m):
+    """Риск обновления простыми словами: низкий — только тексты навыков; средний — код навыков; высокий — хуки, запускатель,
+    настройки (миграция settings), плагин. → (уровень, почему)."""
+    why_hi, why_mid, any_ch = [], [], False
+    for r in rows:
+        if r["state"] not in ("обновится", "новое"): continue
+        files = changed_files(r)
+        if not files: continue
+        any_ch = True
+        if "/hooks/" in r["dst"] or r["dst"].endswith("/.local/bin/mila") or "plugin" in r["dst"] or "settings" in os.path.basename(r["dst"]):
+            why_hi.append(r["name"]); continue
+        if any(f.endswith(CODE_EXT) for f in files): why_mid.append(r["name"])
+    if m.get("migrations") or why_hi:
+        return "высокий", "меняются хуки, запускатель или настройки: " + ", ".join(sorted(set(why_hi))[:5])
+    if why_mid:
+        return "средний", "меняется код навыков: " + ", ".join(sorted(set(why_mid))[:5])
+    if not any_ch and not m.get("migrations"):
+        return "нет", "файлы не меняются"
+    return "низкий", "меняются только тексты навыков и правил"
+
+
+def plan_text(src, m, rows, cur_tag, tag):
+    """Читаемый план хозяину (UPDATE-PLAN-2810): что получит, что изменится, что не тронется, риск. → (текст ≤ 900, словарь)."""
+    get = changelog_since(src, cur_tag, tag)
+    ch, keep = {}, {}
+    for r in rows:
+        if r["state"] in ("обновится", "новое"): ch.setdefault(r["what"], []).append(r["name"])
+        elif r["state"] in ("ваша правка", "отличается"): keep.setdefault(r["state"], []).append(r["name"])
+    lvl, why = risk_of(rows, m)
+    head = ["Обновление %s → %s." % (cur_tag or "—", m.get("version") or tag)]
+    lines = []
+    if ch:
+        lines.append("Что изменится:"); lines += ["· %s: %d (%s)" % (w, len(n), ", ".join(n[:4]) + (" …" if len(n) > 4 else "")) for w, n in ch.items()]
+    else:
+        lines.append("Что изменится: ничего — у вас уже всё из этой версии.")
+    kept = keep.get("ваша правка", []) + keep.get("отличается", [])
+    lines.append("Не тронется: ваша память, настройки, ключи, личные навыки" + ("; ваши правки — %s" % ", ".join(kept[:4]) if kept else "") + ".")
+    lines.append("Риск: %s — %s. Отменить можно." % (lvl, why))
+    # «что получите» — сколько влезет в 900 знаков; изменения, «не тронется» и риск — всегда
+    room = 900 - len("\n".join(head + lines)) - len("\nЧто получите:")
+    got = []
+    for v, l in get:
+        if len("\n".join(got + ["· " + l])) + 1 > room: break
+        got.append("· " + l)
+    text = "\n".join(head + (["Что получите:"] + got if got else []) + lines)
+    d = {"from": cur_tag, "to": tag, "get": [l for v, l in get], "change": ch, "keep": keep, "risk": lvl, "risk_why": why}
+    return text[:900], d
+
+
+def cmd_plan(a):
+    """update.py plan [--src|--tag] [--json] — читаемый план обновления для хозяина (ничего не пишет)."""
+    src = source(a)
+    try: m, rows = compare(src)
+    except ManifestRefused as e: sys.exit(json.dumps({"error": "манифест релиза отклонён целиком", "detail": str(e)}, ensure_ascii=False))
+    txt, d = plan_text(src, m, rows, load_version().get("tag"), m.get("tag") or getattr(a, "tag", None))
+    print(json.dumps(d, ensure_ascii=False, indent=1) if a.json else txt)
+
+
 def card(kind, tag, version, text="", extra=""):
     """Карточка хозяину: простыми словами. kind: offer | done | failed | yanked."""
     if kind == "offer":
-        body = "Есть обновление: версия %s.\n%s\nНе тронется: ваши файлы, память, настройки. Отменить можно.%s" % (version or tag, text, extra)
+        body = ("%s%s" % (text, extra)) if text.startswith("Обновление ") else "Есть обновление: версия %s.\n%s\nНе тронется: ваши файлы, память, настройки. Отменить можно.%s" % (version or tag, text, extra)
         buttons = [[{"label": "✅ Обновиться", "data": "mila-update:apply:" + tag}, {"label": "⏸ Не сейчас", "data": "mila-update:later:" + tag}]]
     elif kind == "done":
         body = "Я обновилась до версии %s.\n%s" % (version or tag, text); buttons = []
@@ -683,10 +787,12 @@ def cmd_nightly(a):
         if a.dry_run:
             print(json.dumps(dict(res, status="dry-run: ничего не записано"), ensure_ascii=False, indent=1)); return
         text = changelog_card(src, tag, m.get("version")) if ch == "stable" else ""
+        plan_txt, plan_d = plan_text(src, m, rows, load_version().get("tag"), tag)   # UPDATE-PLAN-2810: в карточке — читаемый план
+        res["plan"] = plan_d
         if not auto:
             if load_version().get("offered") == tag:
                 print(json.dumps(dict(res, status="offered-already"), ensure_ascii=False)); return
-            res["card"] = deliver_card(card("offer", tag, m.get("version"), text), "offer", tag)
+            res["card"] = deliver_card(card("offer", tag, m.get("version"), plan_txt), "offer", tag)
             v = load_version(); v["offered"] = tag; os.makedirs(STATE, exist_ok=True); json.dump(v, open(VERSION, "w"), ensure_ascii=False, indent=1)
             jlog({"event": "nightly", "result": "offered", "tag": tag})
             print(json.dumps(dict(res, status="offered: жду «да» хозяина"), ensure_ascii=False, indent=1)); return
@@ -864,7 +970,7 @@ def main():
     for c in ("status", "check", "rollback", "installed", "health", "slot"): sp.add_parser(c)
     p = sp.add_parser("nightly"); p.add_argument("--dry-run", action="store_true")
     p = sp.add_parser("config"); p.add_argument("--set", action="append")
-    for c in ("diff", "apply"):
+    for c in ("diff", "apply", "plan"):
         p = sp.add_parser(c); p.add_argument("--src"); p.add_argument("--tag"); p.add_argument("--json", action="store_true"); p.add_argument("--yes")
         p.add_argument("--take", help="через запятую: что из «отличается» взять из релиза")
         p.add_argument("--newborn-ok", action="store_true", help="обновить новорождённую до конца знакомства (только по слову администратора)")
@@ -873,7 +979,7 @@ def main():
     p = sp.add_parser("remove-skill"); p.add_argument("name"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     a = ap.parse_args()
     try:
-        {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "rollback": cmd_rollback,
+        {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "plan": cmd_plan, "rollback": cmd_rollback,
          "install-skill": cmd_install_skill, "remove-skill": cmd_remove_skill, "installed": cmd_installed, "nightly": cmd_nightly,
          "config": cmd_config, "health": cmd_health, "slot": cmd_slot}[a.cmd.replace("_", "-")](a)
     finally:   # и при sys.exit внутри команды: что записали — хозяину дома (MILA_CHOWN)
