@@ -1164,7 +1164,9 @@ def cmd_catalog(a):
         if not r: sys.exit(json.dumps({"error": "в каталоге нет навыка " + a.card}, ensure_ascii=False))
         price = r.get("price") or ""
         price = "Бесплатно." if price == "бесплатно" else ("Сам навык бесплатный, работа — по вашему «да» на расход." if "платн" in price else ("Цена: %s." % price if price else "Цену уточню."))
-        print("Могу научиться: %s — %s. %s\n[✅ Хочу] [Позже]" % (r["name"], (r.get("gives") or "").rstrip("."), price)); return
+        g = (r.get("gives") or r["name"]).rstrip(".")   # хозяину — что даст, без имени навыка латиницей (Качество 16:42)
+        g = g[0].lower() + g[1:] if len(g) > 1 and g[1].islower() else g
+        print("Могу научиться: %s. %s\n[✅ Хочу] [Позже] [✖️ Не надо]" % (g, price)); return
     who = set(filter(None, (a.who or "хозяин").split(",")))
     skip = offered_skip()
     new = [r for r in rows if r["name"] not in have and r.get("who") in who and r["name"] not in skip]

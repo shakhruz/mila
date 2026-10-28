@@ -36,10 +36,11 @@ for r in rs:
 open(p, "w").write("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rs))
 PY
 chk "через 29 дней: «позже» и без ответа — снова в списке, «нет» — никогда" "[ \"\$($U catalog | names)\" = 'ccc,fff,ggg' ]"
-chk "карточка: бесплатно" "$U catalog --card ccc | grep -q '^Могу научиться: ccc — Письма от вашего имени. Бесплатно.$'"
+chk "карточка: бесплатно" "$U catalog --card ccc | grep -q '^Могу научиться: письма от вашего имени. Бесплатно.$'"
 chk "карточка: платные генерации — «по вашему «да» на расход»" "$U catalog --card eee | grep -q 'по вашему «да» на расход'"
 chk "карточка: цена — только из каталога; нет цены — «Цену уточню.»" "$U catalog --card fff | grep -q 'Цена: 120 000 сум.' && $U catalog --card ggg | grep -q 'Цену уточню.'"
-chk "кнопки карточки" "$U catalog --card ccc | grep -q '^\[✅ Хочу\] \[Позже\]$'"
+chk "кнопки карточки — и «Не надо» (закон 6: нажать «нет» должно быть чем)" "$U catalog --card ccc | grep -q '^\[✅ Хочу\] \[Позже\] \[✖️ Не надо\]$'"
+chk "имени навыка латиницей в карточке нет" "! $U catalog --card ccc | grep -q 'ccc'"
 chk "ответ не из want/later/no — отказ" "! $U catalog --offered ccc --answer может >/dev/null 2>&1"
 chk "каталог недоступен (нет файла / сеть) — строка, код ≠ 0" "! MILA_CATALOG_URL=$T/nope.json $U catalog >$T/e 2>&1 && grep -q 'каталог недоступен' $T/e && ! MILA_CATALOG_URL=http://127.0.0.1:9/c.json $U catalog >$T/e2 2>&1 && grep -q 'каталог недоступен' $T/e2"
 echo '{"skills": "нет"}' > "$T/bad.json"
