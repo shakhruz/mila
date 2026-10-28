@@ -14,7 +14,7 @@ description: "Use in groups when unsure a message is for me, and when forwarding
 ## How
 - `python3 ~/.claude/skills/jev/jev.py reply --text "…" [--mentioned] [--reply-to-me] [--dm] [--from-bot] [--chat-role lead|mention] [--quote-author me|bot|human] [--to-other]` → `decision` true/false.
   - `--chat-role lead` — I lead this chat: I answer everything except what is addressed to others; `mention` — only when addressed. Always pass it: without the role Jev and the rules assume «only when addressed».
-  - `--quote-author` — whose message was quoted (me / another bot / a person); `--to-other` — the text names another bot or another Mila.
+  - `--quote-author` — whose message was quoted (me / another bot / a person), from `reply_to_user` in the message meta: my own bot's username → `me`; another username ending in `bot` → `bot`; anyone else → `human`; no `reply_to_user` → leave the flag out. `--to-other` — the text names another bot or another Mila.
 - `jev.py who --text "…" --names "Mila Content,Ads chat"` → a name or «никому» (nobody).
 - `jev.py buttons --text "<my answer>"` → true — send it with buttons.
 - `source`: `jev` — Jev decided; `rules` — simple rules (Jev off, no answer within 1.2 s, or not confident).
