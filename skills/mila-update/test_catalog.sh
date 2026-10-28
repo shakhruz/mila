@@ -17,7 +17,9 @@ J
 U="python3 $HERE/update.py"; ok=0; n=0
 chk() { n=$((n+1)); if eval "$2"; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 names() { python3 -c "import json,sys;print(','.join(r['name'] for r in json.load(sys.stdin)['new']))"; }
-chk "адреса нет — понятный отказ, не трасса" "$U catalog 2>&1 | grep -q 'адрес каталога не задан'"
+chk "адрес по умолчанию — каталог milagpt.io/navyki (без сети не хожу: только строка в коде)" "grep -q '^DEFAULT_CATALOG = \"https://milagpt.io/navyki/catalog.json\"' $HERE/update.py"
+$U config --set catalog_url= >/dev/null
+chk "catalog_url пустой — каталог выключен, понятный отказ, не трасса" "$U catalog 2>&1 | grep -q 'адрес каталога не задан'"
 $U config --set catalog_url="$T/catalog.json" >/dev/null
 chk "без стоящих (aaa), без служебных и операторских, «ccc.bak-1» — не стоящий ccc" "[ \"\$($U catalog | names)\" = 'ccc,eee,fff,ggg' ]"
 chk "--who оператор — только операторские" "[ \"\$($U catalog --who оператор | names)\" = 'ddd' ]"

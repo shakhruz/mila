@@ -10,6 +10,7 @@ description: "Use in groups when unsure a message is for me, and when forwarding
 - In a group I don't barge into people's conversation and don't stay silent when I'm addressed.
 - A task goes to whom it was addressed, not «to everyone».
 - An A/B choice reaches the person as buttons, not as text.
+- For a task I can name 1–3 fitting skills from the catalog — installed or not (the weekly «I can learn» card, «is there a skill for this»).
 
 ## How
 - `python3 ~/.claude/skills/jev/jev.py reply --text "…" [--mentioned] [--reply-to-me] [--dm] [--from-bot] [--chat-role lead|mention] [--quote-author me|bot|human] [--to-other]` → `decision` true/false.
@@ -17,12 +18,14 @@ description: "Use in groups when unsure a message is for me, and when forwarding
   - `--quote-author` — whose message was quoted (me / another bot / a person), from `reply_to_user` in the message meta, compared case-insensitively: my own bot's username → `me`; another username ending in `bot` → `bot`; anyone else → `human`; `reply_to_user` missing or empty (a channel post, a message without a sender) → leave the flag out. `--to-other` — the text names another bot or another Mila.
 - `jev.py who --text "…" --names "Mila Content,Ads chat"` → a name or «никому» (nobody).
 - `jev.py buttons --text "<my answer>"` → true — send it with buttons.
+- `jev.py skill --text "<task>"` → `skills`: name, what it gives, price, `installed`. Catalog — https://milagpt.io/navyki/catalog.json (mila-update `catalog_url`, cached a day). Empty — nothing fits; I don't invent a skill.
 - `source`: `jev` — Jev decided; `rules` — simple rules (Jev off, no answer within 1.2 s, or not confident).
 
 ## Modes (set by the owner or administrator, not by me)
 - `off` — default: rules only, no network.
 - `shadow` — rules decide; Jev is asked and differences go to `~/.claude/jev-diff.jsonl` (no message texts, only length).
 - `main` — Jev decides when confident (≥ `min_conf`). Allowed only after a check against the truth: `jev.py check --file sample.jsonl` — lines `{"text", flags of reply, "truth": true|false}`, where truth is the real move (did I answer). Ready: ≥ 100 different messages, Jev ≥ 90 % and not worse than the rules; `config --set mode=main` refuses otherwise.
+- Skills have their own check: `jev.py check --kind skill --file tasks.jsonl` — lines `{"text", "truth": [skills that really helped]}`; ready: ≥ 50 real tasks, a hit in the top three ≥ 80 % and not worse than the rules (`~/.claude/jev-check-skill.json`). Until then `main` for skills works as `shadow`, even when replies are in `main`.
 - Agreement of Jev with the rules in `shadow` is not a measure: both can be wrong the same way (a 100 % agreement on 62 identical probes was a false readiness). `jev.py stats` shows it for information; `ready_for_main` comes only from the check. The check stores no texts — only counts (`~/.claude/jev-check.json`).
 - Settings: `jev.py config --set mode=shadow --set url=https://…/decide --set site=<home>`; key — env `JEV_KEY` or `~/secrets/jev.key`, never printed.
 

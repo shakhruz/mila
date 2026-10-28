@@ -11,6 +11,7 @@
   jev.py who     --text T --names "Мила Контент,Чат Реклама,…"                  — кому адресовано (или «никому»)
   jev.py buttons --text T                                                       — мой ответ — выбор для человека? (А/Б → кнопки)
   jev.py skill   --text T [--catalog путь|адрес]                                — 1–3 навыка каталога под задачу (стоящие и нет)
+  jev.py check   --kind skill --file tasks.jsonl                               — сверка навыков: {text, truth: [навыки]}, ≥ 50 задач
   jev.py check   --file sample.jsonl                                            — сверка с правдой: строки {text, флаги reply, truth}
                  (truth — настоящий ход Милы: ответила или нет); итог без текстов — в ~/.claude/jev-check.json
   jev.py stats                                                                  — готовность к main (по сверке с правдой) + журнал shadow
@@ -29,6 +30,9 @@ DIFF_P = os.path.join(HOME, ".claude", "jev-diff.jsonl")
 CHECK_P = os.path.join(HOME, ".claude", "jev-check.json")
 CAT_CACHE = os.path.join(HOME, ".claude", "jev-catalog.json")
 CAT_TTL = 86400
+CATALOG_URL = "https://milagpt.io/navyki/catalog.json"
+CHECK_SKILL_P = os.path.join(HOME, ".claude", "jev-check-skill.json")
+SKILL_ROWS, SKILL_PCT = 50, 80   # навык под задачу: в main — по сверке на ≥ 50 настоящих задачах, попал в тройку ≥ 80 % и не хуже правил   # тот же, что DEFAULT_CATALOG в mila-update
 READY_ROWS, READY_PCT = 100, 90
 DEF = {"mode": "off", "url": "", "site": "", "timeout": 1.2, "min_conf": 0.6}
 
@@ -198,14 +202,15 @@ def stems(s):
 
 
 def load_catalog(src=None):
-    """catalog.json: --catalog, иначе MILA_CATALOG_URL, иначе catalog_url из настроек mila-update; адрес — кэш на сутки."""
+    """catalog.json: --catalog, иначе MILA_CATALOG_URL, иначе catalog_url из настроек mila-update (по умолчанию CATALOG_URL,
+    "" — выключен); адрес — кэш на сутки."""
     if not src:
         src = os.environ.get("MILA_CATALOG_URL", "")
     if not src:
         try:
-            src = json.load(open(os.path.join(HOME, ".claude", "mila-update.json"), encoding="utf-8")).get("catalog_url") or ""
+            src = json.load(open(os.path.join(HOME, ".claude", "mila-update.json"), encoding="utf-8")).get("catalog_url", CATALOG_URL)
         except (OSError, ValueError, AttributeError):
-            src = ""
+            src = CATALOG_URL
     if not src:
         return None, "адрес каталога не задан (mila-update config --set catalog_url=…)"
     web = bool(re.match(r"https?://", src))
@@ -265,9 +270,63 @@ def cmd_skill(a):
             return None
         top = [n for p, n in sorted(zip(ps, cand), key=lambda x: -x[0]) if p >= 0.5][:3]
         return (top, max(abs(p - 0.5) * 2 for p in ps))
+    if conf()["mode"] == "main" and not ready_skill(load_json(CHECK_SKILL_P)):
+        os.environ["JEV_MODE"] = "shadow"   # main для «кому/отвечать» не открывает навыки: у них своя сверка (check --kind skill)
     res = decide("skill", a.text, r, q, pick) if cand else {"decision": [], "source": "rules", "mode": conf()["mode"]}
     res["skills"] = [{"name": n, "gives": by[n].get("gives"), "price": by[n].get("price"), "installed": n in have} for n in res["decision"]]
     return res
+
+
+def load_json(p):
+    try:
+        d = json.load(open(p, encoding="utf-8"))
+        return d if isinstance(d, dict) else None
+    except (OSError, ValueError):
+        return None
+
+
+def ready_skill(ch):
+    return bool(ch and ch.get("rows", 0) >= SKILL_ROWS and ch.get("jev_pct") is not None and ch["jev_pct"] >= SKILL_PCT
+                and ch["jev_pct"] >= (ch.get("rules_pct") or 0))
+
+
+def check_skill(a, c):
+    """Сверка навыков: строки {text, truth: [имена навыков, которые на деле пригодились]}; попадание — хоть один из тройки в truth."""
+    cat, err = load_catalog(getattr(a, "catalog", None))
+    if err:
+        return {"error": err}
+    skills = [s for s in cat["skills"] if isinstance(s, dict) and isinstance(s.get("name"), str)]
+    by = {s["name"]: s for s in skills}
+    rows, seen = [], set()
+    try:
+        for l in open(a.file, encoding="utf-8"):
+            if not l.strip(): continue
+            d = json.loads(l)
+            tr = d.get("truth") if isinstance(d, dict) else None
+            tx = str(d.get("text") or "").strip()[:4000] if isinstance(d, dict) else ""
+            if not tx or not isinstance(tr, list) or not tr or tx in seen: continue
+            seen.add(tx); rows.append((tx, {x for x in tr if x in by}))
+    except (OSError, ValueError) as e:
+        return {"error": "файл сверки не прочитан: %s" % type(e).__name__}
+    n = jev_ok = rules_ok = answered = 0
+    for tx, truth in rows:
+        cand = rules_skill(tx, skills, k=8)
+        n += 1; rules_ok += bool(set(cand[:3]) & truth)
+        if not cand: continue
+        q = {"s%d" % i: {"type": "noul", "instructions": "Задача человека — в тексте. Поможет ли с ней навык «%s»: %s?" % (x, by[x].get("gives", ""))}
+             for i, x in enumerate(cand)}
+        ans = ask(c, tx, q)
+        ps = [(ans.get("s%d" % i) or {}).get("noul") if ans and isinstance(ans.get("s%d" % i), dict) else None for i in range(len(cand))]
+        if all(isinstance(p, (int, float)) for p in ps):
+            top = [x for p, x in sorted(zip(ps, cand), key=lambda z: -z[0]) if p >= 0.5][:3]
+            answered += 1; jev_ok += bool(set(top) & truth)
+        elif n >= 5 and not answered:
+            return {"error": "шлюз Jev не ответил на 5 строк подряд — сверка не начата"}
+    res = {"ts": int(time.time()), "kind": "skill", "rows": n, "jev_answered": answered,
+           "jev_pct": round(100 * jev_ok / n) if n else None, "rules_pct": round(100 * rules_ok / n) if n else None}
+    os.makedirs(os.path.dirname(CHECK_SKILL_P), exist_ok=True)
+    json.dump(res, open(CHECK_SKILL_P, "w", encoding="utf-8"), ensure_ascii=False)
+    return dict(res, ready_for_main=ready_skill(res))
 
 
 class Row:
@@ -285,6 +344,8 @@ def cmd_check(a):
     c = conf()
     if not c["url"]:
         return {"error": "нет адреса шлюза (jev.py config --set url=…)"}
+    if getattr(a, "kind", "reply") == "skill":
+        return check_skill(a, c)
     rows, seen = [], set()
     try:
         for l in open(a.file, encoding="utf-8"):
@@ -362,7 +423,8 @@ def cmd_stats(a):
         say = (f"Сверка с правдой: Jev {ch['jev_pct']} %, правила {ch['rules_pct']} % на {ch['rows']} разных сообщениях — для main нужно "
                f"≥ {READY_ROWS} сообщений, Jev ≥ {READY_PCT} % и не хуже правил")
     return {"rows": tot, "same_pct": pct, "by_kind": {k: {"rows": v[0], "same_pct": round(100 * v[1] / v[0])} for k, v in by.items()},
-            "check": ch, "ready_for_main": ready(ch), "say": say, "calls": calls}
+            "check": ch, "ready_for_main": ready(ch), "say": say, "calls": calls,
+            "check_skill": load_json(CHECK_SKILL_P), "skill_ready_for_main": ready_skill(load_json(CHECK_SKILL_P))}
 
 
 def cmd_config(a):
@@ -394,7 +456,8 @@ def main():
     for f in ("mentioned", "reply-to-me", "dm", "from-bot", "to-other"):
         p.add_argument("--" + f, action="store_true")
     p.add_argument("--chat-role", choices=("lead", "mention")); p.add_argument("--quote-author", choices=("me", "bot", "human"))
-    p = sp.add_parser("check"); p.add_argument("--file", required=True)
+    p = sp.add_parser("check"); p.add_argument("--file", required=True); p.add_argument("--kind", choices=("reply", "skill"), default="reply")
+    p.add_argument("--catalog")
     p = sp.add_parser("who"); p.add_argument("--text", required=True); p.add_argument("--names", required=True)
     p = sp.add_parser("buttons"); p.add_argument("--text", required=True)
     p = sp.add_parser("skill"); p.add_argument("--text", required=True); p.add_argument("--catalog")

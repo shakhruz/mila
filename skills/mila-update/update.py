@@ -32,7 +32,7 @@ CLAUDE = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(HOME, ".claude")
 WORK = os.environ.get("MILA_WORK") or os.path.join(HOME, "work")
 DEFAULT_REPO = "https://github.com/shakhruz/mila.git"   # открытое ядро: ключ не нужен
 CONFIG = os.path.join(CLAUDE, "mila-update.json")
-DEFAULT_CATALOG = ""   # КАТАЛОГ-НАВЫКОВ-2810: адрес catalog.json каталога навыков (страница рядом — index.html)
+DEFAULT_CATALOG = "https://milagpt.io/navyki/catalog.json"   # КАТАЛОГ-НАВЫКОВ-2810: каталог навыков, страница — milagpt.io/navyki/
 DEFAULT_CFG = {"channel": "stable", "auto": False, "repo": DEFAULT_REPO, "owner_chat": "", "catalog_url": DEFAULT_CATALOG}   # auto=false: ставит только по «да» хозяина
 
 
@@ -1133,7 +1133,7 @@ def offered_skip(now=None):
 
 
 def load_catalog():
-    url = os.environ.get("MILA_CATALOG_URL") or CFG.get("catalog_url") or DEFAULT_CATALOG
+    url = os.environ.get("MILA_CATALOG_URL") or CFG.get("catalog_url", DEFAULT_CATALOG)   # catalog_url="" — каталог выключен
     if not url:
         sys.exit(json.dumps({"error": "адрес каталога не задан: update.py config --set catalog_url=<адрес catalog.json>"}, ensure_ascii=False))
     try:
