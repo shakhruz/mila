@@ -718,6 +718,20 @@ def _owner_lines(body, n=3, head=OWNER_ANY):
     return [l.lstrip("-·• ").strip().replace("`", "") for l in lines if l.lstrip("-·• ").strip()][:n]
 
 
+GET_MAX = 90   # Качество 19:10: строка пользы — до ~90 знаков, чтобы в 900 влезли строки ≥ 3 версий, а не одна длинная
+
+
+def short_line(l, n=GET_MAX):
+    """Суть строки пользы до n знаков: до двоеточия или тире, если суть там; иначе по слову с «…»."""
+    l = l.strip()
+    if len(l) <= n: return l
+    for sep in (": ", " — "):
+        head = l.split(sep, 1)[0]
+        if 25 <= len(head) <= n: return head.rstrip(" ,;") + "."
+    cut = l[:n - 1].rsplit(" ", 1)[0].rstrip(" ,;:—-")
+    return cut + "…"
+
+
 def changelog_since(src, cur_tag, new_tag, per=2, total=None):
     """UPDATE-PLAN-2810 (владелец 37034): «что получит» — строки «Для хозяина» ВСЕХ версий новее стоящей до новой включительно,
     не только последней (Милы стоят на v1.5.1, а ядро ушло на две версии). Кандидаты (-rc) пропускаю."""
@@ -735,7 +749,7 @@ def changelog_since(src, cur_tag, new_tag, per=2, total=None):
             out.append((v, "%s: улучшения навыков (описания для хозяина в этой версии нет)" % v)); continue
         for l in _owner_lines(body, per, OWNER_RU):
             l = re.split(r"(?<=[.!?…])\s", l, 1)[0]   # первая фраза — карточка, а не changelog
-            out.append((v, l if len(l) <= 160 else l[:157].rstrip() + "…"))
+            out.append((v, short_line(l)))
     return out[:total] if total else out   # обрезка — после order_get: иначе старые версии отрезались раньше, чем дошла их очередь
 
 
