@@ -21,7 +21,7 @@ curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh |
 
 ![Mila](docs/preview.png)
 
-**Current release: [v1.6.4](https://github.com/shakhruz/mila/releases/latest)** · [what's new](CHANGELOG.md)
+**Current release: [v1.6.5](https://github.com/shakhruz/mila/releases/latest)** · [what's new](CHANGELOG.md)
 
 **Which version to take:** stable — [Releases](https://github.com/shakhruz/mila/releases) (tags `vX.Y.Z`); canary — the `main` branch (newest, may break).
 

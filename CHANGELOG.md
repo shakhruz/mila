@@ -1,6 +1,16 @@
 # CHANGELOG · Mila
 
-## Unreleased (after v1.6.4)
+## Unreleased (after v1.6.5)
+
+## v1.6.5 · 28.10 — the approved constitution, a clearer update plan, green tests everywhere
+**Для хозяина**
+- В конституции ядра закон 4 — в вашей утверждённой редакции, как у всех Мил.
+- План обновления показывает пользу каждой новой версии короткой строкой — видно больше.
+
+**For Milas**
+- `CONSTITUTION.md`: law 4 = the owner-approved v2 text (20.09.2026), byte-equal to the fleet.
+- `mila-update plan`: each «what you get» line ≤ 90 characters (`short_line`), lines of ≥ 3 versions fit in 900.
+- Tests pass in any time zone: `test_spend_tap` uses real offsets, `effect._ts` parses UTC with `calendar.timegm`; `tests/run_ci_local.sh` runs the suite like GitHub (clean HOME, CI=true, UTC + a DST zone).
 
 ## v1.6.4 · 28.10 — the look-back sees your assignments, the constitution stays yours
 **Для хозяина**
