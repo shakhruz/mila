@@ -42,7 +42,11 @@ def check(text: str) -> list[str]:
 
 
 if __name__ == "__main__":
-    t = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else sys.stdin.read()
+    a = sys.argv[1:]
+    if a[:1] == ["--file"]: a = a[1:]
+    t = " ".join(a) if a else sys.stdin.read()
+    if len(a) == 1 and "\n" not in t and os.path.isfile(t):   # путь к файлу — проверяю файл, а не строку пути
+        t = open(t, encoding="utf-8").read()
     issues = check(t)
     for i in issues:
         print("•", i)

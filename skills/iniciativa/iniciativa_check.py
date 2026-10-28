@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Инициативность (слово владельца 28.10): вопрос хозяину — только с предложением и рекомендацией.
 check(text, options=None) → список замечаний; пусто — можно отправлять.
-Usage: iniciativa_check.py "<текст>" [--options N]  (или текст из stdin) → замечания и код 1, если они есть."""
+Usage: iniciativa_check.py "<текст>" | [--file] <путь> [--options N]  (или текст из stdin) → замечания и код 1, если они есть."""
+import os
 import re
 import sys
 
@@ -30,7 +31,10 @@ if __name__ == "__main__":
     n = None
     if "--options" in a:
         i = a.index("--options"); n = int(a[i + 1]); a = a[:i] + a[i + 2:]
+    if a[:1] == ["--file"]: a = a[1:]
     t = " ".join(a) if a else sys.stdin.read()
+    if len(a) == 1 and "\n" not in t and os.path.isfile(t):   # Качество 17:38: путь к файлу — проверяю файл, а не строку пути
+        t = open(t, encoding="utf-8").read()
     issues = check(t, n)
     for x in issues:
         print("•", x)

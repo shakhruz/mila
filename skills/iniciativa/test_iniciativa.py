@@ -24,4 +24,11 @@ r = subprocess.run([sys.executable, os.path.join(H, "iniciativa_check.py"), "К�
 chk("командная строка: замечание и код 1", r.returncode == 1 and "без предложения" in r.stdout, r.stdout)
 r = subprocess.run([sys.executable, os.path.join(H, "iniciativa_check.py"), "--options", "3"], input=good, capture_output=True, text=True)
 chk("командная строка: текст из stdin, --options 3 → код 0", r.returncode == 0 and "✓" in r.stdout, r.stdout + r.stderr)
+import tempfile
+f = os.path.join(tempfile.mkdtemp(), "ic.txt"); open(f, "w").write("Ответить ей?")
+for args in ([f], ["--file", f]):
+    r = subprocess.run([sys.executable, os.path.join(H, "iniciativa_check.py"), *args], capture_output=True, text=True)
+    chk("путь к файлу с голым вопросом (%s) — проверяю файл, замечание" % " ".join(a if a == "--file" else "путь" for a in args), r.returncode == 1 and "без предложения" in r.stdout, r.stdout)
+r = subprocess.run([sys.executable, os.path.join(os.path.dirname(H), "plain-words", "plain_words_check.py"), f], capture_output=True, text=True)
+chk("plain_words_check тоже читает файл по пути", r.returncode == 1 and "инициатива" in r.stdout, r.stdout)
 print("итог %d/%d" % (ok, n)); sys.exit(0 if ok == n else 1)
