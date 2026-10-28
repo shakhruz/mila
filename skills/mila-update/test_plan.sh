@@ -7,6 +7,8 @@ mkdir -p "$CLAUDE_CONFIG_DIR" "$MILA_WORK"; echo "знакомство: прой
 cp -R "$REPO" "$T/rel"; rm -rf "$T/rel/.git"
 U="python3 $HERE/update.py"; ok=0; n=0
 chk() { n=$((n+1)); if eval "$2"; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; echo "   $(head -c 400 $T/p.txt 2>/dev/null)"; fi; }
+$U plan --src "$T/rel" > "$T/p0.txt"
+chk "план «с нуля» (все зоны новые) — в тексте ≥ 2 строк «Что получите», ≤ 900, риск на месте" "[ \$(sed -n '/^Что получите:/,/^Что изменится/p' $T/p0.txt | grep -c '^· ') -ge 2 ] && python3 -c \"import sys; sys.exit(len(open('$T/p0.txt').read().rstrip('\\\\n')) > 900)\" && grep -q '^Риск:' $T/p0.txt"
 $U apply --src "$T/rel" --yes "тест: база" >/dev/null 2>&1
 # стоящая версия — v1.5.1: «что получите» должно собрать строки v1.5.2 и v1.5.3, не только последней
 python3 - "$CLAUDE_CONFIG_DIR/mila-update/version.json" <<'PY'
@@ -17,7 +19,7 @@ chk "ничего не меняется → «Что изменится: нич�
 chk "«Что получите» — по-русски из «Для хозяина» v1.5.2 и v1.5.3 (все версии между), без v1.5.1" "python3 -c \"
 import json,sys,re; d=json.load(open('$T/p.json')); g=' '.join(d['get'])
 sys.exit(0 if 'Пульт дня' in g and 'вопроса' in g and 'Сейф' not in g and not re.search(r'[A-Za-z]{4,}', g) else 1)\""
-chk "текст ≤ 900 знаков, есть «Не тронется» и «Отменить можно»" "[ \$(wc -m < $T/p.txt) -le 900 ] && grep -q 'Не тронется' $T/p.txt && grep -q 'Отменить можно' $T/p.txt"
+chk "текст ≤ 900 знаков, есть «Не тронется» и «Отменить можно»" "python3 -c \"import sys; sys.exit(len(open('$T/p.txt').read().rstrip('\\\\n')) > 900)\" && grep -q 'Не тронется' $T/p.txt && grep -q 'Отменить можно' $T/p.txt"
 echo "новая строка текста" >> "$T/rel/skills/visual/SKILL.md"
 $U plan --src "$T/rel" --json > "$T/p.json"; $U plan --src "$T/rel" > "$T/p.txt"
 chk "поменялся только текст навыка → риск низкий, в «изменится» — visual" "grep -q '\"risk\": \"низкий\"' $T/p.json && grep -q 'visual' $T/p.txt"

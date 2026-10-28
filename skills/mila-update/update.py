@@ -678,23 +678,25 @@ def plan_text(src, m, rows, cur_tag, tag):
         elif r["state"] in ("ваша правка", "отличается"): keep.setdefault(r["state"], []).append(r["name"])
     lvl, why = risk_of(rows, m)
     head = ["Обновление %s → %s." % (cur_tag or "—", m.get("version") or tag)]
-    lines = []
-    if ch:
-        lines.append("Что изменится:"); lines += ["· %s: %d (%s)" % (w, len(n), ", ".join(n[:4]) + (" …" if len(n) > 4 else "")) for w, n in ch.items()]
-    else:
-        lines.append("Что изменится: ничего — у вас уже всё из этой версии.")
     kept = keep.get("ваша правка", []) + keep.get("отличается", [])
-    lines.append("Не тронется: ваша память, настройки, ключи, личные навыки" + ("; ваши правки — %s" % ", ".join(kept[:4]) if kept else "") + ".")
     word = [r["name"] for r in rows if r["state"] in ("обновится", "новое") and (os.path.basename(r["dst"]) == "CONSTITUTION.md" or "/canon/" in r["dst"] + "/") and changed_files(r)]
-    if word: lines.append("Меняется конституция или канон (%s) — прочитайте до «Обновиться»." % ", ".join(word[:3]))
-    lines.append("Риск: %s — %s. Отменить можно." % (lvl, why))
-    # «что получите» — сколько влезет в 900 знаков; изменения, «не тронется» и риск — всегда
-    room = 900 - len("\n".join(head + lines)) - len("\nЧто получите:")
-    got = []
-    for v, l in get:
-        if len("\n".join(got + ["· " + l])) + 1 > room: break
-        got.append("· " + l)
-    text = "\n".join(head + (["Что получите:"] + got if got else []) + lines)
+    tail = ["Не тронется: ваша память, настройки, ключи, личные навыки" + ("; ваши правки — %s" % ", ".join(kept[:4]) if kept else "") + "."]
+    if word: tail.append("Меняется конституция или канон (%s) — прочитайте до «Обновиться»." % ", ".join(word[:3]))
+    tail.append("Риск: %s — %s. Отменить можно." % (lvl, why))
+    def change_lines(names):   # Качество 10:12: ужимаю имена в «что изменится», а не пользу
+        if not ch: return ["Что изменится: ничего — у вас уже всё из этой версии."]
+        if names: return ["Что изменится:"] + ["· %s: %d (%s)" % (w, len(n), ", ".join(n[:4]) + (" …" if len(n) > 4 else "")) for w, n in ch.items()]
+        return ["Что изменится: " + "; ".join("%s — %d" % (w, len(n)) for w, n in ch.items()) + "."]
+    gl = ["· " + l for v, l in get]
+    text = ""
+    for names in (True, False):   # сначала с именами; не влезает с ≥ 2 строками пользы — без имён
+        for k in range(len(gl), -1, -1):
+            body = head + (["Что получите:"] + gl[:k] if k else []) + change_lines(names) + tail
+            s = "\n".join(body)
+            if len(s) <= 900 and (k >= min(2, len(gl)) or not names):
+                text = s; break
+        if text: break
+    if not text: text = "\n".join(head + (["Что получите:"] + gl[:2] if gl else []) + change_lines(False) + tail)[:900]
     d = {"from": cur_tag, "to": tag, "get": [l for v, l in get], "change": ch, "keep": keep, "risk": lvl, "risk_why": why}
     return text[:900], d
 
