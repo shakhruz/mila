@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Оглядка (слово владельца 28.10): поручения хозяина за окно, у которых нет задачи в журнале задач.
-  oglyadka.py [--hours 12] [--owner ID] [--projects DIR] [--ledger FILE]
+  oglyadka.py [--hours 12] [--owner ID] [--owner-user имя_в_Telegram] [--projects DIR] [--ledger FILE]
 Источник поручений — журналы разговоров Claude Code (~/.claude/projects/**/*.jsonl): входящие из канала Telegram от хозяина
 (OWNER_ID), похожие на поручение. Задача есть — если после поручения в журнале задач (mila-tasks, ledger.jsonl) завели
 задачу или обещание, у которого с поручением общие слова или тот же чат и сообщение-якорь. Вывод — время, чат, начало
@@ -22,7 +22,18 @@ def words(s):
     return {w[:5] for w in re.findall(r"[а-яёa-z0-9]{4,}", (s or "").lower())}
 
 
-def asks(projects, owner, since):
+def is_owner(attrs, owner, owner_user=""):
+    """Хозяин: user_id = его id; или личка хозяина (chat_id = его id — туда пишет только он); или user = его имя в Telegram.
+    Настоящий тег канала несёт user="<имя>", а не id (28.10: по живому журналу оглядка не видела ни одного поручения)."""
+    uid, chat, name = ATTR(attrs, "user_id"), ATTR(attrs, "chat_id"), (ATTR(attrs, "user") or "").lstrip("@")
+    mid = ATTR(attrs, "message_id")
+    if mid and not mid.isdigit(): return False   # служебные входящие (тик маховика, записки, почта файлов) — не слова хозяина
+    if uid: return str(uid) == str(owner)
+    if owner_user and name and name.lower() != owner_user.lstrip("@").lower(): return False
+    return str(chat) == str(owner) or bool(owner_user and name.lower() == owner_user.lstrip("@").lower())
+
+
+def asks(projects, owner, since, owner_user=""):
     out = []
     for f in glob.glob(os.path.join(projects, "**", "*.jsonl"), recursive=True):
         try: fh = open(f, encoding="utf-8", errors="replace")
@@ -35,8 +46,7 @@ def asks(projects, owner, since):
                 c = (d.get("message") or {}).get("content")
                 c = c if isinstance(c, str) else " ".join(x.get("text", "") for x in c or [] if isinstance(x, dict))
                 for attrs, body in CH.findall(c):
-                    uid = ATTR(attrs, "user_id") or ATTR(attrs, "user")
-                    if owner and str(uid or ATTR(attrs, "chat_id")) != str(owner): continue   # есть отправитель — по нему, нет — по чату лички
+                    if owner and not is_owner(attrs, owner, owner_user): continue
                     t = _t(ATTR(attrs, "ts")) or _t(d.get("timestamp"))
                     if t is None or t < since or not ASK.search(body): continue
                     out.append({"t": t, "chat": ATTR(attrs, "chat_id"), "msg": ATTR(attrs, "message_id"), "text": body.strip()})
@@ -57,11 +67,11 @@ def tasks(ledger):
     return out
 
 
-def lost(projects, ledger, owner, hours, now=None):
+def lost(projects, ledger, owner, hours, now=None, owner_user=""):
     now = now or dt.datetime.now().timestamp()
     tk = tasks(ledger)
     res = []
-    for a in asks(projects, owner, now - hours * 3600):
+    for a in asks(projects, owner, now - hours * 3600, owner_user):
         aw = words(a["text"])
         hit = any(x["t"] >= a["t"] - 60 and ((a["msg"] and a["msg"] in x["anchor"]) or len(aw & x["w"]) >= 2) for x in tk)
         if not hit:
@@ -70,11 +80,11 @@ def lost(projects, ledger, owner, hours, now=None):
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--hours", type=float, default=12); ap.add_argument("--owner", default=os.environ.get("OWNER_ID", ""))
+    ap = argparse.ArgumentParser(); ap.add_argument("--hours", type=float, default=12); ap.add_argument("--owner", default=os.environ.get("OWNER_ID", "")); ap.add_argument("--owner-user", default=os.environ.get("OWNER_USERNAME", ""))
     ap.add_argument("--projects", default=os.path.join(os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude"), "projects"))
     ap.add_argument("--ledger", default=os.path.join(os.environ.get("MILA_TASKS_DIR") or os.path.expanduser("~/milagpt/tasks"), "ledger.jsonl"))
     a = ap.parse_args()
-    rows = lost(a.projects, a.ledger, a.owner, a.hours)
+    rows = lost(a.projects, a.ledger, a.owner, a.hours, owner_user=a.owner_user)
     for r in rows:
         s = PHONE.sub("⟦тел⟧", r["text"].replace("\n", " "))[:60]
         print("%s · чат %s · %s" % (dt.datetime.fromtimestamp(r["t"]).strftime("%d.%m %H:%M"), r["chat"], s))
