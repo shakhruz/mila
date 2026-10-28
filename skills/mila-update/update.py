@@ -487,6 +487,7 @@ def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_labe
     if side or kept:   # путь до new/<тег> — только сами каталоги (go+rx), не всё содержимое STATE (журнал и бэкапы не открываем)
         for q in (STATE, os.path.join(STATE, "new")): readable(q, deep=False)
         readable(newdir)
+    effect_before(tag, m.get("version"))   # UPDATE-EFFECT-2810: «до» — три числа за 7 дней перед обновлением
     jlog({"event": "update", "tag": tag, "version": m.get("version"), "yes": yes, "backup": b, "added": added, "touched": touched,
           "updated": [r["name"] for r in todo if r["cur"] is not None], "new_beside": [r["name"] for r in side],
           "renamed": {r["name"]: ren[r["name"]] for r in rows if r["name"] in ren and r["cur"] is not None}, "renamed_kept_edit": [r["name"] for r in kept]})
@@ -494,6 +495,52 @@ def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_labe
             "dobavleno": [r["name"] for r in todo if r["cur"] is None], "vasha_pravka_new_v": newdir if side or kept else "", "backup": b,
             "pereimenovano": {r["name"]: ren[r["name"]] for r in rows if r["name"] in ren and r["cur"] is not None},
             "pravka_starogo_imeni": [os.path.join(newdir, "было-" + r["name"]) for r in kept]}
+
+
+EFFECT = os.path.join(STATE, "effect.json")
+EFFECT_AFTER_DAYS = 3   # «после» не раньше чем через 3 дня, окно — те же дни, что прошли (до 7)
+
+
+def effect_before(tag, version, now=None):
+    """UPDATE-EFFECT-2810 (владелец 37034, часть Б): при обновлении — три числа работы за 7 дней ДО него."""
+    try:
+        import effect as E
+        now = time.time() if now is None else now
+        b = E.metrics(HOME, CLAUDE, now - 7 * 86400, now)
+        os.makedirs(STATE, exist_ok=True)
+        json.dump({"tag": tag, "version": version, "applied": now, "before": b, "reported": False}, open(EFFECT, "w"), ensure_ascii=False, indent=1)
+        jlog({"event": "effect_before", "tag": tag, "before": b})
+    except Exception as e:
+        soft_err("effect_before", e)
+
+
+def effect_check(now=None):
+    """Через 3–7 дней после обновления: «после» за прошедшие дни → карточка хозяину «что изменилось»; хуже — кнопка отката.
+    Один раз на обновление. → словарь результата или None (рано / уже отчитались / нет записи)."""
+    import effect as E
+    now = time.time() if now is None else now
+    try: e = json.load(open(EFFECT, encoding="utf-8"))
+    except (OSError, ValueError): return None
+    if e.get("reported") or now - e.get("applied", now) < EFFECT_AFTER_DAYS * 86400: return None
+    days = min(7, (now - e["applied"]) / 86400.0)
+    after = E.metrics(HOME, CLAUDE, e["applied"], e["applied"] + days * 86400)
+    lines, worse = E.compare(e.get("before") or {}, after)
+    ver = e.get("version") or e.get("tag")
+    text = ("После обновления до %s прошло %d дн. Как я работаю (в среднем за день, до → после):\n" % (ver, int(days))) + "\n".join(lines)
+    if worse: text += "\nСтало хуже. Вернуть прежнюю версию? Решение за вами."
+    else: text += "\nХуже не стало — оставляю."
+    c = {"text": text[:900], "buttons": [[{"label": "↩ Вернуть прежнюю", "data": "mila-update:rollback:" + str(e.get("tag"))}, {"label": "Оставить", "data": "mila-update:keep:" + str(e.get("tag"))}]] if worse else []}
+    e.update({"after": after, "worse": worse, "reported": True, "reported_at": now}); json.dump(e, open(EFFECT, "w"), ensure_ascii=False, indent=1)
+    jlog({"event": "effect_after", "tag": e.get("tag"), "after": after, "worse": worse})
+    return {"card": c, "worse": worse, "before": e.get("before"), "after": after}
+
+
+def cmd_effect(a):
+    """update.py effect — сверка «до/после» обновления (ночной шаг зовёт сам); рано или уже было — так и пишу."""
+    r = effect_check()
+    if r is None: print(json.dumps({"status": "рано или уже отчиталась (или обновления с замером не было)"}, ensure_ascii=False)); return
+    r["delivered"] = deliver_card(r["card"], "effect", "")
+    print(json.dumps(r, ensure_ascii=False, indent=1))
 
 
 def cmd_apply(a):
@@ -769,6 +816,12 @@ def candidate():
 def cmd_nightly(a):
     ch = CFG["channel"]; auto = bool(CFG["auto"])
     res = {"channel": ch, "auto": auto, "dry_run": a.dry_run}
+    if not a.dry_run:   # UPDATE-EFFECT-2810: через 3–7 дней после обновления — карточка «что изменилось»
+        try:
+            r = effect_check()
+            if r: res["effect"] = {"worse": r["worse"], "card": deliver_card(r["card"], "effect", "")}
+        except Exception as e:
+            soft_err("effect_check", e)
     if ch == "manual": print(json.dumps(dict(res, status="manual: сама не проверяю"), ensure_ascii=False)); return
     nb = newborn_block("nightly")
     if nb: print(json.dumps(dict(res, status="skip", reason=nb), ensure_ascii=False)); return
@@ -978,7 +1031,7 @@ def cmd_installed(a):
 def main():
     ap = argparse.ArgumentParser(description="mila-update")
     sp = ap.add_subparsers(dest="cmd", required=True)
-    for c in ("status", "check", "rollback", "installed", "health", "slot"): sp.add_parser(c)
+    for c in ("status", "check", "rollback", "installed", "health", "slot", "effect"): sp.add_parser(c)
     p = sp.add_parser("nightly"); p.add_argument("--dry-run", action="store_true")
     p = sp.add_parser("config"); p.add_argument("--set", action="append")
     for c in ("diff", "apply", "plan"):
@@ -990,7 +1043,7 @@ def main():
     p = sp.add_parser("remove-skill"); p.add_argument("name"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     a = ap.parse_args()
     try:
-        {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "plan": cmd_plan, "rollback": cmd_rollback,
+        {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "plan": cmd_plan, "effect": cmd_effect, "rollback": cmd_rollback,
          "install-skill": cmd_install_skill, "remove-skill": cmd_remove_skill, "installed": cmd_installed, "nightly": cmd_nightly,
          "config": cmd_config, "health": cmd_health, "slot": cmd_slot}[a.cmd.replace("_", "-")](a)
     finally:   # и при sys.exit внутри команды: что записали — хозяину дома (MILA_CHOWN)
