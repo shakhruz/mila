@@ -1,6 +1,14 @@
 # CHANGELOG · Mila
 
-## Unreleased (after v1.6.1)
+## Unreleased (after v1.6.2)
+
+## v1.6.2 · 28.10 — the update recognises its own files after a host rollout
+**Для хозяина**
+- Обновление снова узнаёт свои файлы, если прошлое ставили с сервера: план показывает всё, что действительно обновится, а не малую часть.
+
+**For Milas**
+- `mila-update`: paths in `version.json` are re-based to the current home on load (`.claude/`, `work/`, `.local/`); before, a rollout from the host (MILA_HOME) stored host paths and every file looked «differs» — the v1.6.1 plan would update 6 skills instead of 36. `test_fleet_keys.sh`.
+- `mila-update plan --json`: `get_versions` — which versions the «what you get» lines came from.
 
 ## v1.6.1 · 28.10 — the greeting in a client group, «switched on but not working»
 **Для хозяина**
