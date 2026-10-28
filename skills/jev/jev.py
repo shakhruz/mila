@@ -251,6 +251,28 @@ def rules_skill(text, skills, k=3):
     return [name for _, name in sorted(sc)[:k]]
 
 
+def skill_q(skills):
+    """Вопрос Jev — выбор одного навыка из всего каталога, кроме служебных (28.10: «да/нет» по 8 кандидатам правил давал 27 %,
+    выбор из 122 навыков — 50 % первым же ответом на 30 задачах владельца: правила не приводят нужный навык в кандидаты)."""
+    pool = [s for s in skills if s.get("who") != "наша Мила"][:200]
+    crit = {s["name"]: str(s.get("gives") or s["name"])[:160] for s in pool}
+    crit["никакой"] = "ни один навык не подходит"
+    return {"skill": {"type": "choice", "instructions": "Какой навык Милы лучше всего поможет с задачей человека из текста? "
+                      "Не подходит ни один — «никакой».", "criteria": crit}}, set(crit)
+
+
+def skill_pick(names, rules):
+    """Ответ Jev → (тройка, уверенность): выбор Jev первым, к нему — до двух от правил; «никакой» — пусто."""
+    def pick(ans):
+        v = ans.get("skill") or {}
+        ch = v.get("choice") if isinstance(v, dict) else None
+        if ch not in names:
+            return None
+        top = [] if ch == "никакой" else [ch] + [x for x in rules if x != ch][:2]
+        return (top, float(v.get("confidence") or 0))
+    return pick
+
+
 def cmd_skill(a):
     cat, err = load_catalog(getattr(a, "catalog", None))
     if err:
@@ -260,20 +282,11 @@ def cmd_skill(a):
     sd = os.path.join(HOME, ".claude", "skills")
     have = set(os.listdir(sd)) if os.path.isdir(sd) else set()
     r = rules_skill(a.text, skills)
-    cand = rules_skill(a.text, skills, k=8)   # Jev выбирает из 8 лучших по правилам: один вызов, вопрос на кандидата
-    q = {"s%d" % i: {"type": "noul", "instructions": "Задача человека — в тексте. Поможет ли с ней навык «%s»: %s?" % (n, by[n].get("gives", ""))}
-         for i, n in enumerate(cand)}
-
-    def pick(ans):
-        ps = [(ans.get("s%d" % i) or {}).get("noul") if isinstance(ans.get("s%d" % i), dict) else None for i in range(len(cand))]
-        if not cand or any(not isinstance(p, (int, float)) for p in ps):
-            return None
-        top = [n for p, n in sorted(zip(ps, cand), key=lambda x: -x[0]) if p >= 0.5][:3]
-        return (top, max(abs(p - 0.5) * 2 for p in ps))
+    q, names = skill_q(skills)
     if conf()["mode"] == "main" and not ready_skill(load_json(CHECK_SKILL_P)):
         os.environ["JEV_MODE"] = "shadow"   # main для «кому/отвечать» не открывает навыки: у них своя сверка (check --kind skill)
-    res = decide("skill", a.text, r, q, pick) if cand else {"decision": [], "source": "rules", "mode": conf()["mode"]}
-    res["skills"] = [{"name": n, "gives": by[n].get("gives"), "price": by[n].get("price"), "installed": n in have} for n in res["decision"]]
+    res = decide("skill", a.text, r, q, skill_pick(names, r))
+    res["skills"] = [{"name": n, "gives": by[n].get("gives"), "price": by[n].get("price"), "installed": n in have} for n in res["decision"] if n in by]
     return res
 
 
@@ -309,17 +322,13 @@ def check_skill(a, c):
     except (OSError, ValueError) as e:
         return {"error": "файл сверки не прочитан: %s" % type(e).__name__}
     n = jev_ok = rules_ok = answered = 0
+    q, names = skill_q(skills)
     for tx, truth in rows:
-        cand = rules_skill(tx, skills, k=8)
-        n += 1; rules_ok += bool(set(cand[:3]) & truth)
-        if not cand: continue
-        q = {"s%d" % i: {"type": "noul", "instructions": "Задача человека — в тексте. Поможет ли с ней навык «%s»: %s?" % (x, by[x].get("gives", ""))}
-             for i, x in enumerate(cand)}
-        ans = ask(c, tx, q)
-        ps = [(ans.get("s%d" % i) or {}).get("noul") if ans and isinstance(ans.get("s%d" % i), dict) else None for i in range(len(cand))]
-        if all(isinstance(p, (int, float)) for p in ps):
-            top = [x for p, x in sorted(zip(ps, cand), key=lambda z: -z[0]) if p >= 0.5][:3]
-            answered += 1; jev_ok += bool(set(top) & truth)
+        rr = rules_skill(tx, skills)
+        n += 1; rules_ok += bool(set(rr) & truth)
+        ans = ask(c, tx, q); j = skill_pick(names, rr)(ans) if ans else None
+        if j:
+            answered += 1; jev_ok += bool(set(j[0]) & truth)
         elif n >= 5 and not answered:
             return {"error": "шлюз Jev не ответил на 5 строк подряд — сверка не начата"}
     res = {"ts": int(time.time()), "kind": "skill", "rows": n, "jev_answered": answered,
