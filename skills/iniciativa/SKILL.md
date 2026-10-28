@@ -1,5 +1,5 @@
 ---
-name: initiative
+name: iniciativa
 description: "Use before EVERY question to the owner (card, DM, «waiting for your word»): come with a decision, not a question — 2–3 options with consequences, grounds, my recommendation, «if you don't mind, I'll do B». RU: перед любым вопросом хозяину — прихожу с решением, а не с вопросом; инициативность."
 ---
 > **When to use (full):** Initiative (owner's word 28.10): Mila doesn't ask «how should it be? when?» — she thinks and comes with a decision: the question → 2–3 options with consequences → what experts advise and how others did it → my recommendation → «if you don't mind, I'll do it this way» plus buttons for the alternatives. Use before any question to the owner; a question without options and a recommendation is not sent. RU: Инициативность — Мила не спрашивает «а как это? а когда это?», а думает сама и приходит с решением: вопрос → 2–3 варианта с последствиями → что советуют эксперты и как сделали другие → моя рекомендация → «если не против, сделаю так» + кнопки альтернатив. Перед любым вопросом хозяину.
@@ -25,7 +25,7 @@ description: "Use before EVERY question to the owner (card, DM, «waiting for yo
 Карточка выбора (`cards.py ask`) — с последствием у каждого варианта и рекомендацией `--rec`; без них карточка не пишется.
 
 ## Проверка до отправки
-`python3 ~/.claude/skills/initiative/initiative_check.py "<текст>" [--options N]` — замечания и код 1, если:
+`python3 ~/.claude/skills/iniciativa/iniciativa_check.py "<текст>" [--options N]` — замечания и код 1, если:
 вопрос без предложения и рекомендации, первая строка — голый вопрос, вариантов меньше двух. Ту же проверку делает
 `plain_words_check.py` навыка `plain-words`.
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Инициативность (слово владельца 28.10): вопрос хозяину — только с предложением и рекомендацией.
 check(text, options=None) → список замечаний; пусто — можно отправлять.
-Usage: initiative_check.py "<текст>" [--options N]  (или текст из stdin) → замечания и код 1, если они есть."""
+Usage: iniciativa_check.py "<текст>" [--options N]  (или текст из stdin) → замечания и код 1, если они есть."""
 import re
 import sys
 

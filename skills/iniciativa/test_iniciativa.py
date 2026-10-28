@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""initiative_check (слово владельца 28.10): вопрос без варианта и рекомендации → отказ; предложение с «если не против» → можно;
+"""iniciativa_check (слово владельца 28.10): вопрос без варианта и рекомендации → отказ; предложение с «если не против» → можно;
 карточка cards.py (вопрос + «⭐ Советую») → можно; вариантов меньше двух → отказ. Пробы — как в SKILL.md."""
 import os, subprocess, sys
 H = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, H)
-from initiative_check import check
+from iniciativa_check import check
 ok = n = 0
 def chk(m, c, x=""):
     global ok, n
@@ -20,8 +20,8 @@ chk("карточка cards.py (вопрос + варианты + ⭐ Совет
 chk("рекомендация есть, но вариант один → отказ", any("вариантов 1" in x for x in check(good, 1)), check(good, 1))
 chk("отчёт без вопроса и без предложения → не мешаю", check("Выложила сайт, дым 5/5.") == [])
 chk("«посоветуете?» не считается рекомендацией (целое слово «советую»)", check("Что посоветуете?") != [])
-r = subprocess.run([sys.executable, os.path.join(H, "initiative_check.py"), "Когда выпускаем?"], capture_output=True, text=True)
+r = subprocess.run([sys.executable, os.path.join(H, "iniciativa_check.py"), "Когда выпускаем?"], capture_output=True, text=True)
 chk("командная строка: замечание и код 1", r.returncode == 1 and "без предложения" in r.stdout, r.stdout)
-r = subprocess.run([sys.executable, os.path.join(H, "initiative_check.py"), "--options", "3"], input=good, capture_output=True, text=True)
+r = subprocess.run([sys.executable, os.path.join(H, "iniciativa_check.py"), "--options", "3"], input=good, capture_output=True, text=True)
 chk("командная строка: текст из stdin, --options 3 → код 0", r.returncode == 0 and "✓" in r.stdout, r.stdout + r.stderr)
 print("итог %d/%d" % (ok, n)); sys.exit(0 if ok == n else 1)

@@ -57,7 +57,7 @@ check("18 состояние = последняя строка по id (конт
 k("ask", "--q", "Берём новый канал?", "--why", "Каталог просит.", "--opt", "a|Да|канал наш", "--opt", "b|Нет|остаёмся", "--rec", "a", e=dict(env, MILA_WORK=T, MILA_SLUG="kontent"))
 n, _ = k("next", "inbox", "--home", W, "--home", T)
 bad, rc = k("ask", "--q", "Когда выпускаем?", "--why", "Ролик готов.", "--opt", "a|Сегодня|", "--opt", "b|Завтра|")
-check("20 initiative: вопрос без рекомендации и без последствий — не записан, обе причины названы", rc == 1 and any("рекомендации" in e for e in bad["errors"]) and any("последствия" in e for e in bad["errors"]), bad.get("errors"))
+check("20 iniciativa: вопрос без рекомендации и без последствий — не записан, обе причины названы", rc == 1 and any("рекомендации" in e for e in bad["errors"]) and any("последствия" in e for e in bad["errors"]), bad.get("errors"))
 check("19 администратор видит вопрос команды (--home), подпись «Спрашивает: kontent»", n["left"] == 1 and "Спрашивает: kontent" in n["text"], n.get("text"))
 a, _ = k("button", "[кнопка] Да")
 check("20 ответ на чужую карточку пишется в файл той Милы", a.get("ok") and lines(os.path.join(T, "inbox.jsonl"))[-1]["status"] == "answered" and not os.path.exists(os.path.join(W, "inbox.jsonl.x")))
