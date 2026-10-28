@@ -718,7 +718,7 @@ def _owner_lines(body, n=3, head=OWNER_ANY):
     return [l.lstrip("-·• ").strip().replace("`", "") for l in lines if l.lstrip("-·• ").strip()][:n]
 
 
-def changelog_since(src, cur_tag, new_tag, per=2, total=6):
+def changelog_since(src, cur_tag, new_tag, per=2, total=None):
     """UPDATE-PLAN-2810 (владелец 37034): «что получит» — строки «Для хозяина» ВСЕХ версий новее стоящей до новой включительно,
     не только последней (Милы стоят на v1.5.1, а ядро ушло на две версии). Кандидаты (-rc) пропускаю."""
     try: t = open(os.path.join(src, "CHANGELOG.md"), encoding="utf-8").read()
@@ -736,7 +736,7 @@ def changelog_since(src, cur_tag, new_tag, per=2, total=6):
         for l in _owner_lines(body, per, OWNER_RU):
             l = re.split(r"(?<=[.!?…])\s", l, 1)[0]   # первая фраза — карточка, а не changelog
             out.append((v, l if len(l) <= 160 else l[:157].rstrip() + "…"))
-    return out[:total]
+    return out[:total] if total else out   # обрезка — после order_get: иначе старые версии отрезались раньше, чем дошла их очередь
 
 
 CODE_EXT = (".py", ".mjs", ".js", ".ts", ".sh")
@@ -820,7 +820,7 @@ def plan_text(src, m, rows, cur_tag, tag):
         if names: return ["Что изменится:"] + ["· %s: %d (%s)" % (w, len(n), ", ".join(n[:4]) + (" …" if len(n) > 4 else "")) for w, n in ch.items()]
         short = lambda w: re.split(r" \(| — ", w, 1)[0]   # без пояснений зоны в скобках: хозяину — коротко
         return ["Что изменится: " + "; ".join("%s — %d" % (short(w), len(n)) for w, n in ch.items()) + "."]
-    og = order_get(get); gl = ["· " + l for v, l in og]
+    og = order_get(get)[:6]; gl = ["· " + l for v, l in og]
     text = ""
     for names in (True, False):   # сначала с именами; не влезает с ≥ 2 строками пользы — без имён
         for k in range(len(gl), -1, -1):
@@ -830,7 +830,7 @@ def plan_text(src, m, rows, cur_tag, tag):
                 text = s; break
         if text: break
     if not text: text = "\n".join(head + (["Что получите:"] + gl[:2] if gl else []) + change_lines(False) + tail)[:900]
-    d = {"from": cur_tag, "to": tag, "get": [l for v, l in get], "get_versions": sorted({v for v, l in get}, key=vkey), "get_order": [v for v, l in og], "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf}
+    d = {"from": cur_tag, "to": tag, "get": [l for v, l in og], "get_versions": sorted({v for v, l in og}, key=vkey), "get_order": [v for v, l in og], "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf}
     return text[:900], d
 
 
