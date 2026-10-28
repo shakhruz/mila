@@ -47,11 +47,13 @@ with open(os.path.join(P, "s.jsonl"), "a") as f:
     f.write(json.dumps({"type": "user", "timestamp": iso(19), "message": {"role": "user", "content": '<channel source="telegram" chat_id="%s" message_id="32" user="owner_name" ts="%s">@mila подготовь план встречи</channel>' % (CHAT_ID, iso(19))}}, ensure_ascii=False) + "\n")
     f.write(json.dumps({"type": "user", "timestamp": iso(18), "message": {"role": "user", "content": '<channel source="telegram" chat_id="%s" message_id="33" user="someone_else" ts="%s">Сделай мне скидку</channel>' % (CHAT_ID, iso(18))}}, ensure_ascii=False) + "\n")
     f.write(json.dumps({"type": "user", "timestamp": iso(17), "message": {"role": "user", "content": '<channel source="telegram" chat_id="%s" message_id="tick-1" user="Маховик" ts="%s">Сделай один шаг из бэклога</channel>' % (OWNER_ID, iso(17))}}, ensure_ascii=False) + "\n")
+    f.write(json.dumps({"type": "user", "timestamp": iso(16), "message": {"role": "user", "content": '<channel source="telegram" chat_id="%s" message_id="41" user="other_bot" ts="%s">Сделай рассылку всем</channel>' % (OWNER_ID, iso(16))}}, ensure_ascii=False) + "\n")
 ids = [x["msg"] for x in lost(os.path.join(T, "projects"), L, OWNER_ID, 12, owner_user="@Owner_Name")]
+chk("в чате лички хозяина чужое имя (бот, пересланное) при известном имени хозяина — не его поручение", "41" not in ids, ids)
 chk("служебное входящее в личке хозяина (тик, message_id не число) — не поручение", "tick-1" not in ids and "tick-1" not in [x["msg"] for x in lost(os.path.join(T, "projects"), L, OWNER_ID, 12)], ids)
 chk("живой тег без user_id: личка хозяина — в счёт; группа — по его имени; чужое имя в группе — нет", "31" in ids and "32" in ids and "33" not in ids, ids)
 ids = [x["msg"] for x in lost(os.path.join(T, "projects"), L, OWNER_ID, 12)]
 chk("имени хозяина не дали — в группе по имени не угадываю, личка всё равно в счёт", "31" in ids and "32" not in ids, ids)
 os.remove(L)
-chk("журнала задач нет — все поручения окна потеряны (5), не падаю", len(lost(os.path.join(T, "projects"), L, OWNER_ID, 12)) == 5)
+chk("журнала задач нет — все поручения окна потеряны (6: без имени хозяина личка — его), не падаю", len(lost(os.path.join(T, "projects"), L, OWNER_ID, 12)) == 6)
 print("итог %d/%d" % (ok, n)); sys.exit(0 if ok == n else 1)
