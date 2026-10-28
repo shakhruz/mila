@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """Проверка карточки пульта по правилам «Ясно» (SKILL.md). Печатает замечания; код 1, если они есть."""
+import os
 import re
 import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "initiative"))
+try:
+    from initiative_check import check as initiative   # INITIATIVE-2810: вопрос без предложения и рекомендации — замечание
+except ImportError:   # навыка initiative нет рядом — проверяю только «Ясно»
+    initiative = lambda text: []
 
 # Целые слова/корни с границей слова: «прод» не должен ловить «продлить», «продукт», «продажи».
 BANNED = [r"превью", r"деплой\w*", r"прод(?:е|а|у)?", r"стенд\w*", r"прогон\w*", r"перегон\w*", r"трекшн\w*",
@@ -28,6 +35,7 @@ def check(text: str) -> list[str]:
             out.append(f"слово «{m.group(0)}» — см. таблицу замен")
     for m in CODE.findall(text):
         out.append(f"код/номер «{m}» в тексте — перенести в конец в скобки или убрать")
+    out += ["инициатива: " + x for x in initiative(text)]
     if re.search(r"Решай сама|Пауза|Как дела", text):
         out.append("кнопки движения на карточке выбора — убрать")
     return out

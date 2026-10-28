@@ -176,6 +176,9 @@ def check_card(kind, c):
         if any(not x for x in labels): err.append("пустая подпись варианта")
         if len(set(x[:40] for x in labels)) != len(labels): err.append("подписи вариантов совпадают (в первых 40 знаках) — нажатие не различить")
         if c.get("rec") and c["rec"] not in keys: err.append("рекомендация не из вариантов")
+        # INITIATIVE-2810 (слово владельца 28.10): вопрос хозяину — с решением: рекомендация и последствие у каждого варианта
+        if not c.get("rec"): err.append("нет рекомендации (--rec) — навык initiative: прихожу с решением, не с вопросом")
+        if any(not str(o.get("result") or "").strip() for o in c.get("options") or []): err.append("у варианта нет последствия (a|подпись|что будет) — навык initiative")
     else:
         if not c.get("to"): err.append("нет исполнителя (--to)")
         if c.get("prio") not in (1, 2, 3): err.append("prio — 1, 2 или 3")
