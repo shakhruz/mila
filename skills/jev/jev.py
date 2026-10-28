@@ -10,6 +10,7 @@
   (--text - : текст из stdin, не виден в ps)
   jev.py who     --text T --names "Мила Контент,Чат Реклама,…"                  — кому адресовано (или «никому»)
   jev.py buttons --text T                                                       — мой ответ — выбор для человека? (А/Б → кнопки)
+  jev.py skill   --text T [--catalog путь|адрес]                                — 1–3 навыка каталога под задачу (стоящие и нет)
   jev.py check   --file sample.jsonl                                            — сверка с правдой: строки {text, флаги reply, truth}
                  (truth — настоящий ход Милы: ответила или нет); итог без текстов — в ~/.claude/jev-check.json
   jev.py stats                                                                  — готовность к main (по сверке с правдой) + журнал shadow
@@ -26,6 +27,8 @@ HOME = os.path.expanduser("~")
 CONF_P = os.path.join(HOME, ".claude", "jev.json")
 DIFF_P = os.path.join(HOME, ".claude", "jev-diff.jsonl")
 CHECK_P = os.path.join(HOME, ".claude", "jev-check.json")
+CAT_CACHE = os.path.join(HOME, ".claude", "jev-catalog.json")
+CAT_TTL = 86400
 READY_ROWS, READY_PCT = 100, 90
 DEF = {"mode": "off", "url": "", "site": "", "timeout": 1.2, "min_conf": 0.6}
 
@@ -185,6 +188,88 @@ def cmd_buttons(a):
     return decide("buttons", a.text, rules_buttons(a.text), q, noul("buttons"))
 
 
+# --- skill: какие навыки каталога подходят задаче (КАТАЛОГ-НАВЫКОВ-2810, шаг 2) ---
+STOP = set("это как что для или его она они мне вам нас вас при над под без про уже еще ещё все всё так там тут где когда надо нужно можно сделай сделать хочу".split())
+
+
+def stems(s):
+    """Основа слова: до 5 букв, у коротких — без окончания («звука» и «звук» → «звук»)."""
+    return {w[:min(5, max(4, len(w) - 2))] for w in re.findall(r"[а-яёa-z0-9]+", s.lower().replace("ё", "е")) if len(w) >= 4 and w not in STOP}
+
+
+def load_catalog(src=None):
+    """catalog.json: --catalog, иначе MILA_CATALOG_URL, иначе catalog_url из настроек mila-update; адрес — кэш на сутки."""
+    if not src:
+        src = os.environ.get("MILA_CATALOG_URL", "")
+    if not src:
+        try:
+            src = json.load(open(os.path.join(HOME, ".claude", "mila-update.json"), encoding="utf-8")).get("catalog_url") or ""
+        except (OSError, ValueError, AttributeError):
+            src = ""
+    if not src:
+        return None, "адрес каталога не задан (mila-update config --set catalog_url=…)"
+    web = bool(re.match(r"https?://", src))
+    try:
+        if web:
+            try:
+                cc = json.load(open(CAT_CACHE, encoding="utf-8"))
+                if cc.get("src") == src and time.time() - cc.get("t", 0) < CAT_TTL:
+                    return cc["catalog"], None
+            except (OSError, ValueError, KeyError, AttributeError):
+                pass
+            with urllib.request.urlopen(urllib.request.Request(src, headers={"User-Agent": "mila-jev"}), timeout=10) as r:
+                cat = json.loads(r.read().decode("utf-8"))
+        else:
+            cat = json.load(open(src, encoding="utf-8"))
+        if not isinstance(cat, dict) or not isinstance(cat.get("skills"), list):
+            raise ValueError("нет списка skills")
+    except Exception as e:
+        return None, "каталог недоступен: %s" % type(e).__name__
+    if web:
+        try:
+            json.dump({"src": src, "t": int(time.time()), "catalog": cat}, open(CAT_CACHE, "w", encoding="utf-8"), ensure_ascii=False)
+        except OSError:
+            pass
+    return cat, None
+
+
+def rules_skill(text, skills, k=3):
+    """Совпадение основ слов задачи со строкой «что даёт» и именем навыка; редкое слово весит больше частого (idf).
+    Ни одного совпадения — не предлагаю."""
+    import math
+    docs = [(s["name"], stems(s.get("gives", "") + " " + s["name"].replace("-", " "))) for s in skills]
+    df = {}
+    for _, d in docs:
+        for w in d: df[w] = df.get(w, 0) + 1
+    st, n = stems(text), max(len(docs), 1)
+    sc = [(-sum(math.log(1 + n / df[w]) for w in st & d), name) for name, d in docs if st & d]
+    return [name for _, name in sorted(sc)[:k]]
+
+
+def cmd_skill(a):
+    cat, err = load_catalog(getattr(a, "catalog", None))
+    if err:
+        return {"error": err}
+    skills = [s for s in cat["skills"] if isinstance(s, dict) and isinstance(s.get("name"), str)]
+    by = {s["name"]: s for s in skills}
+    sd = os.path.join(HOME, ".claude", "skills")
+    have = set(os.listdir(sd)) if os.path.isdir(sd) else set()
+    r = rules_skill(a.text, skills)
+    cand = rules_skill(a.text, skills, k=8)   # Jev выбирает из 8 лучших по правилам: один вызов, вопрос на кандидата
+    q = {"s%d" % i: {"type": "noul", "instructions": "Задача человека — в тексте. Поможет ли с ней навык «%s»: %s?" % (n, by[n].get("gives", ""))}
+         for i, n in enumerate(cand)}
+
+    def pick(ans):
+        ps = [(ans.get("s%d" % i) or {}).get("noul") if isinstance(ans.get("s%d" % i), dict) else None for i in range(len(cand))]
+        if not cand or any(not isinstance(p, (int, float)) for p in ps):
+            return None
+        top = [n for p, n in sorted(zip(ps, cand), key=lambda x: -x[0]) if p >= 0.5][:3]
+        return (top, max(abs(p - 0.5) * 2 for p in ps))
+    res = decide("skill", a.text, r, q, pick) if cand else {"decision": [], "source": "rules", "mode": conf()["mode"]}
+    res["skills"] = [{"name": n, "gives": by[n].get("gives"), "price": by[n].get("price"), "installed": n in have} for n in res["decision"]]
+    return res
+
+
 class Row:
     """Строка сверки → те же поля, что у reply из командной строки."""
     def __init__(self, d):
@@ -312,12 +397,13 @@ def main():
     p = sp.add_parser("check"); p.add_argument("--file", required=True)
     p = sp.add_parser("who"); p.add_argument("--text", required=True); p.add_argument("--names", required=True)
     p = sp.add_parser("buttons"); p.add_argument("--text", required=True)
+    p = sp.add_parser("skill"); p.add_argument("--text", required=True); p.add_argument("--catalog")
     p = sp.add_parser("stats"); p.add_argument("--hours", type=float, help="только последние N часов (например 24)")
     p = sp.add_parser("config"); p.add_argument("--set", action="append")
     a = ap.parse_args()
     if getattr(a, "text", None) == "-":   # JEV-STDIN-1022: текст из stdin — не виден в списке процессов (ps)
         a.text = sys.stdin.read()[:4000]
-    r = {"reply": cmd_reply, "who": cmd_who, "buttons": cmd_buttons, "check": cmd_check, "stats": cmd_stats, "config": cmd_config}[a.cmd](a)
+    r = {"reply": cmd_reply, "who": cmd_who, "buttons": cmd_buttons, "skill": cmd_skill, "check": cmd_check, "stats": cmd_stats, "config": cmd_config}[a.cmd](a)
     print(json.dumps(r, ensure_ascii=False))
     sys.exit(1 if "error" in r else 0)
 
