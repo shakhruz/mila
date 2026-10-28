@@ -19,6 +19,11 @@ chk "ничего не меняется → «Что изменится: нич�
 chk "«Что получите» — по-русски из «Для хозяина» нескольких версий новее v1.5.1 (≥ 4 строк из ≥ 2 версий), без v1.5.1" "python3 -c \"
 import json,sys,re; d=json.load(open('$T/p.json')); g=' '.join(d['get'])
 sys.exit(0 if len(d['get']) >= 4 and len(d['get_versions']) >= 2 and 'v1.5.1' not in d['get_versions'] and 'Сейф' not in g and not re.search(r'[A-Za-z]{4,}', g) else 1)\""
+chk "первая строка «Что получите» в тексте — из «Для хозяина» выпуска x.y.0 (v1.6.0), а не из свежего патча" "python3 -c \"
+import re,sys; c=open('$T/rel/CHANGELOG.md').read(); sec=re.split(r'^## ', c, flags=re.M); v=[s for s in sec if re.match(r'v1\\.6\\.0 ', s)][0]
+own=v.split('**Для хозяина**')[1].split('**')[0]; L=[l[2:].strip().replace('\\x60','') for l in own.splitlines() if l.startswith('- ')]
+first=open('$T/p.txt').read().split('Что получите:')[1].strip().splitlines()[0][2:].strip()
+sys.exit(0 if L and first in L else 1)\""
 chk "текст ≤ 900 знаков, есть «Не тронется» и «Отменить можно»" "python3 -c \"import sys; sys.exit(len(open('$T/p.txt').read().rstrip('\\\\n')) > 900)\" && grep -q 'Не тронется' $T/p.txt && grep -q 'Отменить можно' $T/p.txt"
 echo "новая строка текста" >> "$T/rel/skills/visual/SKILL.md"
 $U plan --src "$T/rel" --json > "$T/p.json"; $U plan --src "$T/rel" > "$T/p.txt"
@@ -32,7 +37,7 @@ $U plan --src "$T/rel" --json > "$T/p.json"
 chk "поменялся хук → риск высокий, имя хука в причине" "grep -q '\"risk\": \"высокий\"' $T/p.json && grep -q \"\$(basename $h)\" $T/p.json"
 echo "моя правка" >> "$CLAUDE_CONFIG_DIR/skills/visual/SKILL.md"
 $U plan --src "$T/rel" > "$T/p.txt"
-chk "хозяин правил навык → он в «Не тронется: ваши правки», не в «изменится»" "grep 'Не тронется' $T/p.txt | grep -q visual && ! grep 'навыки ядра' $T/p.txt | grep -q '(visual'"
+chk "хозяин правил навык → «ваши правки в 1 месте сохранятся» числом, без имени латиницей; не в «изменится»" "grep 'Не тронется' $T/p.txt | grep -q 'ваши правки в 1 месте сохранятся' && ! grep 'Не тронется' $T/p.txt | grep -q visual && ! grep 'навыки ядра' $T/p.txt | grep -q '(visual'"
 chk "plan ничего не пишет: дом не изменился" "grep -q 'моя правка' $CLAUDE_CONFIG_DIR/skills/visual/SKILL.md && ! grep -q 'правка хука' $CLAUDE_CONFIG_DIR/hooks/\$(basename $h)"
 python3 - "$T/rel/CHANGELOG.md" <<'PY'
 import sys; p = sys.argv[1]; t = open(p).read(); h = "## v1.5.3 "

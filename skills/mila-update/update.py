@@ -780,6 +780,21 @@ def risk_of(rows, m):
     return "низкий", "меняются только тексты навыков и правил"
 
 
+def order_get(get):
+    """«Что получите» по одной строке с каждой версии, потом вторые строки (Качество 17:13: 900 знаков кончались на свежих
+    патчах, а главное — выпуск x.y.0 — не попадало). Порядок версий: сначала x.y.0 (новые от свежей), потом остальные от свежей."""
+    by, order = {}, []
+    for v, l in get:
+        if v not in by: by[v] = []; order.append(v)
+        by[v].append(l)
+    minor = lambda v: re.match(r"v?\d+\.\d+\.0$", v or "") is not None
+    order = sorted(order, key=lambda v: (not minor(v), tuple(-x for x in vkey(v))))
+    out, i = [], 0
+    while any(len(by[v]) > i for v in order):
+        out += [(v, by[v][i]) for v in order if len(by[v]) > i]; i += 1
+    return out
+
+
 def plan_text(src, m, rows, cur_tag, tag):
     """Читаемый план хозяину (UPDATE-PLAN-2810): что получит, что изменится, что не тронется, риск. → (текст ≤ 900, словарь)."""
     get = changelog_since(src, cur_tag, tag)
@@ -791,7 +806,10 @@ def plan_text(src, m, rows, cur_tag, tag):
     head = ["Обновление %s → %s." % (cur_tag or "—", m.get("version") or tag)]
     kept = keep.get("ваша правка", []) + keep.get("отличается", [])
     word = [r["name"] for r in rows if r["state"] in ("обновится", "новое") and (os.path.basename(r["dst"]) == "CONSTITUTION.md" or "/canon/" in r["dst"] + "/") and changed_files(r)]
-    tail = ["Не тронется: ваша память, настройки, ключи, личные навыки" + ("; ваши правки — %s" % ", ".join(kept[:4]) if kept else "") + "."]
+    def _n(k, one, many): return "%d %s" % (k, one if k % 10 == 1 and k % 100 != 11 else many)
+    mine, other = keep.get("ваша правка", []), keep.get("отличается", [])   # хозяину — числом, без имён латиницей (Качество 17:13)
+    tail = ["Не тронется: ваша память, настройки, ключи, личные навыки" + ("; ваши правки в %s сохранятся" % _n(len(mine), "месте", "местах") if mine else "")
+            + ("; навыки и файлы, поставленные не этим обновлением (%d), не меняю — заменить можно отдельно" % len(other) if other else "") + "."]
     if word: tail.append("Меняется конституция или канон (%s) — прочитайте до «Обновиться»." % ", ".join(word[:3]))
     mf = manual_fate(rows)   # UPDATE-MANUAL-2810: ручные вставки администратора после прошлого обновления
     if mf["zatryot"]: tail.append("Ручные правки администратора, которые обновление заменит: %s." % ", ".join(mf["zatryot"][:3]))
@@ -802,7 +820,7 @@ def plan_text(src, m, rows, cur_tag, tag):
         if names: return ["Что изменится:"] + ["· %s: %d (%s)" % (w, len(n), ", ".join(n[:4]) + (" …" if len(n) > 4 else "")) for w, n in ch.items()]
         short = lambda w: re.split(r" \(| — ", w, 1)[0]   # без пояснений зоны в скобках: хозяину — коротко
         return ["Что изменится: " + "; ".join("%s — %d" % (short(w), len(n)) for w, n in ch.items()) + "."]
-    gl = ["· " + l for v, l in get]
+    og = order_get(get); gl = ["· " + l for v, l in og]
     text = ""
     for names in (True, False):   # сначала с именами; не влезает с ≥ 2 строками пользы — без имён
         for k in range(len(gl), -1, -1):
@@ -812,7 +830,7 @@ def plan_text(src, m, rows, cur_tag, tag):
                 text = s; break
         if text: break
     if not text: text = "\n".join(head + (["Что получите:"] + gl[:2] if gl else []) + change_lines(False) + tail)[:900]
-    d = {"from": cur_tag, "to": tag, "get": [l for v, l in get], "get_versions": sorted({v for v, l in get}, key=vkey), "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf}
+    d = {"from": cur_tag, "to": tag, "get": [l for v, l in get], "get_versions": sorted({v for v, l in get}, key=vkey), "get_order": [v for v, l in og], "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf}
     return text[:900], d
 
 
