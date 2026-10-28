@@ -5,7 +5,7 @@
   errors  — ошибок в день: строки с error/429/timeout/ECONN в журнале приёмника канала;
   tokens  — токенов в день (вход + выход + кэш-создание) по тем же журналам сессий — мера расхода без цены.
 Без текстов сообщений: считаю только вызовы и числа."""
-import glob, json, os, re, time
+import calendar, glob, json, os, re, time
 
 ERR = re.compile(r"\b(error|ошибк|429|timeout|timed out|ECONN\w*|ETIMEDOUT|failed)\b", re.I)
 
@@ -15,7 +15,7 @@ def _ts(s):
     if not isinstance(s, str) or len(s) < 19:
         return None
     try:
-        return time.mktime(time.strptime(s[:19], "%Y-%m-%dT%H:%M:%S")) - time.timezone   # журналы — UTC
+        return calendar.timegm(time.strptime(s[:19], "%Y-%m-%dT%H:%M:%S"))   # журналы — UTC; mktime − timezone ошибался на час в поясах с летним временем (CI-TZ-2810)
     except ValueError:
         return None
 

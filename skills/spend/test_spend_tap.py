@@ -13,7 +13,9 @@ ENV = dict(os.environ, RASHOD_HOME=R, TELEGRAM_CARDS_FILE=CF)
 def s(*a):
     p = subprocess.run([sys.executable, os.path.join(H, "spend.py"), *a], capture_output=True, text=True, env=ENV)
     return p.returncode, (p.stdout + p.stderr).strip()
-def iso(dt=0): return time.strftime("%Y-%m-%dT%H:%M:%S+05:00", time.localtime(time.time() + dt))
+def iso(dt=0):   # CI-TZ-2810: время с настоящим поясом машины — «+05:00» к местным часам в CI (UTC) сдвигал карточку на 5 ч назад
+    import datetime as _d
+    return (_d.datetime.now().astimezone() + _d.timedelta(seconds=dt)).isoformat(timespec="seconds")
 def card(cid, text, buttons=(("✅ Делаем", "ok"),), ts=None, tapped_by=None, data=None):
     with open(CF, "a") as f:
         f.write(json.dumps({"card_id": cid, "chat_id": OWNER, "via": "companion-reply", "allow": [OWNER], "text": text, "ts": ts or iso(1),
