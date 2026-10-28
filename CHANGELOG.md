@@ -1,6 +1,22 @@
 # CHANGELOG · Mila
 
-## Unreleased (after v1.6.2)
+## Unreleased (after v1.6.3)
+
+## v1.6.3 · 28.10 — I come with a decision, get ready before events, keep the thread
+**Для хозяина**
+- Прихожу к вам с решением, а не с вопросом: моё предложение, 2–3 варианта с последствиями и совет. Голый вопрос «когда? сколько?» не отправляю.
+- Перед встречей, запуском или выступлением прохожу проверку по списку и закрываю, чего не хватает, до начала.
+- Поток ваших поручений не теряю: каждое записываю, срочное беру сразу, почти готовое доделываю, днём и вечером перечитываю переписку — не забыла ли что.
+- Жалобу на помощника сначала сверяю с его журналом и даю вам ответ фактами и готовый шаг.
+- Перед показом деки или страницы — стилевой консилиум из трёх взглядов, чтобы выглядело профессионально.
+- Трату выше порога, лимит и бюджеты меняю только по вашему нажатию кнопки.
+- План обновления показывает главное из каждой новой версии и советует заменить устаревший сторож отправки.
+
+**For Milas**
+- New core skills (owner's word 28.10): `iniciativa` (`iniciativa_check.py`; `plain_words_check` runs it; `cards.py ask` needs `--rec` and a consequence per option), `bud-gotova` (`gotova.py`), `zhonglyor` (`zhonglyor.py`), `oglyadka` (`oglyadka.py` + `task.py scan-sent`), `stilnaya` (`stilnaya.py`), `razbor-lichki` (`razbor.py`).
+- `spend` (SPEND-TAP): `approve <id> --card <card_id>` — the tapper comes from the plugin's `cards.jsonl`, not from `--by`; the same lock on `limit`, `budget`, `owner`. Until the receiver records which button was pressed, a spend card has one button «✅ Делаем».
+- `mila-update plan`: «what you get» one line per version, x.y.0 first, trimmed after ordering; edits counted; send guard / constitution installed outside the update → «советую заменить», `recommend_take`, `apply --take`.
+- README: the «nothing goes out without the owner's yes» row says what the code does.
 
 ## v1.6.2 · 28.10 — the update recognises its own files after a host rollout
 **Для хозяина**
