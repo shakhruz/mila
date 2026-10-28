@@ -780,6 +780,9 @@ def risk_of(rows, m):
     return "низкий", "меняются только тексты навыков и правил"
 
 
+GUARD_TAKE = {"send-guard.py": "Сторож отправки", "CONSTITUTION.md": "Конституция"}
+
+
 def order_get(get):
     """«Что получите» по одной строке с каждой версии, потом вторые строки (Качество 17:13: 900 знаков кончались на свежих
     патчах, а главное — выпуск x.y.0 — не попадало). Порядок версий: сначала x.y.0 (новые от свежей), потом остальные от свежей."""
@@ -814,6 +817,13 @@ def plan_text(src, m, rows, cur_tag, tag):
     mf = manual_fate(rows)   # UPDATE-MANUAL-2810: ручные вставки администратора после прошлого обновления
     if mf["zatryot"]: tail.append("Ручные правки администратора, которые обновление заменит: %s." % ", ".join(mf["zatryot"][:3]))
     if mf["sohranit"]: tail.append("Ручные правки администратора сохранятся: %s." % ", ".join(mf["sohranit"][:3]))
+    # GUARD-TAKE-2810 (Качество 17:27): сторож отправки и конституция, поставленные не обновлением, mila-update сам не обновит
+    # никогда — у Милы клиента новая защита не дойдёт молча. Отдельной строкой — совет заменить (кнопка, apply --take).
+    take = [n for n in keep.get("отличается", []) if n in GUARD_TAKE]
+    if take:
+        nm = " и ".join(GUARD_TAKE[n] if i == 0 else GUARD_TAKE[n].lower() for i, n in enumerate(take))
+        tail.append(("%s у вас отличаются от ядра и ставились не обновлением" if len(take) > 1 else "%s у вас отличается от ядра и ставился не обновлением") % nm
+                    + " — советую заменить вместе с обновлением.")
     tail.append("Риск: %s — %s. Отменить можно." % (lvl, why))
     def change_lines(names):   # Качество 10:12: ужимаю имена в «что изменится», а не пользу
         if not ch: return ["Что изменится: ничего — у вас уже всё из этой версии."]
@@ -830,7 +840,7 @@ def plan_text(src, m, rows, cur_tag, tag):
                 text = s; break
         if text: break
     if not text: text = "\n".join(head + (["Что получите:"] + gl[:2] if gl else []) + change_lines(False) + tail)[:900]
-    d = {"from": cur_tag, "to": tag, "get": [l for v, l in og], "get_versions": sorted({v for v, l in og}, key=vkey), "get_order": [v for v, l in og], "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf}
+    d = {"from": cur_tag, "to": tag, "get": [l for v, l in og], "get_versions": sorted({v for v, l in og}, key=vkey), "get_order": [v for v, l in og], "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf, "recommend_take": take}
     return text[:900], d
 
 
