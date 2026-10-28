@@ -17,6 +17,11 @@ with open(sys.argv[1], "w") as f:
             t = now - (d + 1) * 86400 + k * 600 + 60
             f.write(json.dumps({"type": "assistant", "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime(t)),
                 "message": {"usage": {"output_tokens": 100}, "content": [{"type": "tool_use", "name": "mcp__x__reply", "input": {}}]}}) + "\n")
+import os   # входящие: 12 в день и до, и после — доля отвеченных до 10/12, после 4/12
+ev = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(sys.argv[1]))), "channels", "telegram", "inbound"); os.makedirs(ev, exist_ok=True)
+with open(os.path.join(ev, "events.jsonl"), "w") as g:
+    for d in range(-8, 8):
+        for k in range(12): g.write(json.dumps({"ts": int((now + d * 86400 + k * 300 + 30) * 1000)}) + "\n")
 PY
 $U apply --src "$T/rel" --yes "тест: хозяин нажал ✅" >/dev/null 2>&1
 chk "apply записал «до»: ~10 ответов в день за 7 дней, ошибки — нет данных" "python3 -c \"import json;e=json.load(open('$E'));b=e['before'];import sys;sys.exit(0 if 9<=b['replies']<=10.1 and b['errors'] is None and e['reported'] is False else 1)\""

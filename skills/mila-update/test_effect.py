@@ -24,7 +24,18 @@ chk("до: 10 ответов в день, 10 000 токенов в день", be
 chk("после: 4 ответа в день (окно не берёт дни до обновления)", after["replies"] == 4.0, after)
 chk("журнала приёмника нет → ошибки «нет данных» (None), не 0", before["errors"] is None and after["errors"] is None, (before, after))
 lines, worse = E.compare(before, after)
-chk("ответов −60 % → хуже; строки «до → после» и «нет данных»", worse and "· ответов в день: 10 → 4" in lines and any("нет данных" in l for l in lines), lines)
+chk("ответов −60 %, но входящих не знаю → не «хуже» (может, писали меньше); строки простыми словами", not worse and "· моих ответов в день: 10 → 4" in lines and any("нет данных" in l for l in lines) and not any("токен" in l for l in lines), lines)
+lines, worse = E.compare({"inbound": 20, "replies": 18, "errors": 0}, {"inbound": 20, "replies": 8, "errors": 0})
+chk("входящих столько же, отвечаю на 90 → 40 из 100 → хуже", worse and any("отвечаю на 90 → 40 из 100" in l for l in lines), lines)
+lines, worse = E.compare({"inbound": 20, "replies": 18, "errors": 0}, {"inbound": 8, "replies": 7, "errors": 0})
+chk("хозяин писал меньше (20 → 8 в день), доля та же → НЕ хуже (Качество: праздники)", not worse, lines)
+lines, worse = E.compare({"inbound": 2, "replies": 2, "errors": 0}, {"inbound": 2, "replies": 0, "errors": 0})
+chk("входящих меньше 3 в день → по доле не сужу", not worse, lines)
+IN = os.path.join(CL, "channels", "telegram", "inbound"); os.makedirs(IN)
+with open(os.path.join(IN, "events.jsonl"), "w") as f:
+    for d in range(3):
+        for k in range(6): f.write(json.dumps({"ts": int((t_apply + d * 86400 + k * 600) * 1000), "params": {"content": "текст гостя"}}) + "\n")
+chk("входящие: 6 в день после обновления (из inbound/events.jsonl), текстов не беру", E.metrics(HOME, CL, t_apply, t_apply + 3 * 86400)["inbound"] == 6.0)
 os.makedirs(os.path.join(HOME, "state"))
 with open(os.path.join(HOME, "state", "receiver.log"), "w") as f:
     for d in range(3):

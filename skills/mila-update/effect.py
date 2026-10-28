@@ -30,6 +30,11 @@ def receiver_logs(home, claude):
     return sorted({p for p in cands if os.path.isfile(p)})
 
 
+def inbound_files(home, claude):
+    base = os.environ.get("TELEGRAM_STATE_DIR", "") or os.path.join(claude, "channels", "telegram")
+    return sorted({p for p in (os.path.join(base, "inbound", "events.jsonl"), os.path.join(claude, "channels", "telegram", "inbound", "events.jsonl")) if os.path.isfile(p)})
+
+
 def metrics(home, claude, t0, t1):
     """Средние в день за [t0, t1): {"days", "replies", "errors", "tokens"}; источника нет — значение None."""
     days = max((t1 - t0) / 86400.0, 1e-9)
@@ -73,21 +78,41 @@ def metrics(home, claude, t0, t1):
                 t = _ts(m.group(1)) if m else None
                 if t is not None and t0 <= t < t1 and ERR.search(l):
                     errors += 1
+    inbound = None   # Качество 11:50 🟡1: входящие — чтобы «хозяин тише писал» не выглядело как «Мила хуже»
+    ins = inbound_files(home, claude)
+    if ins:
+        inbound = 0
+        for p in ins:
+            if os.path.getmtime(p) < t0:
+                continue
+            for l in open(p, encoding="utf-8", errors="replace"):
+                try: ts = json.loads(l).get("ts")
+                except ValueError: continue
+                if isinstance(ts, (int, float)) and t0 <= ts / 1000.0 < t1:
+                    inbound += 1
     per = lambda v: None if v is None else round(v / days, 1)
-    return {"days": round(days, 1), "replies": per(replies), "errors": per(errors), "tokens": per(tokens)}
+    return {"days": round(days, 1), "inbound": per(inbound), "replies": per(replies), "errors": per(errors), "tokens": per(tokens)}
+
+
+def share(m):
+    """Доля отвеченных: ответов на 100 входящих; входящих меньше 3 в день или нет данных — None (по ней не сужу)."""
+    i, r = m.get("inbound"), m.get("replies")
+    return None if i is None or r is None or i < 3 else round(100.0 * r / i)
 
 
 def compare(before, after):
-    """Сравнение «до/после» → (строки хозяину, хуже ли). Хуже: ошибок ×1,5 и больше (и не меньше 3 в день) или ответов −30 %."""
+    """Сравнение «до/после» → (строки хозяину простыми словами, хуже ли). Хуже: ошибок ×1,5 и ≥ 3 в день, или доля отвеченных
+    (ответы на 100 входящих) упала на 30 % при ≥ 3 входящих в день до и после — «хозяин тише писал» хуже не считается (Качество 11:50)."""
     lines, worse = [], False
     def fmt(v): return "нет данных" if v is None else ("%g" % v)
-    for k, name in (("replies", "ответов в день"), ("errors", "ошибок в день"), ("tokens", "токенов в день")):
-        b, a = before.get(k), after.get(k)
-        lines.append("· %s: %s → %s" % (name, fmt(b), fmt(a)))
+    for k, name in (("inbound", "сообщений вам в день"), ("replies", "моих ответов в день"), ("errors", "сбоев в день")):
+        lines.append("· %s: %s → %s" % (name, fmt(before.get(k)), fmt(after.get(k))))
+    sb, sa = share(before), share(after)
+    if sb is not None or sa is not None:
+        lines.append("· отвечаю на %s → %s из 100 сообщений" % (fmt(sb), fmt(sa)))
     b, a = before.get("errors"), after.get("errors")
     if b is not None and a is not None and a >= 3 and a >= 1.5 * max(b, 0.1):
         worse = True
-    b, a = before.get("replies"), after.get("replies")
-    if b is not None and a is not None and b >= 3 and a <= 0.7 * b:
+    if sb is not None and sa is not None and sb > 0 and sa <= 0.7 * sb:
         worse = True
     return lines, worse
