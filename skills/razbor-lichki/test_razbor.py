@@ -19,7 +19,7 @@ def inbound(m, chat, text="помогите с документом"):
 def reply(m, chat, text="Принял. Подпись задним числом поставить не могу — есть два законных пути: …"):
     w({"type": "assistant", "timestamp": iso(m), "message": {"content": [{"type": "tool_use", "name": "mcp__plugin_mila-telegram_telegram__reply", "input": {"chat_id": str(chat), "text": text}}]}})
 inbound(0, USER_ID); reply(2, USER_ID); reply(4, USER_ID)
-inbound(1, CHAT_ID, "в группе другое"); reply(3, CHAT_ID)
+inbound(1, CHAT_ID, "в группе другое"); reply(3, CHAT_ID, "в группе: Иван (%s) уже получил ответ" % USER_ID)
 r = report(os.path.join(T, "projects"), str(USER_ID), 24)
 chk("Иван писал один раз, помощник ответил дважды", len(r["inbound"]) == 1 and len(r["replies"]) == 2, r)
 chk("ответ на последнее входящее был, через 2 минуты — не молчал", r["answered_last"] is True and r["first_answer_min"] == 2 and r["silent_min"] is None, r)

@@ -24,11 +24,13 @@ inbound(70, "Сделай отчёт по рекламе", uid=USER_ID, msg="15"
 inbound(60 * 20, "Проверь сайт", msg="16")
 with open(L, "w") as f:
     f.write(json.dumps({"ev": "new", "id": "M-0001", "title": "Прайс клиенту X на неделю", "check": "файл прайса", "ts": iso(118)}, ensure_ascii=False) + "\n")
-    f.write(json.dumps({"ev": "new", "id": "M-0002", "title": "встреча", "check": "напоминание", "anchor": "msg:%s/12" % OWNER_ID, "ts": iso(99)}, ensure_ascii=False) + "\n")
+    f.write(json.dumps({"ev": "new", "id": "M-0002", "title": "звонок", "check": "в календаре", "anchor": "msg:%s/12" % OWNER_ID, "ts": iso(99)}, ensure_ascii=False) + "\n")
+    f.write(json.dumps({"ev": "new", "id": "M-0003", "title": "Отзывы про кафе на картах", "check": "таблица", "ts": iso(89)}, ensure_ascii=False) + "\n")
 r = lost(os.path.join(T, "projects"), L, OWNER_ID, 12)
 chk("потеряно одно поручение — «найди три кафе»", [x["msg"] for x in r] == ["13"], r)
 chk("задача по общим словам (прайс клиенту X) — не потеряно", "11" not in [x["msg"] for x in r])
-chk("задача по якорю сообщения (напомни) — не потеряно", "12" not in [x["msg"] for x in r])
+chk("задача по якорю сообщения (напомни; общих слов нет) — не потеряно", "12" not in [x["msg"] for x in r])
+chk("одно общее слово («кафе») с чужой задачей — не задача для поручения", "13" in [x["msg"] for x in r])
 chk("«спасибо» — не поручение; чужой человек — не хозяин; 20 ч назад — вне окна", not {"14", "15", "16"} & {x["msg"] for x in r}, r)
 out = subprocess.run([sys.executable, os.path.join(H, "oglyadka.py"), "--projects", os.path.join(T, "projects"), "--ledger", L, "--owner", str(OWNER_ID)],
                      capture_output=True, text=True).stdout
