@@ -24,4 +24,12 @@ $U apply --src "$T/rel" --yes "тест: без take" >/dev/null 2>&1
 chk "apply без --take сторожа не трогает" "grep -q 'старый сторож' $G"
 $U apply --src "$T/rel" --yes "тест: с take" --take send-guard.py >/dev/null 2>&1
 chk "apply --take send-guard.py — сторож как в ядре, план совет больше не даёт" "cmp -s $G $T/rel/templates/home/.claude/hooks/send-guard.py && ! $U plan --src $T/rel | grep -q 'Сторож отправки'"
+C="$MILA_WORK/CONSTITUTION.md"
+python3 - "$CLAUDE_CONFIG_DIR/mila-update/version.json" "$C" <<'PY'
+import json, sys
+p, c = sys.argv[1], sys.argv[2]; v = json.load(open(p)); v["files"].pop(c, None); json.dump(v, open(p, "w"))
+open(c, "a").write("\n4. Закон 4 в редакции владельца, новее ядра.\n")
+PY
+$U plan --src "$T/rel" --json > "$T/p4.json"
+chk "конституция «отличается» (может быть новее ядра) — совета заменить нет, recommend_take её не содержит" "python3 -c \"import json,sys; d=json.load(open('$T/p4.json')); sys.exit(0 if 'CONSTITUTION.md' not in d['recommend_take'] and 'CONSTITUTION.md' in d['keep'].get('отличается', []) else 1)\" && ! $U plan --src $T/rel | grep -qi 'конституция у вас отличается'"
 echo "итог $ok/$n"; [ $ok -eq $n ]
