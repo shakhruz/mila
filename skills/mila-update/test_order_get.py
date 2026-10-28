@@ -16,4 +16,12 @@ chk("ничего не потеряно и не задвоено", sorted(o) == 
 chk("пусто — пусто", U.order_get([]) == [])
 o2 = [v for v, l in U.order_get([("v2.0.0", "x"), ("v1.9.0", "y"), ("v1.9.1", "z")])]
 chk("два выпуска x.y.0 — свежий первым, патч после", o2 == ["v2.0.0", "v1.9.0", "v1.9.1"], o2)
+import tempfile
+d = tempfile.mkdtemp()
+secs = "".join("## %s · 28.10 — x\n**Для хозяина**\n- Польза %s раз.\n- Польза %s два.\n\n" % (v, v, v) for v in ("v1.2.2", "v1.2.1", "v1.2.0", "v1.1.9"))
+open(os.path.join(d, "CHANGELOG.md"), "w").write("# CHANGELOG\n\n" + secs)
+got = U.changelog_since(d, "v1.1.8", "v1.2.2")
+chk("changelog_since не режет до раскладки: все 8 строк четырёх версий", len(got) == 8, got)
+o3 = [l for v, l in U.order_get(got)[:6]]
+chk("после раскладки и обрезки до 6 — v1.2.0 первой и строка самой старой версии v1.1.9 на месте", o3[0].startswith("Польза v1.2.0") and any("v1.1.9" in l for l in o3), o3)
 print("итог %d/%d" % (ok, n)); sys.exit(0 if ok == n else 1)
