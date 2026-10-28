@@ -10,6 +10,8 @@
   update.py install-skill DIR --from "<кто прислал>" [--yes "<да хозяина>"] [--allow-missing] — навык от Милы-администратора, с бэкапом
                                          и журналом; SKILL.md называет scripts/… или др. файлы, которых нет в папке — отказ со списком
   update.py installed                    — список моих навыков: ядро / личные (для рекомендации из каталога)
+  update.py catalog [--who хозяин,оператор] [--card ИМЯ] [--offered ИМЯ --answer …] — навыки каталога, которых у меня нет, без недавно предложенных;
+                                         --card — текст карточки хозяину; --offered — ответ хозяина в журнал
   update.py nightly [--dry-run] — ночной шаг: канал → есть новее (без отозванных) → сухой прогон → (auto: бэкап, крон-копия,
                                          apply, health, при провале авто-откат) или (не auto: карточка «есть обновление» хозяину)
   update.py config [--set channel=stable|canary|manual] [--set auto=true|false] [--set owner_chat=ID] — настройки (~/.claude/mila-update.json)
@@ -30,7 +32,8 @@ CLAUDE = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(HOME, ".claude")
 WORK = os.environ.get("MILA_WORK") or os.path.join(HOME, "work")
 DEFAULT_REPO = "https://github.com/shakhruz/mila.git"   # открытое ядро: ключ не нужен
 CONFIG = os.path.join(CLAUDE, "mila-update.json")
-DEFAULT_CFG = {"channel": "stable", "auto": False, "repo": DEFAULT_REPO, "owner_chat": ""}   # auto=false: ставит только по «да» хозяина
+DEFAULT_CATALOG = ""   # КАТАЛОГ-НАВЫКОВ-2810: адрес catalog.json каталога навыков (страница рядом — index.html)
+DEFAULT_CFG = {"channel": "stable", "auto": False, "repo": DEFAULT_REPO, "owner_chat": "", "catalog_url": DEFAULT_CATALOG}   # auto=false: ставит только по «да» хозяина
 
 
 def load_cfg():
@@ -949,7 +952,7 @@ def cmd_config(a):
         if k == "channel" and v in ("stable", "canary", "manual"): c[k] = v
         elif k == "auto" and v in ("true", "false"): c[k] = v == "true"
         elif k == "internal" and v in ("true", "false"): c[k] = v == "true"   # только администратор флота
-        elif k in ("repo", "owner_chat", "require_signed"): c[k] = (v == "true") if k == "require_signed" else v
+        elif k in ("repo", "owner_chat", "require_signed", "catalog_url"): c[k] = (v == "true") if k == "require_signed" else v
         else: sys.exit(json.dumps({"error": "неверная настройка: " + kv}, ensure_ascii=False))
     if a.set:
         os.makedirs(CLAUDE, exist_ok=True); json.dump(c, open(CONFIG, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
@@ -1109,6 +1112,66 @@ def cmd_installed(a):
     print(json.dumps({"yadro": core, "lichnye": [s for s in sk if s not in core]}, ensure_ascii=False))
 
 
+LATER_DAYS = 28   # «Позже» — тот же навык не раньше чем через 4 недели; «Нет» — больше не предлагаю (закон 6)
+
+
+def offered_skip(now=None):
+    """Навыки, которые не предлагаю сейчас: «нет» — никогда, «позже» и без ответа — LATER_DAYS дней."""
+    now = time.time() if now is None else now
+    skip = {}
+    if not os.path.exists(JOURNAL):
+        return skip
+    for l in open(JOURNAL, encoding="utf-8", errors="replace"):
+        try: r = json.loads(l)
+        except ValueError: continue
+        if r.get("event") != "offered" or not r.get("skill"): continue
+        if r.get("answer") == "no" or now - float(r.get("t") or 0) < LATER_DAYS * 86400:
+            skip[r["skill"]] = r.get("answer") or "ждёт ответа"
+        else:
+            skip.pop(r["skill"], None)
+    return skip
+
+
+def load_catalog():
+    url = os.environ.get("MILA_CATALOG_URL") or CFG.get("catalog_url") or DEFAULT_CATALOG
+    if not url:
+        sys.exit(json.dumps({"error": "адрес каталога не задан: update.py config --set catalog_url=<адрес catalog.json>"}, ensure_ascii=False))
+    try:
+        if re.match(r"https?://", url):
+            import urllib.request
+            raw = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "mila-update"}), timeout=20).read()
+        else:
+            raw = open(url, "rb").read()
+        c = json.loads(raw.decode("utf-8"))
+        if not isinstance(c.get("skills"), list): raise ValueError("нет списка skills")
+    except Exception as e:
+        sys.exit(json.dumps({"error": "каталог недоступен — %s: %s" % (url, str(e)[:120])}, ensure_ascii=False))
+    return url, c
+
+
+def cmd_catalog(a):
+    if a.answer is not None or a.offered:
+        if not a.offered or a.answer not in ("want", "later", "no", None):
+            sys.exit(json.dumps({"error": "нужно: catalog --offered ИМЯ --answer want|later|no"}, ensure_ascii=False))
+        jlog({"event": "offered", "skill": a.offered, "answer": a.answer or None, "t": int(time.time())})
+        print(json.dumps({"ok": True, "skill": a.offered, "answer": a.answer}, ensure_ascii=False)); return
+    url, c = load_catalog()
+    sd = os.path.join(CLAUDE, "skills")
+    have = {s for s in (os.listdir(sd) if os.path.isdir(sd) else []) if ".bak-" not in s and ".new-" not in s}
+    rows = [r for r in c["skills"] if isinstance(r, dict) and isinstance(r.get("name"), str)]
+    if a.card:
+        r = next((r for r in rows if r["name"] == a.card), None)
+        if not r: sys.exit(json.dumps({"error": "в каталоге нет навыка " + a.card}, ensure_ascii=False))
+        price = r.get("price") or ""
+        price = "Бесплатно." if price == "бесплатно" else ("Сам навык бесплатный, работа — по вашему «да» на расход." if "платн" in price else ("Цена: %s." % price if price else "Цену уточню."))
+        print("Могу научиться: %s — %s. %s\n[✅ Хочу] [Позже]" % (r["name"], (r.get("gives") or "").rstrip("."), price)); return
+    who = set(filter(None, (a.who or "хозяин").split(",")))
+    skip = offered_skip()
+    new = [r for r in rows if r["name"] not in have and r.get("who") in who and r["name"] not in skip]
+    print(json.dumps({"catalog": url, "version": c.get("version"), "installed": len(have & {r["name"] for r in rows}),
+                      "new": new, "skipped": skip}, ensure_ascii=False, indent=1))
+
+
 def main():
     ap = argparse.ArgumentParser(description="mila-update")
     sp = ap.add_subparsers(dest="cmd", required=True)
@@ -1123,11 +1186,12 @@ def main():
         p.add_argument("--newborn-ok", action="store_true", help="обновить новорождённую до конца знакомства (только по слову администратора)")
     p = sp.add_parser("install-skill"); p.add_argument("dir"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     p.add_argument("--allow-missing", action="store_true")   # поставить неполный навык осознанно (ответ покажет missing)
+    p = sp.add_parser("catalog"); p.add_argument("--who"); p.add_argument("--card"); p.add_argument("--offered"); p.add_argument("--answer")
     p = sp.add_parser("remove-skill"); p.add_argument("name"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     a = ap.parse_args()
     try:
         {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "plan": cmd_plan, "effect": cmd_effect, "manual": cmd_manual, "bootstrap-note": cmd_bootstrap_note, "rollback": cmd_rollback,
-         "install-skill": cmd_install_skill, "remove-skill": cmd_remove_skill, "installed": cmd_installed, "nightly": cmd_nightly,
+         "install-skill": cmd_install_skill, "remove-skill": cmd_remove_skill, "installed": cmd_installed, "catalog": cmd_catalog, "nightly": cmd_nightly,
          "config": cmd_config, "health": cmd_health, "slot": cmd_slot}[a.cmd.replace("_", "-")](a)
     finally:   # и при sys.exit внутри команды: что записали — хозяину дома (MILA_CHOWN)
         if a.cmd in ("apply", "rollback", "install-skill", "remove-skill", "nightly"):
