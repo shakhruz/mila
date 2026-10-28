@@ -426,6 +426,63 @@ def check_records(rep):
         pass
 
 
+def _proc_env(pid):
+    """Окружение процесса своего пользователя (/proc/<pid>/environ) → dict или None (нет доступа / не Linux)."""
+    try:
+        raw = open("/proc/%s/environ" % pid, "rb").read().split(b"\0")
+        return dict(x.decode("utf-8", "replace").split("=", 1) for x in raw if b"=" in x)
+    except OSError:
+        return None
+
+
+def check_switches(rep, daemon_env="auto", home=None):
+    """SWITCHES-2810 (мысль дня 28.10: стенд test20 потерял прогон — гостевой контур был включён в access, а флаг окружения нет):
+    «включено в настройке, но не работает». Каждая строка — что включено, чего не хватает, что сделать."""
+    home = home or os.path.expanduser("~")
+    try:
+        a = json.load(open(ACCESS, encoding="utf-8"))
+    except (OSError, ValueError):
+        a = {}
+    cc = ((a.get("guestDm") or {}).get("cc") or {}) if (a.get("guestDm") or {}).get("enabled") else {}
+    if cc.get("enabled"):
+        if daemon_env == "auto":
+            lines = running("receiver.ts")
+            daemon_env = _proc_env(lines[0][0]) if lines else None
+        if daemon_env is None:
+            rep.add(WARN, "гостевой контур", "включён в access, флаг окружения проверить не удалось (демон не найден или окружение закрыто)",
+                    "у демона должен быть MILAT_GUEST_CC=1 — без него гости молча идут прежним путём")
+        elif daemon_env.get("MILAT_GUEST_CC") != "1":
+            rep.add(BAD, "гостевой контур", "включён в access.json, но у демона нет MILAT_GUEST_CC=1 — контур выключен",
+                    "добавь Environment=MILAT_GUEST_CC=1 в юнит демона и перезапусти")
+        else:
+            rep.add(OK, "гостевой контур", "включён, флаг окружения есть")
+        for key, what in (("keyFile", "ключ гостей"), ("systemPromptFile", "промпт гостя")):
+            f = cc.get(key)
+            if not f or not os.path.isfile(f):
+                rep.add(BAD, "гостевой контур", "%s не найден: %s" % (what, f or "не задан"), "без него гостевой контур не отвечает — задай путь в guestDm.cc.%s" % key)
+        if cc.get("knowledgeDir") and not os.path.isdir(cc["knowledgeDir"]):
+            rep.add(WARN, "гостевой контур", "папки знаний нет: %s" % cc["knowledgeDir"], "создай её или убери knowledgeDir")
+        if cc.get("cardToRazbor") and not cc.get("handoffFile"):
+            rep.add(BAD, "гостевой контур", "заявки на разбор включены, а handoffFile не задан — заявки уходят только в лог",
+                    "задай guestDm.cc.handoffFile — файл, куда приходят события")
+        st = cc.get("students")
+        if isinstance(st, dict) and not (st.get("systemPromptFile") and st.get("knowledgeDir")):
+            rep.add(WARN, "ученики", "профиль учеников задан без промпта или папки — он выключен", "задай students.systemPromptFile и students.knowledgeDir")
+    try:
+        j = json.load(open(os.path.join(home, ".claude", "jev.json"), encoding="utf-8"))
+    except (OSError, ValueError):
+        j = {}
+    if j.get("mode") in ("shadow", "main") and not j.get("url"):
+        rep.add(WARN, "Jev", "режим %s, а адреса шлюза нет — решает только правило" % j["mode"], "jev.py config --set url=… или mode=off")
+    try:
+        u = json.load(open(os.path.join(home, ".claude", "mila-update.json"), encoding="utf-8"))
+    except (OSError, ValueError):
+        u = None
+    if u is not None and u.get("channel", "stable") != "manual" and not u.get("owner_chat"):
+        rep.add(WARN, "обновления", "карточки обновлений не доходят до хозяина — owner_chat не задан, лежат файлом",
+                "update.py config --set owner_chat=<id хозяина>")
+
+
 def check_flag(rep):
     """Подключён ли канал к сессии.
 
@@ -470,6 +527,7 @@ def main():
     check_journal(rep)
     check_perms(rep)
     check_records(rep)
+    check_switches(rep)
     check_flag(rep)
 
     if args.as_json:
