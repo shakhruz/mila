@@ -97,10 +97,27 @@ def soft_err(where, e):
     except Exception: pass
 
 
+def here_path(p):
+    """FLEET-KEYS-2810: путь из version.json — к нынешнему дому. Обновление с хоста (MILA_HOME) пишет пути хоста
+    (<host>/<slug>/home/.claude/…), изнутри дома это /home/…/.claude/… — без пересчёта mila-update не узнаёт
+    свои файлы и считает всё «отличается» (раскатка v1.6.1 28.10: 45 навыков ядра v1.5.1 — «чужие»)."""
+    if not isinstance(p, str) or not p.startswith("/"): return p
+    for base in (CLAUDE, WORK, HOME):
+        b = base.rstrip("/") + "/"
+        if p.startswith(b) or p == base: return p
+    for mark, base in (("/.claude/", CLAUDE), ("/work/", WORK), ("/.local/", os.path.join(HOME, ".local"))):
+        i = p.rfind(mark) if mark == "/.claude/" else p.find(mark)
+        if i >= 0: return os.path.join(base, p[i + len(mark):])
+    return p
+
+
 def load_version():
-    try: return json.load(open(VERSION))
+    try: v = json.load(open(VERSION))
     except FileNotFoundError: return {}
     except Exception as e: soft_err("load_version", e); return {}
+    if isinstance(v, dict) and isinstance(v.get("files"), dict):
+        v["files"] = {here_path(k): s for k, s in v["files"].items()}
+    return v
 
 
 def no_access(detail=""):
@@ -780,7 +797,8 @@ def plan_text(src, m, rows, cur_tag, tag):
     def change_lines(names):   # Качество 10:12: ужимаю имена в «что изменится», а не пользу
         if not ch: return ["Что изменится: ничего — у вас уже всё из этой версии."]
         if names: return ["Что изменится:"] + ["· %s: %d (%s)" % (w, len(n), ", ".join(n[:4]) + (" …" if len(n) > 4 else "")) for w, n in ch.items()]
-        return ["Что изменится: " + "; ".join("%s — %d" % (w, len(n)) for w, n in ch.items()) + "."]
+        short = lambda w: re.split(r" \(| — ", w, 1)[0]   # без пояснений зоны в скобках: хозяину — коротко
+        return ["Что изменится: " + "; ".join("%s — %d" % (short(w), len(n)) for w, n in ch.items()) + "."]
     gl = ["· " + l for v, l in get]
     text = ""
     for names in (True, False):   # сначала с именами; не влезает с ≥ 2 строками пользы — без имён
