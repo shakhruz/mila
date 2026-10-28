@@ -103,12 +103,17 @@ def rules_buttons(text):
     return bool(CHOICE.search(text))
 
 
-def log_diff(kind, text, rules, jev, conf_):
+def log_diff(kind, text, rules, jev, conf_, ms=None, why=None, mode=None):
+    """Строка журнала решения (без текста — только длина). BARABAN-2810 (старшая 10:10): пишу и молчание шлюза —
+    jev=None, why «таймаут» | «нет ответа»; ms — время; mode — shadow | main."""
     try:
         os.makedirs(os.path.dirname(DIFF_P), exist_ok=True)
+        rec = {"ts": int(time.time()), "kind": kind, "len": len(text), "rules": rules, "jev": jev, "conf": conf_, "same": rules == jev}
+        if ms is not None: rec["ms"] = ms
+        if why: rec["why"] = why
+        if mode: rec["mode"] = mode
         with open(DIFF_P, "a", encoding="utf-8") as f:
-            f.write(json.dumps({"ts": int(time.time()), "kind": kind, "len": len(text), "rules": rules, "jev": jev,
-                                "conf": conf_, "same": rules == jev}, ensure_ascii=False) + "\n")   # без текста: только длина
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     except OSError:
         pass
 
@@ -122,9 +127,9 @@ def decide(kind, text, rules, questions, pick):
     ans = ask(c, text, questions)
     ms = int((time.time() - t0) * 1000)
     j = pick(ans) if ans else None          # (решение, уверенность) или None
+    silent = None if j else ("таймаут" if ms >= int(c["timeout"] * 1000 * 0.95) else "нет ответа")
+    log_diff(kind, text, rules, j[0] if j else None, round(j[1], 2) if j else None, ms, silent, c["mode"])   # и shadow, и main; молчание — тоже
     if c["mode"] == "shadow":
-        if j:
-            log_diff(kind, text, rules, j[0], j[1])
         return {"decision": rules, "source": "rules", "mode": "shadow", "jev": j[0] if j else None, "ms": ms}
     if j and j[1] >= c["min_conf"]:
         return {"decision": j[0], "source": "jev", "conf": round(j[1], 2), "mode": "main", "ms": ms}
@@ -248,11 +253,19 @@ def cmd_stats(a):
         rows = [json.loads(l) for l in open(DIFF_P, encoding="utf-8") if l.strip()]
     except (OSError, ValueError):
         pass
+    since = time.time() - float(getattr(a, "hours", 0) or 0) * 3600 if getattr(a, "hours", None) else 0
+    rows = [r for r in rows if r.get("ts", 0) >= since]
     by = {}
     for r in rows:
         b = by.setdefault(r["kind"], [0, 0])
         b[0] += 1
         b[1] += bool(r.get("same"))
+    answered = [r for r in rows if r.get("jev") is not None]
+    hi_ = [r for r in answered if (r.get("conf") or 0) >= 0.7]
+    calls = {"calls": len(rows), "conf_ge_0_7": len(hi_), "conf_lt_0_7": len(answered) - len(hi_),
+             "timeout": sum(1 for r in rows if r.get("why") == "таймаут"), "no_answer": sum(1 for r in rows if r.get("why") == "нет ответа"),
+             "same_as_rules": sum(1 for r in answered if r.get("same")), "same_as_rules_conf_ge_0_7": sum(1 for r in hi_ if r.get("same")),
+             "by_kind": {k: sum(1 for r in rows if r.get("kind") == k) for k in sorted({r.get("kind") for r in rows})}}
     tot, same = len(rows), sum(1 for r in rows if r.get("same"))
     pct = round(100 * same / tot) if tot else None
     ch = load_check()
@@ -264,7 +277,7 @@ def cmd_stats(a):
         say = (f"Сверка с правдой: Jev {ch['jev_pct']} %, правила {ch['rules_pct']} % на {ch['rows']} разных сообщениях — для main нужно "
                f"≥ {READY_ROWS} сообщений, Jev ≥ {READY_PCT} % и не хуже правил")
     return {"rows": tot, "same_pct": pct, "by_kind": {k: {"rows": v[0], "same_pct": round(100 * v[1] / v[0])} for k, v in by.items()},
-            "check": ch, "ready_for_main": ready(ch), "say": say}
+            "check": ch, "ready_for_main": ready(ch), "say": say, "calls": calls}
 
 
 def cmd_config(a):
@@ -299,7 +312,7 @@ def main():
     p = sp.add_parser("check"); p.add_argument("--file", required=True)
     p = sp.add_parser("who"); p.add_argument("--text", required=True); p.add_argument("--names", required=True)
     p = sp.add_parser("buttons"); p.add_argument("--text", required=True)
-    sp.add_parser("stats")
+    p = sp.add_parser("stats"); p.add_argument("--hours", type=float, help="только последние N часов (например 24)")
     p = sp.add_parser("config"); p.add_argument("--set", action="append")
     a = ap.parse_args()
     if getattr(a, "text", None) == "-":   # JEV-STDIN-1022: текст из stdin — не виден в списке процессов (ps)

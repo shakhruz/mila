@@ -91,4 +91,20 @@ j("config", "--set", "url="); rc, o = j("check", "--file", sample(good)); chk("c
 pr = subprocess.run([sys.executable, "-I", os.path.join(H, "jev.py"), "reply", "--text", "-", "--mentioned"], input="привет из stdin",
                     capture_output=True, text=True, env=dict(os.environ, HOME=T, JEV_MODE="off"))
 chk("--text - : текст из stdin (не в argv)", json.loads(pr.stdout).get("decision") is True, pr.stdout)
+# BARABAN-2810: в журнале и молчание шлюза (таймаут), и main; stats --hours даёт корзины уверенности
+p = os.path.join(T, ".claude", "jev-diff.jsonl"); open(p, "w").close()
+srv2 = Q(("127.0.0.1", 0), S); threading.Thread(target=srv2.serve_forever, daemon=True).start(); URL2 = f"http://127.0.0.1:{srv2.server_port}/decide"
+MODE["m"] = "slow"; rc, o = j("reply", "--text", "помоги", JEV_MODE="shadow", JEV_URL=URL2)
+row = json.loads(open(p).read().splitlines()[-1])
+chk("shadow: Jev молчит → строка в журнале с why «таймаут», jev null, ms ≥ 1000", row.get("why") == "таймаут" and row["jev"] is None and row["ms"] >= 1000, row)
+MODE["m"] = "ok"; rc, o = j("reply", "--text", "Мила, помоги", JEV_MODE="shadow", JEV_URL=URL2)
+rc, o = j("reply", "--text", "Мила, помоги", JEV_MODE="main", JEV_URL=URL2)
+rows = [json.loads(l) for l in open(p).read().splitlines()]
+chk("main тоже пишет строку (mode main)", any(r.get("mode") == "main" for r in rows), rows[-1])
+old = json.dumps({"ts": int(time.time()) - 3 * 86400, "kind": "reply", "len": 1, "rules": True, "jev": True, "conf": 0.9, "same": True})
+open(p, "a").write(old + "\n")
+rc, o = j("stats", "--hours", "24")
+cl = o.get("calls", {})
+chk("stats --hours 24: вызовов 3 (старая строка не в счёт), таймаут 1, уверенных ≥0,7 — 2, совпали с правилом", cl.get("calls") == 3 and cl.get("timeout") == 1 and cl.get("conf_ge_0_7") == 2 and cl.get("by_kind") == {"reply": 3}, cl)
+srv2.shutdown()
 print(f"итог {ok}/{tot}")
