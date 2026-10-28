@@ -12,7 +12,8 @@ CAT = {"version": "t", "skills": [
     {"name": "mail-outbound", "who": "хозяин", "price": "бесплатно", "gives": "Письма от вашего имени: адрес проверен, отправка по вашему «да»"},
     {"name": "bot-send", "who": "оператор", "price": "бесплатно", "gives": "Написать человеку от вашего бота"},
     {"name": "group-chat", "who": "хозяин", "price": "бесплатно", "gives": "Ведёт рабочую группу"},
-    {"name": "group-topics", "who": "хозяин", "price": "бесплатно", "gives": "Темы в группе"}, "мусор"]}
+    {"name": "group-topics", "who": "хозяин", "price": "бесплатно", "gives": "Темы в группе"},
+    {"name": "mila-session", "who": "наша Мила", "price": "бесплатно", "gives": "Запуск канала Милы"}, "мусор"]}
 class S(http.server.BaseHTTPRequestHandler):
     def log_message(self, *a): pass
     def do_GET(self):
