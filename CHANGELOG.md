@@ -1,6 +1,17 @@
 # CHANGELOG · Mila
 
-## Unreleased (after v1.6.3)
+## Unreleased (after v1.6.4)
+
+## v1.6.4 · 28.10 — the look-back sees your assignments, the constitution stays yours
+**Для хозяина**
+- «Оглядка» снова видит ваши поручения в переписке и находит забытые; служебные сообщения за ваши не принимает.
+- План обновления больше не советует заменить конституцию: у вас может стоять ваша последняя редакция. Совет заменить старый сторож отправки остаётся.
+- Проверка готовности перед событием принимает подтверждение только текстом.
+
+**For Milas**
+- `oglyadka`: the owner by the live channel tag (`user="<name>"`, not `user_id`): DM chat = owner, a group — by `--owner-user` / `OWNER_USERNAME`; non-numeric `message_id` (ticks, notes, file mail) is service inbound. In v1.6.3 it found 0 of 84 assignments on a live journal.
+- `mila-update plan`: `recommend_take` only for the send guard; the constitution «differs» may be newer than the core.
+- `bud-gotova`: proof must be a string.
 
 ## v1.6.3 · 28.10 — I come with a decision, get ready before events, keep the thread
 **Для хозяина**
