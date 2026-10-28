@@ -595,9 +595,13 @@ def changelog_card(src, tag, version):
     return "\n".join(l.lstrip("-·• ").strip() and "· " + l.lstrip("-·• ").strip().replace("`", "") for l in lines[:3])
 
 
-def _owner_lines(body, n=3):
-    """Из раздела версии CHANGELOG — до n строк «Для хозяина»; без такого блока — первые пункты раздела."""
-    own = re.search(r"^\**(?:Для хозяина|For the owner)\**:?[ \t]*\n?(.*?)(?=^\**(?:Для Мил|For Milas)|^\*\*|\Z)", body, re.S | re.M | re.I)
+OWNER_RU = r"Для хозяина"
+OWNER_ANY = r"(?:Для хозяина|For the owner)"
+
+
+def _owner_lines(body, n=3, head=OWNER_ANY):
+    """Из раздела версии CHANGELOG — до n строк блока head («Для хозяина» / «For the owner»); без такого блока — первые пункты раздела."""
+    own = re.search(r"^\**%s\**:?[ \t]*\n?(.*?)(?=^\**(?:Для хозяина|For the owner|Для Мил|For Milas)|^\*\*|^##\s|\Z)" % head, body, re.S | re.M | re.I)
     lines = [l.strip() for l in (own.group(1) if own else body).splitlines() if l.strip().startswith(("-", "·", "•"))]
     if not lines and own: lines = [l.strip() for l in own.group(1).splitlines() if l.strip()]
     return [l.lstrip("-·• ").strip().replace("`", "") for l in lines if l.lstrip("-·• ").strip()][:n]
@@ -615,10 +619,10 @@ def changelog_since(src, cur_tag, new_tag, per=2, total=6):
         if cur_tag and re.match(r"^v\d", cur_tag) and vkey(v) <= vkey(cur_tag): continue
         if new_tag and re.match(r"^v\d", new_tag) and vkey(v) > vkey(new_tag): continue
         title, body = mm.group(2), mm.group(3)
-        if not re.search(r"^\**(?:Для хозяина|For the owner)\**", body, re.M | re.I):   # блока для хозяина нет — заголовок версии, не пункты разработки
-            tt = re.split(r"\s[—–-]\s", title, 1)
-            out.append((v, "%s: %s" % (v, tt[1].strip() if len(tt) > 1 and tt[1].strip() else "внутренние правки"))); continue
-        for l in _owner_lines(body, per):
+        # Качество 28.10 🟡: хозяину — по-русски и простыми словами. Есть «Для хозяина» — он; нет — строка без английского текста
+        if not re.search(r"^\**%s\**" % OWNER_RU, body, re.M | re.I):
+            out.append((v, "%s: улучшения навыков (описания для хозяина в этой версии нет)" % v)); continue
+        for l in _owner_lines(body, per, OWNER_RU):
             l = re.split(r"(?<=[.!?…])\s", l, 1)[0]   # первая фраза — карточка, а не changelog
             out.append((v, l if len(l) <= 160 else l[:157].rstrip() + "…"))
     return out[:total]
@@ -644,19 +648,22 @@ def changed_files(r):
 def risk_of(rows, m):
     """Риск обновления простыми словами: низкий — только тексты навыков; средний — код навыков; высокий — хуки, запускатель,
     настройки (миграция settings), плагин. → (уровень, почему)."""
-    why_hi, why_mid, any_ch = [], [], False
+    why_hi, why_mid, any_ch, word = [], [], False, []
     for r in rows:
         if r["state"] not in ("обновится", "новое"): continue
         files = changed_files(r)
         if not files: continue
         any_ch = True
+        if os.path.basename(r["dst"]) == "CONSTITUTION.md" or "/canon/" in r["dst"] + "/":   # слово владельца — не ниже среднего
+            word.append(r["name"])
         if "/hooks/" in r["dst"] or r["dst"].endswith("/.local/bin/mila") or "plugin" in r["dst"] or "settings" in os.path.basename(r["dst"]):
             why_hi.append(r["name"]); continue
         if any(f.endswith(CODE_EXT) for f in files): why_mid.append(r["name"])
     if m.get("migrations") or why_hi:
-        return "высокий", "меняются хуки, запускатель или настройки: " + ", ".join(sorted(set(why_hi))[:5])
-    if why_mid:
-        return "средний", "меняется код навыков: " + ", ".join(sorted(set(why_mid))[:5])
+        return "высокий", "меняются хуки, запускатель или настройки" + (": " + ", ".join(sorted(set(why_hi))[:5]) if why_hi else " (миграция настроек)")
+    if why_mid or word:
+        return "средний", "; ".join(x for x in ("меняется код навыков: " + ", ".join(sorted(set(why_mid))[:5]) if why_mid else "",
+                                                 "меняются конституция или каноны" if word else "") if x)
     if not any_ch and not m.get("migrations"):
         return "нет", "файлы не меняются"
     return "низкий", "меняются только тексты навыков и правил"
@@ -678,6 +685,8 @@ def plan_text(src, m, rows, cur_tag, tag):
         lines.append("Что изменится: ничего — у вас уже всё из этой версии.")
     kept = keep.get("ваша правка", []) + keep.get("отличается", [])
     lines.append("Не тронется: ваша память, настройки, ключи, личные навыки" + ("; ваши правки — %s" % ", ".join(kept[:4]) if kept else "") + ".")
+    word = [r["name"] for r in rows if r["state"] in ("обновится", "новое") and (os.path.basename(r["dst"]) == "CONSTITUTION.md" or "/canon/" in r["dst"] + "/") and changed_files(r)]
+    if word: lines.append("Меняется конституция или канон (%s) — прочитайте до «Обновиться»." % ", ".join(word[:3]))
     lines.append("Риск: %s — %s. Отменить можно." % (lvl, why))
     # «что получите» — сколько влезет в 900 знаков; изменения, «не тронется» и риск — всегда
     room = 900 - len("\n".join(head + lines)) - len("\nЧто получите:")

@@ -14,9 +14,9 @@ import json, sys; p = sys.argv[1]; d = json.load(open(p)); d["tag"] = "v1.5.1"; 
 PY
 $U plan --src "$T/rel" > "$T/p.txt"; $U plan --src "$T/rel" --json > "$T/p.json"
 chk "ничего не меняется → «Что изменится: ничего», риск «нет»" "grep -q 'Что изменится: ничего' $T/p.txt && grep -q '\"risk\": \"нет\"' $T/p.json"
-chk "«Что получите» — v1.5.2 и v1.5.3 (все версии между), без v1.5.1 и кандидатов" "python3 -c \"
-import json,sys; d=json.load(open('$T/p.json')); g=' '.join(d['get'])
-sys.exit(0 if 'v1.5.3' in g and 'v1.5.2' in g and 'v1.5.1' not in g and '-rc' not in g else 1)\""
+chk "«Что получите» — по-русски из «Для хозяина» v1.5.2 и v1.5.3 (все версии между), без v1.5.1" "python3 -c \"
+import json,sys,re; d=json.load(open('$T/p.json')); g=' '.join(d['get'])
+sys.exit(0 if 'Пульт дня' in g and 'вопроса' in g and 'Сейф' not in g and not re.search(r'[A-Za-z]{4,}', g) else 1)\""
 chk "текст ≤ 900 знаков, есть «Не тронется» и «Отменить можно»" "[ \$(wc -m < $T/p.txt) -le 900 ] && grep -q 'Не тронется' $T/p.txt && grep -q 'Отменить можно' $T/p.txt"
 echo "новая строка текста" >> "$T/rel/skills/visual/SKILL.md"
 $U plan --src "$T/rel" --json > "$T/p.json"; $U plan --src "$T/rel" > "$T/p.txt"
@@ -32,4 +32,22 @@ echo "моя правка" >> "$CLAUDE_CONFIG_DIR/skills/visual/SKILL.md"
 $U plan --src "$T/rel" > "$T/p.txt"
 chk "хозяин правил навык → он в «Не тронется: ваши правки», не в «изменится»" "grep 'Не тронется' $T/p.txt | grep -q visual && ! grep 'навыки ядра' $T/p.txt | grep -q '(visual'"
 chk "plan ничего не пишет: дом не изменился" "grep -q 'моя правка' $CLAUDE_CONFIG_DIR/skills/visual/SKILL.md && ! grep -q 'правка хука' $CLAUDE_CONFIG_DIR/hooks/\$(basename $h)"
+python3 - "$T/rel/CHANGELOG.md" <<'PY'
+import sys; p = sys.argv[1]; t = open(p).read(); h = "## v1.5.3 "
+i = t.index(h); j = t.index("\n", i) + 1
+open(p, "w").write(t[:j] + "**For the owner**\n- English owner line goes first here\n\n" + t[j:])
+PY
+$U plan --src "$T/rel" --json > "$T/p3.json"
+chk "в версии оба блока, английский первым — беру русский «Для хозяина»" "! grep -q 'English owner line' $T/p3.json && grep -q 'Пульт дня' $T/p3.json"
+sed -i 's/^\*\*Для хозяина\*\*$/**For the owner**/' "$T/rel/CHANGELOG.md"
+$U plan --src "$T/rel" --json > "$T/p2.json"
+chk "версия без русского блока «Для хозяина» — строка без английского текста" "grep -q 'описания для хозяина в этой версии нет' $T/p2.json && ! grep -q 'day board' $T/p2.json"
+echo "новая статья" >> "$T/rel/CONSTITUTION.md"; rm -f "$f"; cp "$T/rel/install/$(basename $h)" /dev/null
+git -C "$REPO" show HEAD:install/$(basename $h) > "$T/rel/install/$(basename $h)" 2>/dev/null || true
+$U plan --src "$T/rel" > "$T/p.txt"; $U plan --src "$T/rel" --json > "$T/p.json"
+chk "меняется конституция → отдельная строка «прочитайте» и риск не ниже среднего" "grep -q 'Меняется конституция' $T/p.txt && grep -q '\"risk\": \"средний\"' $T/p.json"
+python3 -c "
+import json;p='$T/rel/release.json';d=json.load(open(p));d['migrations']=['x'];json.dump(d,open(p,'w'))"
+$U plan --src "$T/rel" --json > "$T/p.json"
+chk "только migrations — высокий, причина без пустого хвоста" "grep -q 'миграция настроек' $T/p.json && ! grep -q 'настройки: \"' $T/p.json"
 echo "итог $ok/$n"

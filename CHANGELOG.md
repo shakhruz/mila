@@ -9,6 +9,11 @@
 - Stop hook `reply-required`: a flywheel tick, a file-mail note, a watcher signal (`watch-*`) and a senior's request answered by note don't demand a chat reply — only if every `<channel>` tag of the record is such; an owner question in the same record still blocks. `install/test_reply_required.py` 17/17 (first test of this hook).
 
 ## v1.5.3 · 25.10 — day board, plan-vs-fact, marketing checks, our secret scanner in CI
+**Для хозяина**
+- Пульт дня: одно закреплённое сообщение — что в работе, что в очереди и что ждёт вашего ответа.
+- Итог недели по пятницам одним постом-слайдами: план и факт.
+- Проверка рекламы перед запуском: громкие слова без цифр и источника не пропускаю.
+
 - `skills/pult-dnya` (new): the day board — one pinned message for the owner (in progress / queue / waiting / done, each with a number, who, why, evidence, conclusion). A new task gets a «#N queued, after #X, because…» line at once; «waiting for you» exists only as a question with buttons asked that minute (`wait` refuses without `--asked`); at most two in progress, 🔴 always gets in; morning plan with a 3–5 task auto-pool, the board is edited during the day, evening results; closing needs evidence. `day_board.py` (cards, phones and e-mails masked; a wait over an hour turns 🔴), `test_pult.py` 22/22. Pinned board on demand: `render` returns «empty» and «waiting» for the plugin's `/status` with «#N — answer» buttons and never changes the day file; numbers that are not phones (request №, chat id, person id) stay. `test_pult.py` 26/26.
 - `skills/plan-fakt` (new): Friday plan-vs-fact as one slideshow post — `collect.py` drafts the week from `WEEK.md`, day boards and `MONEY.md` (only if kept), personal data masked, an empty week says «нет данных»; `make_slides.py` 1080×1080 with any Chromium; `send_slideshow.py` one post. Test 17/17.
 - Marketing set, first three skills: `ab-test`, `kreativ-proverka`, `metki-atribuciya` — rules only from primary sources with links (Meta A/B best practices, Telegram Ads guidelines, Hopkins). Superlatives without a number or source nearby — block, with one — warning; caps: one word — warning, two or more — block. `test_check_ad` 19/19.
@@ -18,6 +23,11 @@
 - Secrets: our own scanner (`mila_export scan`) runs over every tracked file in CI (`tests/test_secret_scan.py`, with planted fakes that must be caught); fake keys in tests and key/password patterns in code are built by splicing, so fleet snapshot scanners don't trip on the core; a password assignment is caught from 8 characters. `test_export` 40/40, `test_secret_scan` 10/10.
 
 ## v1.5.2 · 21.10 — English first, five questions about the model, fleet roll from the host
+**Для хозяина**
+- Перед большой работой задаю 2–4 вопроса с готовыми вариантами — меньше переделок.
+- Сложное и важное делаю сильной моделью, простое — лёгкой: дешевле без потери качества.
+- Говорю на вашем языке, каким бы он ни был.
+
 - English first: `communication` and `onboarding` skills in English (`SKILL.md`) with Russian beside (`SKILL.ru.md`); the owner's language can be any (LANG-ANY): Chinese, Arabic…; on «what can you do» — one benefit, not a list.
 - `skills/utochnenie-zadach` (new, base skill of every Mila): understand first, then do — 2–4 questions with ready options before substantial work; answers already given — no questions; urgent — result first with assumptions.
 - `skills/model-choice`: five questions → model tier (`tier.py`: light | strong | strong+yes; a costly error always goes to the strong model; in someone's name or irreversible — strong model and the person's yes).
@@ -30,6 +40,11 @@
 - `mila-update`: a Mila of the team itself (`"internal": true` in `mila-update.json`, or `MILA_INTERNAL=1` during a fleet roll) is not held by the newborn gate — she has no onboarding with an owner, so the core updates without `--newborn-ok`. Only the fleet admin sets it; every skip is written to the journal (`newborn_gate_skipped`, source config|env, apply|nightly) so a client Mila with the flag is visible. `test_update.sh` 26/26.
 
 ## v1.5.1 · 21.10 — safe, model choice, live frames, one-command install
+**Для хозяина**
+- Сейф: пароли и ключи вводите по одноразовой ссылке, не в чат.
+- Перед платной работой (картинки, видео, голос) — два варианта с ценой, выбираете кнопкой.
+- Видео-объяснение из голоса — без съёмки.
+
 - One-command install: `curl -fsSL …/install/get.sh | bash` (checks Claude Code, Bun, git); CI runs `tests/run_all.sh` on every push; issue/PR templates, Code of Conduct.
 - `skills/model-choice` (a partner's idea, 20.10): before any paid task (images, video, voice, transcription, translation, document analysis) Mila shows two options — budget / best quality: model, what you get, price for this job — with a recommendation, owner picks by button; `pick.py` + dated `catalog.json` (OpenRouter live, fal.ai, ElevenLabs). Test 6/6.
 - Mila Safe (owner 20.10, «Да, делаем сейф»): `tools/seif` — one-time link (30 min, single use, GET does not burn it) where the business owner types passwords, keys and cards; values go straight to `work/secrets/<name>.env` (600) of the Mila's home, journal without values, note to the companion; `skills/safe-link` — never ask secrets in chat, request a safe link, read with `safe_read.py` (mask only). Tests 12/12, 6/6.
