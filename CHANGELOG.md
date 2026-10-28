@@ -1,6 +1,15 @@
 # CHANGELOG · Mila
 
-## Unreleased (after v1.6.0)
+## Unreleased (after v1.6.1)
+
+## v1.6.1 · 28.10 — the greeting in a client group, «switched on but not working»
+**Для хозяина**
+- В новой группе с вашим клиентом сначала здороваюсь коротко — стикер и «Привет, я …, искусственный интеллект.», потом приветствие клиенту, как у вас принято.
+- Самопроверка теперь находит то, что включено, но не работает, — и подсказывает, что сделать.
+
+**For Milas**
+- `mila-in-chat`: in a new client group — step 0 sticker and the one line, then the home's welcome canon (`canon/WELCOME-NEW-GROUP.md`) verbatim if present; other groups — only the sticker and the line (owner's word 28.10).
+- `install/doctor.py`: `check_switches` — guest flow without MILAT_GUEST_CC=1 in the daemon's environment, missing guest key or prompt, review requests without handoffFile, student profile without prompt/folder, Jev without a gateway address, update cards without owner_chat.
 
 ## v1.6.0 · 28.10 — updates the owner can read, privacy at the source, the live screen, tasks without stalls
 **Для хозяина**
