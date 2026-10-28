@@ -23,6 +23,10 @@ r = check(d)
 chk("после живой пробы и без нехваток — готова", r["ready"] is True, r)
 d["gaps"] = [{"what": "печать бейджей", "who": "я", "by": "2026-01-01T10:00:00+05:00"}]
 chk("просроченная нехватка — названа", check(d)["gaps"][0]["problem"] == ["просрочено"], check(d))
+d2 = json.loads(json.dumps(d)); d2["gaps"] = []
+for bad in ({"ulika": ""}, {}, ["x"], 1, None):
+    d2["items"]["инструменты"] = bad
+    chk("улика не строкой (%s) — не улика, не готова" % json.dumps(bad, ensure_ascii=False), "инструменты" in check(d2)["weak"] and not check(d2)["ready"], check(d2))
 p = os.path.join(tempfile.mkdtemp(), "i.json"); json.dump(d, open(p, "w"), ensure_ascii=False)
 rc = subprocess.run([sys.executable, os.path.join(H, "gotova.py"), "check", p], capture_output=True, text=True).returncode
 chk("командная строка: не готова — код 1", rc == 1, rc)

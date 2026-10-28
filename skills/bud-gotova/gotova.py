@@ -18,7 +18,7 @@ def check(d, now=None):
     now = now or dt.datetime.now().astimezone()
     items = d.get("items") or {}
     missing = [k for k in ITEMS if k not in items]
-    weak = [k for k in ITEMS if k in items and WEAK.search(str(items[k] or ""))]
+    weak = [k for k in ITEMS if k in items and (not isinstance(items[k], str) or WEAK.search(items[k]))]   # улика — строка (Качество 17:49: {} и {"x": ""} давали «готова»)
     gaps, bad = [], []
     for g in d.get("gaps") or []:
         w, who, by = str(g.get("what") or "").strip(), str(g.get("who") or "").strip(), _t(g.get("by"))
