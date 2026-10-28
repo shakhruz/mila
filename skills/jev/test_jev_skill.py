@@ -10,7 +10,9 @@ CAT = {"version": "t", "skills": [
     {"name": "audio-master", "who": "хозяин", "price": "бесплатно", "gives": "Чистка звука записи до студийного: подкаст, эфир, медитация"},
     {"name": "tour-pricing", "who": "хозяин", "price": "бесплатно", "gives": "Расчёт турпакета строго по вашему справочнику цен"},
     {"name": "mail-outbound", "who": "хозяин", "price": "бесплатно", "gives": "Письма от вашего имени: адрес проверен, отправка по вашему «да»"},
-    {"name": "bot-send", "who": "оператор", "price": "бесплатно", "gives": "Написать человеку от вашего бота"}, "мусор"]}
+    {"name": "bot-send", "who": "оператор", "price": "бесплатно", "gives": "Написать человеку от вашего бота"},
+    {"name": "group-chat", "who": "хозяин", "price": "бесплатно", "gives": "Ведёт рабочую группу"},
+    {"name": "group-topics", "who": "хозяин", "price": "бесплатно", "gives": "Темы в группе"}, "мусор"]}
 class S(http.server.BaseHTTPRequestHandler):
     def log_message(self, *a): pass
     def do_GET(self):
@@ -36,7 +38,7 @@ rc, o = j("skill", "--text", "сделай подкаст по отчёту", "-
 chk("правила: подкаст по отчёту → mini-podcast первым (два слова), audio-master вторым", o.get("decision") == ["mini-podcast", "audio-master"] and o["source"] == "rules", o)
 chk("в ответе — что даёт и цена из каталога", o["skills"][0]["price"] == "генерации платные" and "двумя голосами" in o["skills"][0]["gives"], o)
 rc, o = j("skill", "--text", "посчитай турпакет на группу", "--catalog", CF)
-chk("редкое слово решает: турпакет → tour-pricing", o.get("decision", [None])[0] == "tour-pricing", o)
+chk("редкое слово решает: турпакет → tour-pricing первым, хотя «группу» знают два навыка (без idf — ничья, по алфавиту group-*)", o.get("decision", [None])[0] == "tour-pricing", o)
 rc, o = j("skill", "--text", "напиши письмо партнёру", "--catalog", CF)
 chk("стоящий навык помечен installed", o["skills"] and o["skills"][0] == {"name": "mail-outbound", "gives": CAT["skills"][3]["gives"], "price": "бесплатно", "installed": True}, o)
 rc, o = j("skill", "--text", "какая погода завтра", "--catalog", CF)
