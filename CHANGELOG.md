@@ -1,12 +1,27 @@
 # CHANGELOG · Mila
 
-## Unreleased (after v1.5.3)
+## Unreleased (after v1.6.0)
+
+## v1.6.0 · 28.10 — updates the owner can read, privacy at the source, the live screen, tasks without stalls
+**Для хозяина**
+- Обновления теперь понятны: перед обновлением вижу и показываю вам план — что получите, что изменится, что не тронется, риск; обновляюсь только по вашей кнопке.
+- Через несколько дней после обновления сама скажу, стало ли лучше; если хуже — предложу вернуть прежнюю версию одной кнопкой.
+- Беру отзыв после каждой сданной работы, не теряю задачи и не называю часов сдачи — только «беру» и «вернусь с результатом».
+
+**For Milas**
+- `mila-update`: `plan` — readable update plan in the owner's card (all versions in between, changes by zone, untouched, risk; Russian owner blocks only); effect — «before» at apply, a «what changed» card 3–7 days later, judged by the share of answered messages, rollback only on the owner's press; `manual` — admin's manual inserts only with a journal record; `bootstrap-note` and the owner's yes for the first install on a client Mila.
+- `skills/jev`: readiness for main only from a check against the truth (`jev.py check`), chat role / quoted author / to-other in the rules and the question, every decision logged (timeouts, main), `stats --hours`.
+- `skills/screen` (new, core): the live screen at birth. `skills/raspisanie` (new): schedule that survives a session restart. `skills/obratnaya-svyaz` (new): feedback after every hand-over. `canon/BAZA-MILY.md`: ten base qualities.
+- Tasks without stalls (ROLLOUT №41): receipt without delivery hours, a lost login no longer leaves a task hanging; `humanizer-ru` `proverka.py` — check outward Russian text (ROLLOUT №40).
+- Subscription limit: probe after renewal instead of holding messages until «resets …»; send-guard checks photo and album captions.
+- CI: tests independent of the clock (`test_limit_probe_clock`), job and apt step limits with retries.
 - Privacy gate at the source (`tools/privacy_lint.py`, owner's root-cause review 25.10): a pre-commit hook refuses commits carrying our values (ids — also inside longer numbers, addresses, closed client slugs, names by stem); the closed list lives only outside the repo, CI reads it from an Actions secret and prints anonymous labels; `tests/fixtures/fake_people.py` — invented people and numbers for tests and examples. Tests and skill texts cleaned of real ids and client names.
 - `mila-export` secret scanner (Mila Sila, Quality 🟢 25.10): 13 more kinds — sk_/rk_/pk_, AIza, fal uuid:hex, bot token without AA, Bearer, JWT, Slack xox, UPPERCASE env `*_KEY/TOKEN/SECRET/PASSWORD=` with a literal value, «пароль/parol:», long lines in overlapping chunks (a key after 20 000 characters is no longer missed); minified builds and `dist/` are scanned for explicit keys only; code expressions, placeholders and `*_FILE/_PATH/_DIR` names are not secrets. Live check: no new false findings on two Mila homes. Tests `test_scan` 18/18, `test_envkv` 7/7, `test_live` 25/25; `test_export` reads the manifest with Python `tarfile` (`tar --include` is BSD-only).
 - `pd-vault` edges (Mila Sila, Quality 🟢 25.10): the key is checked and the vault saved before any file is changed (no more number lost when there is no key); local Uzbek phones («90 123 45 67», «(90) 123-45-67», a bare 9 digits after «тел/номер/звоните/whatsapp/aloqa uchun…») → one label per person (+998…); passports in any case and Cyrillic look-alikes; not masked: Telegram/chat ids, order/invoice numbers, amounts («на 1500000 сум»). `test_pd_kraya.py` 29/29, `test_pd_proby.py` 22/22.
 - Stop hook `reply-required`: a message that arrives mid-turn (transcript record `attachment` / `queued_command`) is seen like any other — an owner question asked mid-turn and left unanswered now blocks. `test_reply_required.py` 22/22.
 - `bot-send` edges (Mila Sila + Development + Quality, 25.10): one person once (111 and "111"), 429 — at most 3 retries ≤60 s, stop-list only when the person left (403/blocked/deactivated), no preview for 0 people or empty text, «/stop» unsubscribes; a bot-wide Telegram pause: ≤1 h by day — the rest waits and goes by itself, longer or into quiet hours — a new preview «N left — send after DD.MM HH:MM?», the owner's yes queues it; every deferred send (rest, night queue) has «Отменить» (`cancel`). `test_bot_send_kraya.py` 29/29.
 - Stop hook `reply-required`: a flywheel tick, a file-mail note, a watcher signal (`watch-*`) and a senior's request answered by note don't demand a chat reply — only if every `<channel>` tag of the record is such; an owner question in the same record still blocks. `install/test_reply_required.py` 17/17 (first test of this hook).
+- Old skill names (aliases in `legacy/skills/`) stay one more release: removing them needs a migration step that checks no cron still calls the old script paths — planned for v1.7.0.
 
 ## v1.5.3 · 25.10 — day board, plan-vs-fact, marketing checks, our secret scanner in CI
 **Для хозяина**

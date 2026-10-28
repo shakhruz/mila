@@ -1,9 +1,9 @@
 {
   "product": "Mila",
-  "version": "1.5.3",
-  "tag": "v1.5.3",
-  "date": "2026-10-25",
-  "notes": "CHANGELOG.md - section v1.5.3",
+  "version": "1.6.0",
+  "tag": "v1.6.0",
+  "date": "2026-10-28",
+  "notes": "CHANGELOG.md - section v1.6.0",
   "zones": [
     {
       "what": "навыки ядра",
@@ -12,7 +12,7 @@
       "kind": "dir"
     },
     {
-      "what": "старые имена навыков — алиасы до v1.6.0 (только для обновления: старые пути скриптов)",
+      "what": "старые имена навыков — алиасы до v1.7.0 (только для обновления: старые пути скриптов)",
       "src": "legacy/skills/*",
       "dst": "{claude}/skills/*",
       "kind": "dir"
@@ -100,5 +100,5 @@
     "znakomstvo": "onboarding",
     "OBDUMYVANIE.md": "THINKING-BUDGET.md"
   },
-  "renamed_note": "v1.4.0 international names; old names are aliases in legacy/skills/ (MOVED.md + script wrappers, no SKILL.md), delivered by mila-update to homes that had them, until v1.6.0; fresh installs don't get them"
+  "renamed_note": "v1.4.0 international names; old names are aliases in legacy/skills/ (MOVED.md + script wrappers, no SKILL.md), delivered by mila-update to homes that had them, until v1.7.0 (removal needs a migration that checks crons for old paths); fresh installs don't get them"
 }
