@@ -312,11 +312,55 @@ def compare(src):
     return m, rows
 
 
+def manual_since_update():
+    """UPDATE-MANUAL-2810 (владелец 37034, часть В): ручные вставки администратора после последнего обновления — из журнала Милы."""
+    out = []
+    try:
+        for l in open(JOURNAL, encoding="utf-8"):
+            try: r = json.loads(l)
+            except ValueError: continue
+            if r.get("event") == "update": out = []
+            elif r.get("event") == "manual": out.append(r)
+    except OSError:
+        pass
+    return out
+
+
+def cmd_manual(a):
+    """update.py manual --what <путь[,путь]> --why "<почему>" --by "<кто>" — ручная вставка (только авария): строка в журнал Милы.
+    Пути — внутри дома; sha на момент вставки, чтобы следующее обновление сказало «затрёт / сохранит»."""
+    if not (a.what and a.why and a.by):
+        sys.exit(json.dumps({"error": "нужны --what, --why и --by: ручная вставка без причины и автора не записывается"}, ensure_ascii=False))
+    paths = []
+    for w in a.what.split(","):
+        p = os.path.realpath(P(w.strip()) if "{" in w else w.strip())
+        if not inside_home(p):
+            sys.exit(json.dumps({"error": "путь вне дома Милы: %s" % w.strip()}, ensure_ascii=False))
+        paths.append({"path": p, "sha": sha(p)})
+    jlog({"event": "manual", "what": paths, "why": a.why[:300], "by": a.by[:80]})
+    print(json.dumps({"ok": True, "manual": len(paths), "since_update": len(manual_since_update())}, ensure_ascii=False))
+
+
+def manual_fate(rows):
+    """Что сделает обновление с ручными вставками: {"zatryot": [...], "sohranit": [...]} по путям (сама вставка или внутри папки зоны)."""
+    zat, soh = [], []
+    for m in manual_since_update():
+        for w in m.get("what") or []:
+            p = w.get("path", "")
+            r = next((r for r in rows if p == os.path.realpath(r["dst"]) or p.startswith(os.path.realpath(r["dst"]) + os.sep)), None)
+            if r is None: continue
+            (zat if r["state"] in ("обновится", "новое") else soh).append(os.path.relpath(p, HOME))
+    return {"zatryot": sorted(set(zat)), "sohranit": sorted(set(soh))}
+
+
 def cmd_status(a):
     v = load_version(); last = []
     if os.path.exists(JOURNAL): last = [json.loads(l) for l in open(JOURNAL).read().splitlines()[-5:]]
+    man = manual_since_update()
     print(json.dumps({"version": v.get("version") or "не записана (до mila-update)", "tag": v.get("tag"), "installed_at": v.get("installed_at"),
-                      "source": v.get("source"), "journal_last": last}, ensure_ascii=False, indent=1))
+                      "source": v.get("source"), "manual_since_update": len(man),
+                      "manual_last": [{"ts": m.get("ts"), "by": m.get("by"), "why": m.get("why")} for m in man[-3:]],
+                      "journal_last": last}, ensure_ascii=False, indent=1))
 
 
 def cmd_check(a):
@@ -729,6 +773,9 @@ def plan_text(src, m, rows, cur_tag, tag):
     word = [r["name"] for r in rows if r["state"] in ("обновится", "новое") and (os.path.basename(r["dst"]) == "CONSTITUTION.md" or "/canon/" in r["dst"] + "/") and changed_files(r)]
     tail = ["Не тронется: ваша память, настройки, ключи, личные навыки" + ("; ваши правки — %s" % ", ".join(kept[:4]) if kept else "") + "."]
     if word: tail.append("Меняется конституция или канон (%s) — прочитайте до «Обновиться»." % ", ".join(word[:3]))
+    mf = manual_fate(rows)   # UPDATE-MANUAL-2810: ручные вставки администратора после прошлого обновления
+    if mf["zatryot"]: tail.append("Ручные правки администратора, которые обновление заменит: %s." % ", ".join(mf["zatryot"][:3]))
+    if mf["sohranit"]: tail.append("Ручные правки администратора сохранятся: %s." % ", ".join(mf["sohranit"][:3]))
     tail.append("Риск: %s — %s. Отменить можно." % (lvl, why))
     def change_lines(names):   # Качество 10:12: ужимаю имена в «что изменится», а не пользу
         if not ch: return ["Что изменится: ничего — у вас уже всё из этой версии."]
@@ -744,7 +791,7 @@ def plan_text(src, m, rows, cur_tag, tag):
                 text = s; break
         if text: break
     if not text: text = "\n".join(head + (["Что получите:"] + gl[:2] if gl else []) + change_lines(False) + tail)[:900]
-    d = {"from": cur_tag, "to": tag, "get": [l for v, l in get], "change": ch, "keep": keep, "risk": lvl, "risk_why": why}
+    d = {"from": cur_tag, "to": tag, "get": [l for v, l in get], "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf}
     return text[:900], d
 
 
@@ -1034,6 +1081,7 @@ def main():
     for c in ("status", "check", "rollback", "installed", "health", "slot", "effect"): sp.add_parser(c)
     p = sp.add_parser("nightly"); p.add_argument("--dry-run", action="store_true")
     p = sp.add_parser("config"); p.add_argument("--set", action="append")
+    p = sp.add_parser("manual"); p.add_argument("--what"); p.add_argument("--why"); p.add_argument("--by")
     for c in ("diff", "apply", "plan"):
         p = sp.add_parser(c); p.add_argument("--src"); p.add_argument("--tag"); p.add_argument("--json", action="store_true"); p.add_argument("--yes")
         p.add_argument("--take", help="через запятую: что из «отличается» взять из релиза")
@@ -1043,7 +1091,7 @@ def main():
     p = sp.add_parser("remove-skill"); p.add_argument("name"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     a = ap.parse_args()
     try:
-        {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "plan": cmd_plan, "effect": cmd_effect, "rollback": cmd_rollback,
+        {"status": cmd_status, "check": cmd_check, "diff": cmd_diff, "apply": cmd_apply, "plan": cmd_plan, "effect": cmd_effect, "manual": cmd_manual, "rollback": cmd_rollback,
          "install-skill": cmd_install_skill, "remove-skill": cmd_remove_skill, "installed": cmd_installed, "nightly": cmd_nightly,
          "config": cmd_config, "health": cmd_health, "slot": cmd_slot}[a.cmd.replace("_", "-")](a)
     finally:   # и при sys.exit внутри команды: что записали — хозяину дома (MILA_CHOWN)
