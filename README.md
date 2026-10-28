@@ -79,7 +79,7 @@ Mila takes a narrower job: a digital employee for a business, in Telegram.
 | Engine | Claude Code | own agent loop, models as plugins | Claude Agent SDK | own agent loop, any model |
 | Channels | Telegram: DMs, groups, your public bot | 20+ (WhatsApp, Telegram, Slack...) | many, each added by a skill | Telegram, Discord, Slack, WhatsApp... |
 | Business skills out of the box | CRM of dialogs, promises and tasks, owner cards, weekly rhythm, mailings | general skills (ClawHub) | general skills | self-written skills |
-| Nothing goes out without the owner's yes | yes, by design (constitution + send-guard) | exec approvals, Team preset | approval for credential use, self-modification and new chats; ordinary messages are not gated | approval for dangerous shell commands (fail-closed); no approval step for sending messages |
+| Nothing goes out without the owner's yes | partly: send-guard stops messages to chats the owner didn't connect, keys and internals; broadcasts from your bot and paid work above the limit wait for the owner's ✅ (`bot-send`, `spend`); ordinary replies in connected chats are not gated | exec approvals, Team preset | approval for credential use, self-modification and new chats; ordinary messages are not gated | approval for dangerous shell commands (fail-closed); no approval step for sending messages |
 | Spending limits | yes (`spend` skill: forecast, approval above the limit) | no data | no data | per-employee limit (Business plan) |
 | Your Mila moves with you | `mila export` / `mila restore` | Markdown memory files | per-group folders | own memory store |
 | License | Apache-2.0 | MIT | MIT | MIT |
