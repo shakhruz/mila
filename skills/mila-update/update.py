@@ -14,7 +14,7 @@
                                          --card — текст карточки хозяину; --offered — ответ хозяина в журнал
   update.py nightly [--dry-run] — ночной шаг: канал → есть новее (без отозванных) → сухой прогон → (auto: бэкап, крон-копия,
                                          apply, health, при провале авто-откат) или (не auto: карточка «есть обновление» хозяину)
-  update.py config [--set channel=stable|canary|manual] [--set auto=true|false] [--set owner_chat=ID] — настройки (~/.claude/mila-update.json)
+  update.py config [--set channel=stable|canary|manual] [--set auto=true|false|patch] [--set owner_chat=ID] — настройки (~/.claude/mila-update.json)
   update.py health                       — проверка здоровья после обновления (команда из release.json или встроенная)
   update.py slot                         — смещение ночного запуска в минутах (0–119) по имени дома, чтобы Милы не шли разом
 
@@ -978,6 +978,11 @@ def cmd_nightly(a):
         text = changelog_card(src, tag, m.get("version")) if ch == "stable" else ""
         plan_txt, plan_d = plan_text(src, m, rows, load_version().get("tag"), tag)   # UPDATE-PLAN-2810: в карточке — читаемый план
         res["plan"] = plan_d
+        if CFG.get("auto") == "patch":   # AUTO-PATCH-2910: хозяин разрешил ставить сами только патчи x.y.Z с риском не выше среднего
+            cur = load_version().get("tag") or ""
+            same_xy = bool(re.match(r"^v\d", cur) and re.match(r"^v\d", tag) and vkey(cur)[:2] == vkey(tag)[:2] and vkey(tag) > vkey(cur))
+            auto = same_xy and plan_d.get("risk") in ("нет", "низкий", "средний")
+            res["auto"] = "patch: %s" % ("ставлю сама" if auto else "не патч или риск высокий — карточка хозяину")
         if not auto:
             if load_version().get("offered") == tag:
                 print(json.dumps(dict(res, status="offered-already"), ensure_ascii=False)); return
@@ -988,7 +993,7 @@ def cmd_nightly(a):
             jlog({"event": "nightly", "result": "offered", "tag": tag})
             print(json.dumps(dict(res, status="offered: жду «да» хозяина"), ensure_ascii=False, indent=1)); return
         res["crons_saved"] = save_crons() or "кронов в state/ нет — сохранять нечего"
-        yes = "auto: хозяин включил auto в mila-update.json · канал " + ch
+        yes = ("auto: хозяин включил auto в mila-update.json · канал " + ch) if CFG.get("auto") is True else ("auto=patch: хозяин разрешил патчи сами · " + tag)
         out = do_apply(src, m, rows, yes, tag=tag, sha_=sha_, channel=ch, src_label=REPO)
         probs = run_health(m, tag)
         if probs:
@@ -1009,7 +1014,7 @@ def cmd_config(a):
     for kv in a.set or []:
         k, _, v = kv.partition("=")
         if k == "channel" and v in ("stable", "canary", "manual"): c[k] = v
-        elif k == "auto" and v in ("true", "false"): c[k] = v == "true"
+        elif k == "auto" and v in ("true", "false", "patch"): c[k] = "patch" if v == "patch" else v == "true"   # patch — сама только x.y.Z, риск ≤ средний
         elif k == "internal" and v in ("true", "false"): c[k] = v == "true"   # только администратор флота
         elif k in ("repo", "owner_chat", "require_signed", "catalog_url"): c[k] = (v == "true") if k == "require_signed" else v
         else: sys.exit(json.dumps({"error": "неверная настройка: " + kv}, ensure_ascii=False))
