@@ -177,7 +177,7 @@ def ref_used(d, key):
     return False
 
 
-async def owner_said(c, d, by, ref, what):
+async def owner_said(c, d, by, ref, what, reply=False):
     """Качество 29.10 15:32 🟡 (как SPEND-TAP): --by и --msg передаёт сама Мила — строка «--msg что угодно» не слово.
     --msg = <бот Милы>/<id сообщения> — сообщение в личке владельца с его Милой. Читаю его с аккаунта владельца и проверяю:
     чат — тот самый бот Милы, автор — владелец (out), не старше WORD_TTL, это сообщение ещё не использовано. → ключ «<id бота>/<id>»."""
@@ -203,6 +203,15 @@ async def owner_said(c, d, by, ref, what):
     ts = msg.date.timestamp() if getattr(msg, "date", None) else 0
     if not (time.time() - WORD_TTL <= ts <= time.time() + 60):
         sys.exit("%s: слово владельца старше %d мин — нужно новое" % (what, WORD_TTL // 60))
+    if reply:   # Качество 15:49: необратимое (стереть набранное им) — смысл проверяет код: его сообщение — ОТВЕТ на предложение Милы
+        rid = getattr(getattr(msg, "reply_to", None), "reply_to_msg_id", None) or getattr(msg, "reply_to_msg_id", None)
+        try:
+            prev = await c.get_messages(ent, ids=int(rid)) if rid else None
+        except (ValueError, KeyError, TypeError):
+            prev = None
+        if isinstance(prev, list): prev = prev[0] if prev else None
+        if not prev or getattr(prev, "out", True):
+            sys.exit("%s: стереть набранное владельцем — только если его сообщение — ответ на моё предложение в личке с Милой" % what)
     key = "%s/%s" % (ent.id, m.group(2))
     if ref_used(d, key):
         sys.exit("%s: это слово владельца уже использовано — одно слово, одно действие" % what)
@@ -369,15 +378,17 @@ def my_last_hash(d, chat_id):
 
 
 async def cmd_draft_clear(c, d, chat, by, ref, replace=False):
-    """Стереть черновик в поле ввода — только по слову владельца и только мой: набранное им не стираю без --replace."""
+    """Стереть черновик в поле ввода — только по слову владельца и только мой. Набранное или дописанное им — только с --replace
+    и только если его слово — ответ на моё предложение стереть (его черновик не вернуть — Качество 15:49)."""
     ent = await resolve(c, chat)
     private_guard(d, ent, "черновик")
-    key = await owner_said(c, d, by, ref, "очистка черновика")
     cur = await own_draft(c, ent)
     if not cur:
         print("DRAFT EMPTY", getattr(ent, "id", "")); return
-    if text_hash(cur) != my_last_hash(d, getattr(ent, "id", None)) and not replace:
+    theirs = text_hash(cur) != my_last_hash(d, getattr(ent, "id", None))
+    if theirs and not replace:
         sys.exit("в чате черновик, который положила не я (или его правил владелец) — не стираю; заменить — --replace после его «да»")
+    key = await owner_said(c, d, by, ref, "очистка черновика", reply=theirs)
     from telethon.tl.functions.messages import SaveDraftRequest
     await c(SaveDraftRequest(peer=ent, message=""))
     journal(d, {"kind": "draft-clear", "chat_id": getattr(ent, "id", None), "by": str(by), "ref": key, "replace": bool(replace)})

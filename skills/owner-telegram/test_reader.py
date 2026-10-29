@@ -25,9 +25,10 @@ IVAN, MARIA, NEWS, OWNER = User(USER_ID, PEOPLE[0]), User(USER_ID + 1, PEOPLE[1]
 MILA, OTHER_BOT = User(800, "Мила"), User(801, "Другой бот"); MILA.bot = OTHER_BOT.bot = True; MILA.username = "demo_mila_bot"
 MSGS = {}   # (чат, id) → сообщение в аккаунте владельца
 _mid = [100]
-def said(chat=800, out=True, ago=60):
+def said(chat=800, out=True, ago=60, reply_to=None):
     """Сообщение в аккаунте владельца: out=True — написал он сам. → строка --msg «<чат>/<id>»."""
-    _mid[0] += 1; MSGS[(chat, _mid[0])] = types.SimpleNamespace(id=_mid[0], out=out, date=datetime.datetime.fromtimestamp(time.time() - ago, datetime.timezone.utc))
+    _mid[0] += 1; MSGS[(chat, _mid[0])] = types.SimpleNamespace(id=_mid[0], out=out, date=datetime.datetime.fromtimestamp(time.time() - ago, datetime.timezone.utc),
+                                                 reply_to=types.SimpleNamespace(reply_to_msg_id=reply_to) if reply_to else None)
     return "%d/%d" % (chat, _mid[0])
 DRAFTS = {}
 class DL:
@@ -100,7 +101,13 @@ run(r.cmd_draft(c, D, str(USER_ID), "Иван, жду вас", replace=True)); D
 e = run(r.cmd_draft_clear(c, D, str(USER_ID), O, said()))
 check("мой черновик владелец дописал — уже его, не стираю", e and "не стираю" in e and DRAFTS[USER_ID] == "Иван, жду вас завтра", e)
 e = run(r.cmd_draft_clear(c, D, str(USER_ID), O, said(), replace=True))
-check("--replace после его «да» — стираю, в журнале replace", e is None and DRAFTS[USER_ID] == "" and jl()[-1].get("replace") is True, e)
+check("--replace по свежему «привет» (не ответ) — его черновик не стираю", e and "ответ на моё предложение" in e and DRAFTS[USER_ID] == "Иван, жду вас завтра", e)
+mine = said(out=False); e = run(r.cmd_draft_clear(c, D, str(USER_ID), O, said(reply_to=int(mine.split("/")[1]) + 50), replace=True))
+check("--replace ответом на несуществующее — не стираю", e and "ответ на моё предложение" in e and DRAFTS[USER_ID] == "Иван, жду вас завтра", e)
+own = said(); e = run(r.cmd_draft_clear(c, D, str(USER_ID), O, said(reply_to=int(own.split("/")[1])), replace=True))
+check("--replace ответом на СВОЁ же сообщение (не Милы) — не стираю", e and "ответ на моё предложение" in e and DRAFTS[USER_ID] == "Иван, жду вас завтра", e)
+e = run(r.cmd_draft_clear(c, D, str(USER_ID), O, said(reply_to=int(mine.split("/")[1])), replace=True))
+check("--replace: его слово — ответ на моё предложение → стираю, в журнале replace", e is None and DRAFTS[USER_ID] == "" and jl()[-1].get("replace") is True, e)
 n1 = len(f.calls); e = run(r.cmd_draft_clear(c, D, str(USER_ID), O, said()))
 check("черновика нет — ни одного вызова", e is None and len(f.calls) == n1, e)
 e = run(r.cmd_draft_clear(c, D, str(USER_ID + 1), O, said()))
