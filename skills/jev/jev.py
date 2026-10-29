@@ -239,7 +239,7 @@ def load_catalog(src=None):
     return cat, None
 
 
-RULES_SURE = 8.0   # JEV-RULES-SURE-2910 (Качество 10:17, вариант Б): счёт лучшего совпадения ниже — совет правил помечен rules_sure: false
+RULES_SURE = 8.2   # JEV-RULES-SURE-2910 (Качество 10:17, вариант Б): счёт лучшего совпадения ниже — совет правил помечен rules_sure: false
 
 
 def rules_scored(text, skills):
