@@ -39,6 +39,11 @@ $U nightly > "$T/n2.json"
 chk "auto=false: карточка «есть обновление», навык не тронут" "grep -q 'offered' $T/n2.json && grep -q 'demo 1.0.0' $CLAUDE_CONFIG_DIR/skills/demo/SKILL.md && grep -q 'Обновиться' $CLAUDE_CONFIG_DIR/mila-update/cards/offer-v1_1_0.json && grep -q 'быстрее разбираю' $CLAUDE_CONFIG_DIR/mila-update/cards/offer-v1_1_0.json"
 $U nightly > "$T/n3.json"
 chk "повторная ночь: то же предложение не дублируется" "grep -q offered-already $T/n3.json"
+python3 - <<PY
+import json; p="$V"; v=json.load(open(p)); v["offered"]="v0.9.0"; json.dump(v,open(p,"w"))
+PY
+$U nightly > "$T/n3b.json"
+chk "ONE-CARD: прошлая карточка (v0.9.0) без ответа — новая говорит «заменяет прошлую — про v0.9.0»" "grep -q 'заменяет прошлую — про v0.9.0' $CLAUDE_CONFIG_DIR/mila-update/cards/offer-v1_1_0.json"
 # outbox
 mkdir -p "$CLAUDE_CONFIG_DIR/channels/telegram"; $U config --set owner_chat=12345 >/dev/null
 rm "$CLAUDE_CONFIG_DIR/mila-update/version.json.tmp" 2>/dev/null; python3 - <<PY

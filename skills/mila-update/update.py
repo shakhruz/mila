@@ -968,7 +968,9 @@ def cmd_nightly(a):
         if not auto:
             if load_version().get("offered") == tag:
                 print(json.dumps(dict(res, status="offered-already"), ensure_ascii=False)); return
-            res["card"] = deliver_card(card("offer", tag, m.get("version"), plan_txt), "offer", tag)
+            prev = load_version().get("offered")   # ONE-CARD-2910 (мысль дня): прошлая карточка без ответа — новая говорит, что заменяет её
+            extra = ("\nЭта карточка заменяет прошлую — про %s; та больше не действует." % prev) if prev and prev != tag else ""
+            res["card"] = deliver_card(card("offer", tag, m.get("version"), plan_txt, extra), "offer", tag)
             v = load_version(); v["offered"] = tag; os.makedirs(STATE, exist_ok=True); json.dump(v, open(VERSION, "w"), ensure_ascii=False, indent=1)
             jlog({"event": "nightly", "result": "offered", "tag": tag})
             print(json.dumps(dict(res, status="offered: жду «да» хозяина"), ensure_ascii=False, indent=1)); return
