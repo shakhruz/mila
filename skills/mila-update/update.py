@@ -861,7 +861,7 @@ def plan_text(src, m, rows, cur_tag, tag):
                 text = s; break
         if text: break
     if not text: text = "\n".join(head + (["Что получите:"] + gl[:2] if gl else []) + change_lines(False) + tail)[:900]
-    d = {"from": cur_tag, "to": tag, "get": [l for v, l in og], "get_versions": sorted({v for v, l in og}, key=vkey), "get_order": [v for v, l in og], "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf, "recommend_take": take}
+    d = {"from": cur_tag, "to": tag, "get": [l for v, l in og], "get_versions": sorted({v for v, l in og}, key=vkey), "get_order": [v for v, l in og], "change": ch, "keep": keep, "risk": lvl, "risk_why": why, "manual": mf, "recommend_take": take, "word": word}
     return text[:900], d
 
 
@@ -981,8 +981,8 @@ def cmd_nightly(a):
         if CFG.get("auto") == "patch":   # AUTO-PATCH-2910: хозяин разрешил ставить сами только патчи x.y.Z с риском не выше среднего
             cur = load_version().get("tag") or ""
             same_xy = bool(re.match(r"^v\d", cur) and re.match(r"^v\d", tag) and vkey(cur)[:2] == vkey(tag)[:2] and vkey(tag) > vkey(cur))
-            auto = same_xy and plan_d.get("risk") in ("нет", "низкий", "средний")
-            res["auto"] = "patch: %s" % ("ставлю сама" if auto else "не патч или риск высокий — карточка хозяину")
+            auto = same_xy and plan_d.get("risk") in ("нет", "низкий", "средний") and not plan_d.get("word")   # конституция и каноны — только словом хозяина (закон 4, Качество 12:15)
+            res["auto"] = "patch: %s" % ("ставлю сама" if auto else "не патч, риск высокий или меняется конституция/канон — карточка хозяину")
         if not auto:
             if load_version().get("offered") == tag:
                 print(json.dumps(dict(res, status="offered-already"), ensure_ascii=False)); return

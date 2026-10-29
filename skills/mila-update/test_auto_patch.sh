@@ -32,6 +32,16 @@ import json; p="$V"; v=json.load(open(p)); v.pop("offered", None); json.dump(v, 
 PY
 $U nightly > "$T/n3.json"
 chk "патч 1.0.2, но меняется хук (риск высокий) — не ставлю, карточка хозяину" "grep -q 'offered' $T/n3.json && grep -q 'demo 1.0.1' $CLAUDE_CONFIG_DIR/skills/demo/SKILL.md && grep -q 'риск высокий' $T/n3.json"
+git checkout -q p102; manifest 1.0.3; skill 1.0.2; git checkout -q v1.0.1 -- install/h.py
+python3 - <<PY
+import json; p="release.json"; d=json.load(open(p)); d["zones"].append({"what": "конституция", "src": "CONSTITUTION.md", "dst": "{work}/CONSTITUTION.md", "kind": "file"}); json.dump(d, open(p, "w"))
+PY
+echo "# Конституция v2" > CONSTITUTION.md; rel r5 v1.0.3; git checkout -q main
+python3 - <<PY
+import json; p="$V"; v=json.load(open(p)); v.pop("offered", None); json.dump(v, open(p, "w"))
+PY
+$U nightly > "$T/n4.json"
+chk "патч 1.0.3 меняет конституцию (риск «средний») — не ставлю сама, карточка хозяину" "grep -q 'offered' $T/n4.json && [ ! -f $MILA_WORK/CONSTITUTION.md ]"
 $U config --set auto=false >/dev/null
 chk "auto=false — снова только по кнопке" "$U config | grep -q '\"auto\": false'"
 echo "итог $ok/$n"; [ $ok -eq $n ]
