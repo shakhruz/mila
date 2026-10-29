@@ -32,6 +32,7 @@ CAT_CACHE = os.path.join(HOME, ".claude", "jev-catalog.json")
 CAT_TTL = 86400
 CATALOG_URL = "https://milagpt.io/navyki/catalog.json"
 CHECK_SKILL_P = os.path.join(HOME, ".claude", "jev-check-skill.json")
+NONE_ROWS, NONE_PCT = 20, 85     # JEV-NONE-2910 (Качество 10:05): верное «никакой» на строках без навыка — отдельным числом, ≥ 20 строк и ≥ 85 %
 SKILL_ROWS, SKILL_PCT = 50, 80   # навык под задачу: в main — по сверке на ≥ 50 настоящих задачах, попал в тройку ≥ 80 % и не хуже правил   # тот же, что DEFAULT_CATALOG в mila-update
 READY_ROWS, READY_PCT = 100, 90
 DEF = {"mode": "off", "url": "", "site": "", "timeout": 1.2, "min_conf": 0.6}
@@ -299,8 +300,11 @@ def load_json(p):
 
 
 def ready_skill(ch):
+    """main — только когда оба порога пройдены: попадание в навык (строки с навыком) и верное «никакой» (строки без навыка).
+    Одним процентом не склеиваю: Jev, который чаще молчит, набрал бы балл без пользы."""
     return bool(ch and ch.get("rows", 0) >= SKILL_ROWS and ch.get("jev_pct") is not None and ch["jev_pct"] >= SKILL_PCT
-                and ch["jev_pct"] >= (ch.get("rules_pct") or 0))
+                and ch["jev_pct"] >= (ch.get("rules_pct") or 0)
+                and ch.get("none_rows", 0) >= NONE_ROWS and (ch.get("none_pct") or 0) >= NONE_PCT)
 
 
 def check_skill(a, c):
@@ -317,22 +321,30 @@ def check_skill(a, c):
             d = json.loads(l)
             tr = d.get("truth") if isinstance(d, dict) else None
             tx = str(d.get("text") or "").strip()[:4000] if isinstance(d, dict) else ""
-            if not tx or not isinstance(tr, list) or not tr or tx in seen: continue
-            seen.add(tx); rows.append((tx, {x for x in tr if x in by}))
+            if not tx or not isinstance(tr, list) or tx in seen: continue
+            tr_ = {x for x in tr if x in by}
+            if tr and not tr_: continue          # правда — навыки не из каталога: строку не считаю ни туда, ни сюда
+            seen.add(tx); rows.append((tx, tr_))   # пустая правда [] — «навык не нужен»
     except (OSError, ValueError) as e:
         return {"error": "файл сверки не прочитан: %s" % type(e).__name__}
-    n = jev_ok = rules_ok = answered = 0
+    n = jev_ok = rules_ok = answered = nn = jev_none = rules_none = k = 0
     q, names = skill_q(skills)
     for tx, truth in rows:
-        rr = rules_skill(tx, skills)
-        n += 1; rules_ok += bool(set(rr) & truth)
+        rr = rules_skill(tx, skills); k += 1
         ans = ask(c, tx, q); j = skill_pick(names, rr)(ans) if ans else None
+        if truth:
+            n += 1; rules_ok += bool(set(rr) & truth)
+            if j: jev_ok += bool(set(j[0]) & truth)
+        else:   # «навык не нужен»: верно — пустой ответ
+            nn += 1; rules_none += not rr
+            if j: jev_none += not j[0]
         if j:
-            answered += 1; jev_ok += bool(set(j[0]) & truth)
-        elif n >= 5 and not answered:
+            answered += 1
+        elif k >= 5 and not answered:
             return {"error": "шлюз Jev не ответил на 5 строк подряд — сверка не начата"}
-    res = {"ts": int(time.time()), "kind": "skill", "rows": n, "jev_answered": answered,
-           "jev_pct": round(100 * jev_ok / n) if n else None, "rules_pct": round(100 * rules_ok / n) if n else None}
+    pc = lambda a_, b_: round(100 * a_ / b_) if b_ else None
+    res = {"ts": int(time.time()), "kind": "skill", "rows": n, "jev_answered": answered, "jev_pct": pc(jev_ok, n), "rules_pct": pc(rules_ok, n),
+           "none_rows": nn, "none_pct": pc(jev_none, nn), "rules_none_pct": pc(rules_none, nn)}
     os.makedirs(os.path.dirname(CHECK_SKILL_P), exist_ok=True)
     json.dump(res, open(CHECK_SKILL_P, "w", encoding="utf-8"), ensure_ascii=False)
     return dict(res, ready_for_main=ready_skill(res))
