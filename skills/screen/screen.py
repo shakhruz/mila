@@ -8,6 +8,7 @@
   screen.py yt "запрос" [--views]   — поиск YouTube: id, просмотры, длительность, название
   screen.py top "запрос"             — самый просматриваемый ролик по запросу сразу на экран
   screen.py stop | clear            — остановить / очистить экран
+  screen.py page put ПАПКА ИМЯ [--show] | show ИМЯ | list | rm ИМЯ — своя HTML-страница (игра, слайды) на свой экран
   screen.py unpair [screen]         — отвязать экран
 Ключ — ~/secrets/screen.key. Ответ — JSON сервера."""
 import json, os, re, sys, urllib.request, urllib.parse, urllib.error
@@ -158,6 +159,38 @@ elif c == "site":  # site https://… — живая страница на эк�
 elif c == "snapshot":  # snapshot https://… [--every 300] — снимок страницы картинкой (рендер на сервере)
     u = a[1] if len(a) > 1 else ""; ev = int(a[a.index("--every") + 1]) if "--every" in a else 300
     out = {"error": "только https-адрес"} if not re.match(r"^https://[^\s\"'<>]+$", u) else call("cmd", {"action": "snapshot", "url": u, "every": max(60, ev)})
+elif c == "page":  # PAGES-2910 (№109): своя HTML-страница (игра, слайды) — page put ПАПКА ИМЯ | show ИМЯ | list | rm ИМЯ
+    sub = a[1] if len(a) > 1 else ""
+    if sub == "put":
+        import io, tarfile
+        src, nm = (a[2] if len(a) > 2 else ""), (a[3] if len(a) > 3 else "")
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,39}", nm) or not os.path.isfile(os.path.join(src, "index.html")):
+            out = {"error": "page put ПАПКА ИМЯ: в папке нужен index.html, имя — a-z, 0-9, дефис"}
+        else:
+            buf = io.BytesIO(); bad = []
+            with tarfile.open(fileobj=buf, mode="w:gz") as tf:
+                for dp, dn, fn in os.walk(src):
+                    dn[:] = sorted(d for d in dn if not d.startswith(".") and not os.path.islink(os.path.join(dp, d)))
+                    for f in sorted(fn):
+                        full = os.path.join(dp, f)
+                        if f.startswith("."): continue
+                        if os.path.islink(full) or not os.path.isfile(full): bad.append(f); continue
+                        tf.add(full, arcname=os.path.relpath(full, src), recursive=False)
+            if bad:
+                out = {"error": "в папке ссылки или не файлы — уберите: " + ", ".join(bad[:5])}
+            else:
+                r = urllib.request.Request(API + "page?name=" + nm, data=buf.getvalue(), headers={"Content-Type": "application/gzip", "X-Screen-Key": KEY})
+                try: out = json.load(urllib.request.urlopen(r, timeout=120))
+                except urllib.error.HTTPError as e: out = {"error": e.code, "detail": e.read().decode()[:300]}
+                if out.get("ok") and "--show" in a: out["shown"] = call("cmd", {"action": "page", "name": nm})
+    elif sub == "show":
+        out = call("cmd", {"action": "page", "name": a[2] if len(a) > 2 else ""})
+    elif sub == "list":
+        out = call("page-list", {})
+    elif sub == "rm":
+        out = call("page-rm", {"name": a[2] if len(a) > 2 else ""})
+    else:
+        out = {"error": "page put ПАПКА ИМЯ [--show] | page show ИМЯ | page list | page rm ИМЯ"}
 elif c == "deck":  # deck FILE.json [--i 1] — колода Милы Сцены на экран (SCENA-1011): {title, slides:[{title,sub,points,big,bars,image,notes}]}
     d = json.load(open(a[1])); i0 = int(a[a.index("--i") + 1]) - 1 if "--i" in a else 0
     sl = [{k: v for k, v in x.items() if k != "notes"} for x in (d.get("slides") or [])][:20]   # заметки — пульту, не экрану
@@ -167,5 +200,5 @@ elif c == "goto":  # goto 3 — на слайд 3
 elif c == "unpair":
     out = call("unpair", {"screen": a[1]} if len(a) > 1 else {})
 else:
-    out = {"error": "команда: pair|list|play|top|yt|image|audio|show|upload|playlist|slides|app|pause|resume|repeat|seek|volume|mute|unmute|next|prev|stop|clear|app|unpair"}
+    out = {"error": "команда: pair|list|play|top|yt|image|audio|show|upload|page|playlist|slides|app|pause|resume|repeat|seek|volume|mute|unmute|next|prev|stop|clear|app|unpair"}
 print(json.dumps(out, ensure_ascii=False))
