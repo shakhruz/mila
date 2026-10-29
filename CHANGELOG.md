@@ -2,6 +2,14 @@
 
 ## Unreleased (after v1.6.5)
 
+**Для хозяина**
+- Новая сила «Личка хозяина» (`owner-telegram`): Мила разбирает ваш личный Telegram, кладёт черновики вашим голосом, ставит лайк вместо ответа на «спасибо» — только по вашему слову; отправляете всегда вы.
+- Новая сила «Своя личка Милы» (`own-inbox`): люди пишут Миле в её аккаунт — она отвечает от себя, как ИИ, о каждом новом человеке говорит вам строкой.
+
+**For Milas**
+- `owner-telegram/scripts/reader.py` (read-only Telethon wrapper): `react` — emoji whitelist, private allowed chats only (no groups/channels), owner's word checked against the session account, U+FE0F stripped, journal line with by/ref; `draft-clear` — clears only Mila's own draft (hash in drafts.jsonl, text never stored), the owner's typed or edited draft only with `--replace`; `inbox`. Tests: test_reader 18/18 (fake telethon), test_folders 39/39 (skips without telethon).
+- `owner-dm` links to `owner-telegram`; `own-inbox` ≠ `owner-telegram` (Mila's own account vs the owner's).
+
 ## v1.6.5 · 28.10 — the approved constitution, a clearer update plan, green tests everywhere
 **Для хозяина**
 - В конституции ядра закон 4 — в вашей утверждённой редакции, как у всех Мил.

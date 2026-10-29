@@ -1,0 +1,397 @@
+#!/usr/bin/env python3
+"""Личный Telegram владельца — ТОЛЬКО ЧТЕНИЕ.
+
+Клиент Telegram доступен только через обёртку ReadOnly: в ней белый список методов
+получения диалогов и сообщений. Любой другой метод — отказ (PermissionError).
+
+  reader.py map            — карта: каналы и группы (без личных переписок), непрочитанное → map.json
+  reader.py pulse          — пульс: число контактов и личных диалогов, каналы/группы со звуком → live.json
+  reader.py last <чат> [N]            — последние N (≤50) сообщений; личный чат — только из списка allowed.json
+  reader.py draft <чат> --text «…» [--replace] — ЧЕРНОВИК в поле ввода чата владельца (DRAFT-1015): не отправляется,
+                           отправляет сам владелец; личный чат — только из allowed.json; свой черновик владельца в чате
+                           не затираю без --replace (его «да» на замену). Журнал drafts.jsonl (без текста).
+  reader.py allow <чат> --by <user_id> --msg <чат/сообщение> — добавить личный чат в allowed.json: --by должен быть
+                           id самого владельца (сверка с аккаунтом сессии), --msg — его нажатие «да» (улика).
+  reader.py disallow <чат> — убрать из списка.
+  reader.py inbox --by <id владельца> --msg <его слово> — личные чаты с непрочитанным (прочитанным не помечает).
+  reader.py react <чат> <id сообщения> --emoji 👍 --by <id владельца> --msg <его слово> — реакция от владельца
+                           (REACT-2910): белый список эмодзи, только разрешённый личный чат, строка в drafts.jsonl.
+  reader.py draft-clear <чат> --by <id владельца> --msg <его слово> — стереть МОЙ черновик; черновик, набранный
+                           владельцем, не трогаю без --replace.
+  <чат> — id, @ник или часть названия/имени (одно совпадение среди диалогов).
+  allowed.json (папка сессии, 600) — личные чаты, которые владелец разрешил (Мила Сила 15.10: имена — не в SKILL, а здесь;
+              флаг, который ставит сама Мила, разрешением не считается).
+
+Папка сессии: --dir, иначе env OWNER_TG_DIR, иначе ~/work/secrets/owner-tg.
+Ключи приложения: env TG_API_ID / TG_API_HASH, иначе <dir>/api.env.
+Итоговые файлы — в папке сессии, права 600.
+"""
+import argparse, asyncio, hashlib, json, os, sys, time
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import owner_folders   # FOLDERS-1025: папки — чтение и применение плана (запись — только FolderWriter)
+
+DEVICE = dict(device_model="Mila reader", system_version="read-only", app_version="1.0")
+
+
+def session_dir(arg=None):
+    d = arg or os.environ.get("OWNER_TG_DIR") or os.path.expanduser("~/work/secrets/owner-tg")
+    if not os.path.isdir(d):
+        sys.exit("нет папки сессии: сначала вход владельца (сессию заводит администратор)")
+    return d
+
+
+def api_keys(d):
+    api_id, api_hash = os.environ.get("TG_API_ID"), os.environ.get("TG_API_HASH")
+    if not (api_id and api_hash):
+        p = os.path.join(d, "api.env")
+        env = dict(l.strip().split("=", 1) for l in open(p) if "=" in l) if os.path.exists(p) else {}
+        api_id, api_hash = env.get("TG_API_ID"), env.get("TG_API_HASH")
+    if not (api_id and api_hash):
+        sys.exit("нет ключей TG_API_ID/TG_API_HASH")
+    return int(api_id), api_hash
+
+
+class ReadOnly:
+    """Белая обёртка: наружу только чтение диалогов, сообщений и списка контактов."""
+    ALLOWED = {"connect", "disconnect", "is_user_authorized", "get_me",
+               "iter_dialogs", "get_dialogs", "iter_messages", "get_messages", "get_entity", "download_media"}   # VOICE-2210: скачать голосовое — тоже чтение
+    ALLOWED_REQUESTS = {"GetContactsRequest", "SaveDraftRequest", "GetDialogFiltersRequest", "SendReactionRequest"}   # FOLDERS-1025: чтение папок   # DRAFT-1015: черновик — да; отправка/правка/удаление — нет
+
+    def __init__(self, client):
+        object.__setattr__(self, "_c", client)
+
+    def __getattr__(self, name):
+        if name not in ReadOnly.ALLOWED:
+            raise PermissionError(f"только чтение: метод {name} запрещён")
+        return getattr(object.__getattribute__(self, "_c"), name)
+
+    def __setattr__(self, name, value):
+        raise PermissionError("только чтение")
+
+    async def __call__(self, request):
+        if type(request).__name__ not in ReadOnly.ALLOWED_REQUESTS:
+            raise PermissionError(f"только чтение: запрос {type(request).__name__} запрещён")
+        return await object.__getattribute__(self, "_c")(request)
+
+
+def kind(d):
+    return "channel" if d.is_channel and not d.is_group else "group"
+
+
+def save(d, name, data):
+    p = os.path.join(d, name)
+    fd = os.open(p, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as f:
+        json.dump(data, f, ensure_ascii=False, indent=1)
+    os.chmod(p, 0o600)
+
+
+async def cmd_map(c, d):
+    out = []
+    async for dl in c.iter_dialogs(limit=None):
+        if dl.is_user:
+            continue  # личные переписки не трогаем
+        e = dl.entity
+        out.append({"id": dl.id, "title": dl.title, "kind": kind(dl),
+                    "username": getattr(e, "username", None), "unread": dl.unread_count,
+                    "members": getattr(e, "participants_count", None), "archived": dl.archived,
+                    "last": dl.date.isoformat() if dl.date else None})
+        await asyncio.sleep(0.05)
+    save(d, "map.json", out)
+    ch = [x for x in out if x["kind"] == "channel"]
+    gr = [x for x in out if x["kind"] == "group"]
+    print("channels", len(ch), "groups", len(gr), "unread_total", sum(x["unread"] or 0 for x in out))
+
+
+async def cmd_pulse(c, d):
+    from telethon.tl.functions.contacts import GetContactsRequest
+    cts = await c(GetContactsRequest(hash=0))
+    live, users = [], 0
+    async for dl in c.iter_dialogs(limit=None):
+        if dl.is_user:
+            users += 1
+            continue  # из личных — только счёт, без имён и текста
+        ns = getattr(dl.dialog, "notify_settings", None)
+        mu = getattr(ns, "mute_until", None) if ns else None
+        muted = bool(mu and mu.timestamp() > time.time())
+        if not muted and not dl.archived:
+            live.append({"id": dl.id, "title": dl.title, "kind": kind(dl), "unread": dl.unread_count})
+    save(d, "live.json", live)
+    print("contacts", len(cts.users), "private_dialogs", users, "live_groups_channels", len(live),
+          "live_unread", sum(x["unread"] or 0 for x in live))
+
+
+async def resolve(c, chat):
+    """id, @ник или часть названия/имени — одно совпадение среди диалогов, иначе отказ с вариантами."""
+    chat = str(chat).strip()
+    if chat.lstrip("-").isdigit():
+        return await c.get_entity(int(chat))
+    if chat.startswith("@"):
+        return await c.get_entity(chat)
+    q = chat.lower(); hits = []
+    async for dl in c.iter_dialogs(limit=500):
+        if q in (dl.name or "").lower():
+            hits.append(dl)
+    if len(hits) == 1:
+        return hits[0].entity
+    if not hits:
+        sys.exit("чат «%s» не найден среди диалогов" % chat)
+    sys.exit("несколько совпадений «%s»: %s — уточните id или @ник" % (chat, "; ".join("%s (%s)" % (h.name, h.id) for h in hits[:8])))
+
+
+def allowed_list(d):
+    try:
+        return json.load(open(os.path.join(d, "allowed.json"), encoding="utf-8")) or {}
+    except (OSError, ValueError):
+        return {}
+
+
+async def owner_word(c, by, ref, what):
+    """Слово владельца на действие: --by — id самого владельца (сверка с аккаунтом сессии), --msg — улика его «да»."""
+    me = await c.get_me()
+    if not by or str(by) != str(getattr(me, "id", "")) or not (ref or "").strip():
+        sys.exit("%s только по слову владельца: --by <его id> --msg <чат/сообщение>" % what)
+
+
+def journal(d, rec):
+    p = os.path.join(d, "drafts.jsonl")
+    fd = os.open(p, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    with os.fdopen(fd, "a") as f:
+        f.write(json.dumps(dict({"ts": time.strftime("%Y-%m-%dT%H:%M:%S%z")}, **rec), ensure_ascii=False) + "\n")
+
+
+def text_hash(s):
+    return hashlib.sha256((s or "").strip().encode("utf-8")).hexdigest()[:16]
+
+
+def private_guard(d, ent, what):
+    if type(ent).__name__ == "User" and str(getattr(ent, "id", "")) not in allowed_list(d):
+        sys.exit("личный чат: %s только для чатов, которые разрешил владелец (allowed.json; добавить — reader.py allow после его «да»)" % what)
+
+
+async def cmd_allow(c, d, chat, by, msg):
+    me = await c.get_me()
+    if not by or str(by) != str(getattr(me, "id", "")):
+        sys.exit("разрешение даёт только владелец: --by <его id>, нажатие с его аккаунта")
+    if not (msg or "").strip():
+        sys.exit("нужна улика «да»: --msg <чат/сообщение> с его нажатием")
+    ent = await resolve(c, chat)
+    name = " ".join(x for x in (getattr(ent, "first_name", None), getattr(ent, "last_name", None)) if x) or getattr(ent, "title", "") or str(ent.id)
+    lst = allowed_list(d); lst[str(ent.id)] = {"name": name, "by": str(by), "msg": msg.strip(), "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+    save(d, "allowed.json", lst)
+    print("ALLOWED", name, ent.id)
+
+
+async def cmd_disallow(c, d, chat):
+    ent = await resolve(c, chat)
+    lst = allowed_list(d); gone = lst.pop(str(ent.id), None); save(d, "allowed.json", lst)
+    print("DISALLOWED" if gone else "NOT IN LIST", ent.id)
+
+
+async def own_draft(c, ent):
+    """Черновик, который владелец уже набрал в этом чате (Dialog.draft), — чтобы не затереть его."""
+    async for dl in c.iter_dialogs(limit=500):
+        if getattr(dl.entity, "id", None) == getattr(ent, "id", None):
+            dr = getattr(dl, "draft", None)
+            return (getattr(dr, "text", "") or "").strip() if dr else ""
+    return ""
+
+
+def media_kind(m):
+    """VOICE-2210: что вложено — voice/audio/video_note/video/photo/doc (+секунды), чтобы видеть голосовые в last."""
+    if getattr(m, "voice", None): k = "voice"
+    elif getattr(m, "video_note", None): k = "video_note"
+    elif getattr(m, "audio", None): k = "audio"
+    elif getattr(m, "video", None): k = "video"
+    elif getattr(m, "photo", None): k = "photo"
+    elif getattr(m, "document", None): k = "doc"
+    else: return None
+    dur = getattr(getattr(m, "file", None), "duration", None)
+    return k + (":%ds" % int(dur) if dur else "")
+
+
+async def cmd_voice(c, d, chat, msg_id):
+    """VOICE-2210: скачать голосовое/кружок/аудио одного сообщения разрешённого чата в media/ (0700) и напечатать путь."""
+    ent = await resolve(c, chat)
+    private_guard(d, ent, "слушаю")
+    m = await c.get_messages(ent, ids=int(msg_id))
+    mk = media_kind(m) if m else None
+    if not mk or mk.split(":")[0] not in ("voice", "video_note", "audio", "video", "doc"):   # DOC-2210: файлы (шаблоны) — тоже чтение
+        sys.exit("в сообщении %s нет голосового/аудио" % msg_id)
+    md = os.path.join(d, "media")
+    os.makedirs(md, mode=0o700, exist_ok=True)
+    path = await c.download_media(m, file=os.path.join(md, "%s-%s" % (getattr(ent, "id", "x"), msg_id)))
+    os.chmod(path, 0o600)
+    print("VOICE", path)
+
+
+
+async def cmd_inbox(c, d, by, msg, n=15):
+    """INBOX-2510 (владелец 35977: «веди людей, которые пишут мне в личку»): личные чаты с непрочитанными — кто, сколько, последнее входящее. Только по его «да» (--by/--msg), прочитанным не помечает."""
+    me = await c.get_me()
+    if not by or str(by) != str(getattr(me, "id", "")) or not (msg or "").strip():
+        sys.exit("inbox только по слову владельца: --by <его id> --msg <чат/сообщение>")
+    k = 0
+    async for dl in c.iter_dialogs(limit=200):
+        if not dl.is_user or not dl.unread_count or getattr(dl.entity, "bot", False):
+            continue
+        last = dl.message
+        txt = (getattr(last, "message", "") or "")[:300] if last and not getattr(last, "out", False) else ""
+        print(json.dumps({"id": dl.id, "name": dl.name, "unread": dl.unread_count,
+                          "date": last.date.isoformat() if last and last.date else None, "last_in": txt,
+                          "allowed": str(dl.id) in allowed_list(d)}, ensure_ascii=False))
+        k += 1
+        if k >= n:
+            break
+
+async def cmd_last(c, d, chat, n):
+    n = max(1, min(n, 50))
+    ent = await resolve(c, chat)
+    private_guard(d, ent, "читаю")
+    for m in reversed(await c.get_messages(ent, limit=n)):
+        print(json.dumps({"id": m.id, "date": m.date.isoformat() if m.date else None,
+                          "from": m.sender_id, "out": bool(getattr(m, "out", False)), "text": (m.message or "")[:2000], "media": media_kind(m)}, ensure_ascii=False))
+
+
+async def cmd_draft(c, d, chat, text, replace=False):
+    """Черновик в поле ввода чата владельца. Не отправка: сообщение увидит и отправит (или сотрёт) сам владелец."""
+    text = (text or "").strip()
+    if not text:
+        sys.exit("пустой черновик")
+    if len(text) > 4096:
+        sys.exit("черновик длиннее 4096 знаков")
+    ent = await resolve(c, chat)
+    private_guard(d, ent, "черновик")
+    mine = await own_draft(c, ent)
+    if mine and mine != text and not replace:
+        sys.exit("у владельца в этом чате свой черновик: «%s» — спросить, заменить ли (--replace после его «да»)" % mine[:200])
+    from telethon.tl.functions.messages import SaveDraftRequest
+    await c(SaveDraftRequest(peer=ent, message=text))
+    title = getattr(ent, "title", None) or " ".join(x for x in (getattr(ent, "first_name", None), getattr(ent, "last_name", None)) if x) or str(getattr(ent, "id", ""))
+    p = os.path.join(d, "drafts.jsonl")
+    fd = os.open(p, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    with os.fdopen(fd, "a") as f:
+        f.write(json.dumps({"ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "chat_id": getattr(ent, "id", None), "chat": title, "len": len(text), "h": text_hash(text)}, ensure_ascii=False) + "\n")
+    print("DRAFT OK", title, len(text))
+
+
+REACT_OK = {"👍", "❤", "🔥", "🙏", "👏", "🤝", "😁", "🎉", "💯"}   # ❤ — без U+FE0F: так его принимает Telegram
+
+
+async def cmd_react(c, d, chat, msg_id, emoji, by, ref):
+    """Реакция от имени владельца (REACT-2910): лайк вместо текста на «спасибо / ок».
+    Только по его слову (--by = id владельца, --msg — улика), только эмодзи из белого списка, только в разрешённом личном чате."""
+    emoji = (emoji or "").replace("\ufe0f", "").strip()
+    if emoji not in REACT_OK:
+        sys.exit("эмодзи не из белого списка: %s" % " ".join(sorted(REACT_OK)))
+    if not str(msg_id or "").isdigit():
+        sys.exit("нужен id сообщения: react <чат> <id сообщения>")
+    await owner_word(c, by, ref, "реакция")
+    ent = await resolve(c, chat)
+    if type(ent).__name__ != "User":   # в группе и канале лайк видят все — только личные чаты
+        sys.exit("реакция — только в личном чате (группы и каналы — нет)")
+    private_guard(d, ent, "реакция")
+    from telethon.tl.functions.messages import SendReactionRequest
+    from telethon.tl.types import ReactionEmoji
+    await c(SendReactionRequest(peer=ent, msg_id=int(msg_id), reaction=[ReactionEmoji(emoticon=emoji)]))
+    journal(d, {"kind": "react", "chat_id": getattr(ent, "id", None), "msg": int(msg_id), "emoji": emoji, "by": str(by), "ref": ref})
+    print("REACT OK", getattr(ent, "id", ""), msg_id, emoji)
+
+
+def my_last_hash(d, chat_id):
+    """Хеш последнего черновика, который положила я (drafts.jsonl), — чтобы стирать только своё."""
+    h = ""
+    try:
+        for l in open(os.path.join(d, "drafts.jsonl"), encoding="utf-8"):
+            try: r = json.loads(l)
+            except ValueError: continue
+            if isinstance(r, dict) and r.get("chat_id") == chat_id and r.get("h") and r.get("kind", "draft") == "draft":
+                h = r["h"]
+    except OSError:
+        pass
+    return h
+
+
+async def cmd_draft_clear(c, d, chat, by, ref, replace=False):
+    """Стереть черновик в поле ввода — только по слову владельца и только мой: набранное им не стираю без --replace."""
+    await owner_word(c, by, ref, "очистка черновика")
+    ent = await resolve(c, chat)
+    private_guard(d, ent, "черновик")
+    cur = await own_draft(c, ent)
+    if not cur:
+        print("DRAFT EMPTY", getattr(ent, "id", "")); return
+    if text_hash(cur) != my_last_hash(d, getattr(ent, "id", None)) and not replace:
+        sys.exit("в чате черновик, который положила не я (или его правил владелец) — не стираю; заменить — --replace после его «да»")
+    from telethon.tl.functions.messages import SaveDraftRequest
+    await c(SaveDraftRequest(peer=ent, message=""))
+    journal(d, {"kind": "draft-clear", "chat_id": getattr(ent, "id", None), "by": str(by), "ref": ref, "replace": bool(replace)})
+    print("DRAFT CLEARED", getattr(ent, "id", ""))
+
+
+async def main():
+    ap = argparse.ArgumentParser(description="Личный Telegram владельца — только чтение")
+    ap.add_argument("cmd", choices=["map", "pulse", "last", "draft", "draft-clear", "react", "allow", "disallow", "voice", "folders", "folders-apply", "inbox"])
+    ap.add_argument("chat", nargs="?")
+    ap.add_argument("n", nargs="?", type=int, default=None)
+    ap.add_argument("--text")
+    ap.add_argument("--emoji")
+    ap.add_argument("--replace", action="store_true")
+    ap.add_argument("--by")
+    ap.add_argument("--msg")
+    ap.add_argument("--dir")
+    ap.add_argument("--yes", action="store_true")   # folders-apply: применить (без него — только дифф)
+    a = ap.parse_args()
+    d = session_dir(a.dir)
+    api_id, api_hash = api_keys(d)
+    from telethon import TelegramClient
+    raw = TelegramClient(os.path.join(d, "owner"), api_id, api_hash, **DEVICE)
+    c = ReadOnly(raw)
+    writer = owner_folders.FolderWriter(raw) if a.cmd == "folders-apply" and a.yes else None   # запись — только здесь и только папки
+    await c.connect()
+    try:
+        if not await c.is_user_authorized():
+            sys.exit("не авторизован: нужен вход владельца (сессию заводит администратор)")
+        if a.cmd == "map":
+            await cmd_map(c, d)
+        elif a.cmd == "folders":
+            await owner_folders.cmd_folders(c, d)
+        elif a.cmd == "folders-apply":
+            if a.chat is None:
+                sys.exit("нужен план: folders-apply <plan.json> --by <id владельца> --msg <чат/сообщение> [--yes]")
+            await owner_folders.cmd_apply(c, d, a.chat, a.by, a.msg, a.yes, writer)
+        elif a.cmd == "inbox":
+            await cmd_inbox(c, d, a.by, a.msg)
+        elif a.cmd == "pulse":
+            await cmd_pulse(c, d)
+        elif a.cmd == "react":
+            if a.chat is None or a.n is None:
+                sys.exit("нужны чат и id сообщения: react <чат> <id> --emoji 👍 --by … --msg …")
+            await cmd_react(c, d, a.chat, a.n, a.emoji or a.text, a.by, a.msg)
+        elif a.cmd == "draft-clear":
+            if a.chat is None:
+                sys.exit("нужен чат: id, @ник или часть имени")
+            await cmd_draft_clear(c, d, a.chat, a.by, a.msg, a.replace)
+        elif a.cmd == "draft":
+            if a.chat is None:
+                sys.exit("нужен чат: id, @ник или часть имени")
+            await cmd_draft(c, d, a.chat, a.text, a.replace)
+        elif a.cmd == "voice":
+            if a.chat is None:
+                sys.exit("нужен чат и id сообщения")
+            if a.n is None:
+                sys.exit("нужен id сообщения")
+            await cmd_voice(c, d, a.chat, a.n)
+        elif a.cmd in ("allow", "disallow"):
+            if a.chat is None:
+                sys.exit("нужен чат: id, @ник или часть имени")
+            await (cmd_allow(c, d, a.chat, a.by, a.msg) if a.cmd == "allow" else cmd_disallow(c, d, a.chat))
+        else:
+            if a.chat is None:
+                sys.exit("нужен чат: id, @ник или часть имени")
+            await cmd_last(c, d, a.chat, 20 if a.n is None else a.n)
+    finally:
+        await c.disconnect()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
