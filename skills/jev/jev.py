@@ -239,17 +239,23 @@ def load_catalog(src=None):
     return cat, None
 
 
-def rules_skill(text, skills, k=3):
-    """Совпадение основ слов задачи со строкой «что даёт» и именем навыка; редкое слово весит больше частого (idf).
-    Ни одного совпадения — не предлагаю."""
+RULES_SURE = 8.0   # JEV-RULES-SURE-2910 (Качество 10:17, вариант Б): счёт лучшего совпадения ниже — совет правил помечен rules_sure: false
+
+
+def rules_scored(text, skills):
+    """[(счёт, имя)] по убыванию: совпадение основ слов задачи со строкой «что даёт» и именем, редкое слово весит больше (idf)."""
     import math
     docs = [(s["name"], stems(s.get("gives", "") + " " + s["name"].replace("-", " "))) for s in skills]
     df = {}
     for _, d in docs:
         for w in d: df[w] = df.get(w, 0) + 1
     st, n = stems(text), max(len(docs), 1)
-    sc = [(-sum(math.log(1 + n / df[w]) for w in st & d), name) for name, d in docs if st & d]
-    return [name for _, name in sorted(sc)[:k]]
+    return sorted(((sum(math.log(1 + n / df[w]) for w in st & d), name) for name, d in docs if st & d), key=lambda x: (-x[0], x[1]))
+
+
+def rules_skill(text, skills, k=3):
+    """Ни одного совпадения — не предлагаю. Порога нет: он резал полезные попадания (замер 29.10) — слабый совет помечается."""
+    return [name for _, name in rules_scored(text, skills)[:k]]
 
 
 def skill_q(skills):
@@ -287,6 +293,8 @@ def cmd_skill(a):
     if conf()["mode"] == "main" and not ready_skill(load_json(CHECK_SKILL_P)):
         os.environ["JEV_MODE"] = "shadow"   # main для «кому/отвечать» не открывает навыки: у них своя сверка (check --kind skill)
     res = decide("skill", a.text, r, q, skill_pick(names, r))
+    sc = rules_scored(a.text, skills)
+    res["rules_sure"] = bool(sc and sc[0][0] >= RULES_SURE)   # false — показывать как «может пригодиться», не рекомендацией
     res["skills"] = [{"name": n, "gives": by[n].get("gives"), "price": by[n].get("price"), "installed": n in have} for n in res["decision"] if n in by]
     return res
 
