@@ -10,6 +10,26 @@ import argparse, json, os, re, sys, time, uuid
 OUT = os.path.join(os.environ.get("MILA_WORK") or os.path.expanduser("~/work"), "outbox", "bot-send")
 
 
+def button_errors(buttons):
+    """TIHIE-OTKAZY-2910: служба рассылки (bot_send._markup) берёт только {label, url https://}, ряд ≤3, рядов ≤6, подпись ≤40 —
+    остальное выбрасывала молча: хозяин одобрил текст с кнопкой, а кнопка не ушла. Проверяю до заявки → список ошибок."""
+    if not isinstance(buttons, list): return ["кнопки — массив рядов: [[{\"label\": \"Сайт\", \"url\": \"https://…\"}]]"]
+    err = []
+    if len(buttons) > 6: err.append("рядов %d — можно до 6" % len(buttons))
+    for row in buttons:
+        if not isinstance(row, list): err.append("ряд — массив кнопок"); continue
+        if len(row) > 3: err.append("в ряду %d кнопки — можно до 3" % len(row))
+        for b in row:
+            if not isinstance(b, dict): err.append("кнопка — объект {label, url}"); continue
+            extra = sorted(set(b) - {"label", "url"})
+            if extra: err.append("кнопка «%s»: поля %s не поддерживаются — в рассылке только ссылки {label, url}" % (str(b.get("label", ""))[:30], ", ".join(extra)))
+            lab = str(b.get("label") or "").strip()
+            if not lab: err.append("кнопка без подписи")
+            elif len(lab) > 40: err.append("подпись «%s…» длиннее 40 знаков" % lab[:30])
+            if not str(b.get("url") or "").startswith("https://"): err.append("кнопка «%s»: ссылка только https://" % lab[:30])
+    return err
+
+
 def main():
     ap = argparse.ArgumentParser(); sp = ap.add_subparsers(dest="cmd", required=True)
     for k in ("personal", "broadcast"):
@@ -29,7 +49,12 @@ def main():
     if a.cmd == "personal" and len(to) != 1: sys.exit(json.dumps({"error": "personal — ровно один получатель"}, ensure_ascii=False))
     if a.cmd == "broadcast" and not (to or a.segment): sys.exit(json.dumps({"error": "broadcast — --segment или --to"}, ensure_ascii=False))
     if not re.search(r"ok|✅|yes|send|da", a.choice, re.I): sys.exit(json.dumps({"error": "нет ✅ хозяина — заявку не пишу"}, ensure_ascii=False))
-    buttons = json.loads(a.buttons) if a.buttons else []
+    try:
+        buttons = json.loads(a.buttons) if a.buttons else []
+    except ValueError:
+        sys.exit(json.dumps({"error": "--buttons — не JSON"}, ensure_ascii=False))
+    be = button_errors(buttons)
+    if be: sys.exit(json.dumps({"error": "кнопки не уйдут как задумано — заявку не пишу", "buttons": be}, ensure_ascii=False))
     rid = time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]
     req = {"id": rid, "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "kind": a.cmd, "operator": a.operator, "to": to,
            "segment": getattr(a, "segment", ""), "text": text, "buttons": buttons, "owner_yes": {"card_id": a.card, "choice": a.choice}}
