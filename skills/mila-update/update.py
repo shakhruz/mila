@@ -866,11 +866,19 @@ def plan_text(src, m, rows, cur_tag, tag):
 
 
 def cmd_plan(a):
-    """update.py plan [--src|--tag] [--json] — читаемый план обновления для хозяина (ничего не пишет)."""
+    """update.py plan [--src|--tag] [--json] [--offer] — читаемый план обновления для хозяина; без --offer ничего не пишет."""
     src = source(a)
     try: m, rows = compare(src)
     except ManifestRefused as e: sys.exit(json.dumps({"error": "манифест релиза отклонён целиком", "detail": str(e)}, ensure_ascii=False))
-    txt, d = plan_text(src, m, rows, load_version().get("tag"), m.get("tag") or getattr(a, "tag", None))
+    tag = m.get("tag") or getattr(a, "tag", None)
+    txt, d = plan_text(src, m, rows, load_version().get("tag"), tag)
+    if getattr(a, "offer", False) and tag:   # ONE-CARD c (Качество 11:45): ручная карточка раскатки тоже пишет offered —
+        v = load_version(); prev = v.get("offered")   # тогда кнопку её предшественницы запрет apply ловит так же, как у ночной
+        if prev and prev != tag:
+            txt += "\nЭта карточка заменяет прошлую — про %s; та больше не действует." % prev
+        v["offered"] = tag; os.makedirs(STATE, exist_ok=True); json.dump(v, open(VERSION, "w"), ensure_ascii=False, indent=1)
+        jlog({"event": "offered", "tag": tag, "by": "plan --offer"})
+        d["offered"] = tag
     print(json.dumps(d, ensure_ascii=False, indent=1) if a.json else txt)
 
 
@@ -1238,6 +1246,7 @@ def main():
         p.add_argument("--take", help="через запятую: что из «отличается» взять из релиза")
         p.add_argument("--newborn-ok", action="store_true", help="обновить новорождённую до конца знакомства (только по слову администратора)")
         p.add_argument("--force-stale", action="store_true", help="поставить версию, отличную от предложенной хозяину (только руками администратора)")
+        p.add_argument("--offer", action="store_true", help="plan: этот план уходит хозяину карточкой — записать offered (запрет старых кнопок)")
     p = sp.add_parser("install-skill"); p.add_argument("dir"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     p.add_argument("--allow-missing", action="store_true")   # поставить неполный навык осознанно (ответ покажет missing)
     p = sp.add_parser("catalog"); p.add_argument("--who"); p.add_argument("--card"); p.add_argument("--offered"); p.add_argument("--answer")

@@ -90,6 +90,10 @@ chk "canary: тот же коммит — обновлять нечего" "grep
 $U config --set channel=manual >/dev/null
 chk "manual: сама не проверяю" "$U nightly | grep -q manual"
 $U slot > "$T/s"; chk "slot: число 0–119" "python3 -c \"import sys; v=int(open('$T/s').read()); sys.exit(0 if 0<=v<120 else 1)\""
+$U plan --tag v1.1.0 --offer > "$T/plan-offer.txt"
+chk "ONE-CARD c: plan --offer — ручная карточка пишет offered = v1.1.0" "grep -q '\"offered\": \"v1.1.0\"' $V"
+$U apply --tag v1.0.0 --yes "тест: кнопка карточки старее ручной" > "$T/stale2.json" 2>&1
+chk "ONE-CARD c: после ручной карточки v1.1.0 кнопка v1.0.0 — «устарела»" "grep -q 'карточка устарела' $T/stale2.json"
 python3 - <<PY
 import json; p="$V"; v=json.load(open(p)); v["offered"]="v0.1.0"; json.dump(v,open(p,"w"))
 PY
