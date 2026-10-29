@@ -609,6 +609,11 @@ def cmd_effect(a):
 
 def cmd_apply(a):
     if not a.yes: sys.exit(json.dumps({"error": "нужно «да» хозяина: --yes \"<кто, где, когда>\" — без него не обновляюсь"}, ensure_ascii=False))
+    off = load_version().get("offered")   # ONE-CARD (Качество 11:34): кнопка устаревшей карточки — не применяю, даже если модель вызвала apply
+    stale = bool(getattr(a, "tag", None) and off and re.match(r"^v\d", off) and re.match(r"^v\d", a.tag) and vkey(a.tag) < vkey(off))   # старее предложенной; новее — свежая карточка, ручная или ночная
+    if stale and not getattr(a, "force_stale", False):
+        sys.exit(json.dumps({"error": "карточка устарела: хозяину предложена %s, а нажата %s — ставлю только предложенную" % (off, a.tag),
+                             "hint": "--force-stale — только руками администратора"}, ensure_ascii=False))
     nb = newborn_block("apply")
     if nb and not a.newborn_ok: sys.exit(json.dumps({"error": nb, "hint": "--newborn-ok — только по слову администратора"}, ensure_ascii=False))
     src = source(a)
@@ -1232,6 +1237,7 @@ def main():
         p = sp.add_parser(c); p.add_argument("--src"); p.add_argument("--tag"); p.add_argument("--json", action="store_true"); p.add_argument("--yes")
         p.add_argument("--take", help="через запятую: что из «отличается» взять из релиза")
         p.add_argument("--newborn-ok", action="store_true", help="обновить новорождённую до конца знакомства (только по слову администратора)")
+        p.add_argument("--force-stale", action="store_true", help="поставить версию, отличную от предложенной хозяину (только руками администратора)")
     p = sp.add_parser("install-skill"); p.add_argument("dir"); p.add_argument("--from", dest="sender"); p.add_argument("--yes")
     p.add_argument("--allow-missing", action="store_true")   # поставить неполный навык осознанно (ответ покажет missing)
     p = sp.add_parser("catalog"); p.add_argument("--who"); p.add_argument("--card"); p.add_argument("--offered"); p.add_argument("--answer")

@@ -44,6 +44,8 @@ import json; p="$V"; v=json.load(open(p)); v["offered"]="v0.9.0"; json.dump(v,op
 PY
 $U nightly > "$T/n3b.json"
 chk "ONE-CARD: прошлая карточка (v0.9.0) без ответа — новая говорит «заменяет прошлую — про v0.9.0»" "grep -q 'заменяет прошлую — про v0.9.0' $CLAUDE_CONFIG_DIR/mila-update/cards/offer-v1_1_0.json"
+$U apply --tag v1.0.0 --yes "тест: кнопка старой карточки" > "$T/stale.json" 2>&1; rc=$?
+chk "ONE-CARD: apply с тегом старой карточки (v1.0.0 старее предложенной v1.1.0) — отказ «карточка устарела», ничего не поставлено" "[ $rc != 0 ] && grep -q 'карточка устарела' $T/stale.json && grep -q 'demo 1.0.0' $CLAUDE_CONFIG_DIR/skills/demo/SKILL.md"
 # outbox
 mkdir -p "$CLAUDE_CONFIG_DIR/channels/telegram"; $U config --set owner_chat=12345 >/dev/null
 rm "$CLAUDE_CONFIG_DIR/mila-update/version.json.tmp" 2>/dev/null; python3 - <<PY
@@ -88,4 +90,9 @@ chk "canary: тот же коммит — обновлять нечего" "grep
 $U config --set channel=manual >/dev/null
 chk "manual: сама не проверяю" "$U nightly | grep -q manual"
 $U slot > "$T/s"; chk "slot: число 0–119" "python3 -c \"import sys; v=int(open('$T/s').read()); sys.exit(0 if 0<=v<120 else 1)\""
+python3 - <<PY
+import json; p="$V"; v=json.load(open(p)); v["offered"]="v0.1.0"; json.dump(v,open(p,"w"))
+PY
+$U apply --tag v1.1.0 --yes "тест: ручная карточка новее ночной" > "$T/newer.json" 2>&1
+chk "ONE-CARD: apply с тегом НОВЕЕ предложенного (ручная карточка раскатки) — не «устарела»" "! grep -q 'устарела' $T/newer.json"
 echo "итог $ok/$n"; rm -rf "$T"; [ "$ok" = "$n" ]
