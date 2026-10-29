@@ -14,7 +14,7 @@
                            id самого владельца (сверка с аккаунтом сессии), --msg — его нажатие «да» (улика).
   reader.py disallow <чат> — убрать из списка.
   reader.py inbox --by <id владельца> --msg <его слово> — личные чаты с непрочитанным (прочитанным не помечает).
-  reader.py react <чат> <id сообщения> --emoji 👍 --by <id владельца> --msg <его слово> — реакция от владельца
+  reader.py react <чат> <id сообщения> --emoji 👍 --by <id владельца> --msg <бот Милы>/<id его сообщения> — реакция от владельца
                            (REACT-2910): белый список эмодзи, только разрешённый личный чат, строка в drafts.jsonl.
   reader.py draft-clear <чат> --by <id владельца> --msg <его слово> — стереть МОЙ черновик; черновик, набранный
                            владельцем, не трогаю без --replace.
@@ -26,7 +26,7 @@
 Ключи приложения: env TG_API_ID / TG_API_HASH, иначе <dir>/api.env.
 Итоговые файлы — в папке сессии, права 600.
 """
-import argparse, asyncio, hashlib, json, os, sys, time
+import argparse, asyncio, hashlib, json, os, re, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import owner_folders   # FOLDERS-1025: папки — чтение и применение плана (запись — только FolderWriter)
 
@@ -151,6 +151,62 @@ async def owner_word(c, by, ref, what):
     me = await c.get_me()
     if not by or str(by) != str(getattr(me, "id", "")) or not (ref or "").strip():
         sys.exit("%s только по слову владельца: --by <его id> --msg <чат/сообщение>" % what)
+
+
+WORD_TTL = int(os.environ.get("OWNER_TG_WORD_MIN") or 30) * 60   # слово владельца на действие — не старше 30 мин
+
+
+def mila_bot(d):
+    """Бот Милы, в личке с которым владелец даёт слово: env MILA_BOT (id или @ник), иначе <dir>/mila_bot (одна строка)."""
+    v = (os.environ.get("MILA_BOT") or "").strip()
+    if not v:
+        try: v = open(os.path.join(d, "mila_bot"), encoding="utf-8").read().strip()
+        except OSError: v = ""
+    return int(v) if re.fullmatch(r"-?\d+", v) else v
+
+
+def ref_used(d, key):
+    try:
+        for l in open(os.path.join(d, "drafts.jsonl"), encoding="utf-8"):
+            try: r = json.loads(l)
+            except ValueError: continue
+            if isinstance(r, dict) and r.get("kind") in ("react", "draft-clear") and r.get("ref") == key:
+                return True
+    except OSError:
+        pass
+    return False
+
+
+async def owner_said(c, d, by, ref, what):
+    """Качество 29.10 15:32 🟡 (как SPEND-TAP): --by и --msg передаёт сама Мила — строка «--msg что угодно» не слово.
+    --msg = <бот Милы>/<id сообщения> — сообщение в личке владельца с его Милой. Читаю его с аккаунта владельца и проверяю:
+    чат — тот самый бот Милы, автор — владелец (out), не старше WORD_TTL, это сообщение ещё не использовано. → ключ «<id бота>/<id>»."""
+    await owner_word(c, by, ref, what)
+    m = re.fullmatch(r"(@?\w{1,64}|-?\d+)/(\d+)", (ref or "").strip())
+    bot = mila_bot(d)
+    if not m or not bot:
+        sys.exit("%s: --msg <бот Милы>/<id его сообщения>; бот Милы — env MILA_BOT или файл mila_bot в папке сессии" % what)
+    try:
+        ent = await c.get_entity(int(m.group(1)) if re.fullmatch(r"-?\d+", m.group(1)) else m.group(1))
+        want = await c.get_entity(bot)
+    except (ValueError, KeyError, TypeError):   # чат или бот не нашёлся в аккаунте владельца
+        sys.exit("%s: слово владельца — только в его личке с ботом Милы" % what)
+    if not getattr(ent, "bot", False) or getattr(ent, "id", None) != getattr(want, "id", None):
+        sys.exit("%s: слово владельца — только в его личке с ботом Милы" % what)
+    try:
+        msg = await c.get_messages(ent, ids=int(m.group(2)))
+    except (ValueError, KeyError, TypeError):
+        msg = None
+    if isinstance(msg, list): msg = msg[0] if msg else None
+    if not msg or not getattr(msg, "out", False):
+        sys.exit("%s: такого сообщения владельца в личке с Милой нет" % what)
+    ts = msg.date.timestamp() if getattr(msg, "date", None) else 0
+    if not (time.time() - WORD_TTL <= ts <= time.time() + 60):
+        sys.exit("%s: слово владельца старше %d мин — нужно новое" % (what, WORD_TTL // 60))
+    key = "%s/%s" % (ent.id, m.group(2))
+    if ref_used(d, key):
+        sys.exit("%s: это слово владельца уже использовано — одно слово, одно действие" % what)
+    return key
 
 
 def journal(d, rec):
@@ -286,15 +342,15 @@ async def cmd_react(c, d, chat, msg_id, emoji, by, ref):
         sys.exit("эмодзи не из белого списка: %s" % " ".join(sorted(REACT_OK)))
     if not str(msg_id or "").isdigit():
         sys.exit("нужен id сообщения: react <чат> <id сообщения>")
-    await owner_word(c, by, ref, "реакция")
     ent = await resolve(c, chat)
     if type(ent).__name__ != "User":   # в группе и канале лайк видят все — только личные чаты
         sys.exit("реакция — только в личном чате (группы и каналы — нет)")
     private_guard(d, ent, "реакция")
+    key = await owner_said(c, d, by, ref, "реакция")
     from telethon.tl.functions.messages import SendReactionRequest
     from telethon.tl.types import ReactionEmoji
     await c(SendReactionRequest(peer=ent, msg_id=int(msg_id), reaction=[ReactionEmoji(emoticon=emoji)]))
-    journal(d, {"kind": "react", "chat_id": getattr(ent, "id", None), "msg": int(msg_id), "emoji": emoji, "by": str(by), "ref": ref})
+    journal(d, {"kind": "react", "chat_id": getattr(ent, "id", None), "msg": int(msg_id), "emoji": emoji, "by": str(by), "ref": key})
     print("REACT OK", getattr(ent, "id", ""), msg_id, emoji)
 
 
@@ -314,9 +370,9 @@ def my_last_hash(d, chat_id):
 
 async def cmd_draft_clear(c, d, chat, by, ref, replace=False):
     """Стереть черновик в поле ввода — только по слову владельца и только мой: набранное им не стираю без --replace."""
-    await owner_word(c, by, ref, "очистка черновика")
     ent = await resolve(c, chat)
     private_guard(d, ent, "черновик")
+    key = await owner_said(c, d, by, ref, "очистка черновика")
     cur = await own_draft(c, ent)
     if not cur:
         print("DRAFT EMPTY", getattr(ent, "id", "")); return
@@ -324,7 +380,7 @@ async def cmd_draft_clear(c, d, chat, by, ref, replace=False):
         sys.exit("в чате черновик, который положила не я (или его правил владелец) — не стираю; заменить — --replace после его «да»")
     from telethon.tl.functions.messages import SaveDraftRequest
     await c(SaveDraftRequest(peer=ent, message=""))
-    journal(d, {"kind": "draft-clear", "chat_id": getattr(ent, "id", None), "by": str(by), "ref": ref, "replace": bool(replace)})
+    journal(d, {"kind": "draft-clear", "chat_id": getattr(ent, "id", None), "by": str(by), "ref": key, "replace": bool(replace)})
     print("DRAFT CLEARED", getattr(ent, "id", ""))
 
 
