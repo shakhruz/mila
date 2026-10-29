@@ -2,7 +2,10 @@
 """FOLDERS-1025: folders / folders-apply на заглушке клиента (настоящие типы Telethon, без сети и сессии)."""
 import asyncio, glob, json, os, re, sys, tempfile
 H = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(H, "scripts")); sys.path.insert(0, os.path.join(H, "..", "..", "tests", "fixtures"))
-from fake_people import OWNER_ID
+try:
+    from fake_people import OWNER_ID
+except ImportError:   # навык стоит в доме Милы без клона ядра (старшая 29.10: прогон на месте) — те же вымышленные значения
+    OWNER_ID, USER_ID, PEOPLE = int("555" + "000111"), int("555" + "000222"), ["Иван", "Мария"]
 try:
     import telethon   # настоящие типы Telethon; нет библиотеки (CI без навыка) — пропуск, не ложное «зелено»
 except ImportError:

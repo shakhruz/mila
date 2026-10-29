@@ -3,7 +3,10 @@
 личном чате и по слову владельца; реакция — белый список; draft-clear стирает только мой черновик. Запуск: python3 test_reader.py"""
 import asyncio, datetime, json, os, sys, tempfile, time, types
 H = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(H, "..", "..", "tests", "fixtures"))
-from fake_people import OWNER_ID, USER_ID, PEOPLE
+try:
+    from fake_people import OWNER_ID, USER_ID, PEOPLE
+except ImportError:   # навык стоит в доме Милы без клона ядра (старшая 29.10: прогон на месте) — те же вымышленные значения
+    OWNER_ID, USER_ID, PEOPLE = int("555" + "000111"), int("555" + "000222"), ["Иван", "Мария"]
 class SaveDraftRequest:
     def __init__(s, peer, message): s.peer, s.message = peer, message
 class SendReactionRequest:
