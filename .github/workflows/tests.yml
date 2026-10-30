@@ -12,7 +12,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: for i in 1 2 3; do timeout 150 sudo apt-get update -qq && timeout 150 sudo apt-get install -y -qq ffmpeg fonts-dejavu-core && exit 0; sudo dpkg --configure -a || true; sleep 10; done; exit 1   # зеркало apt зависло — повтор, не 6 ч; оборванный dpkg — довести перед повтором
         timeout-minutes: 16   # худший случай 3×(150+150)+2×10 = 920 с < 960
-      - run: pip install pyyaml pillow numpy
+      - run: pip install pyyaml pillow numpy telethon==1.45.0   # telethon — test_folders (owner-telegram): без него «итог 0/0» = провал в CI (Качество 30.10)
       - run: HOME=$(mktemp -d) bash tests/run_all.sh   # every test_* in the repo + frontmatter, sandboxed HOME
       - name: privacy-lint — наши значения не в ядре (список — секрет PRIVACY_JSON, в дереве его нет; без секрета шаг пропускается)
         env: { PRIVACY_LIST: "${{ secrets.PRIVACY_JSON }}" }
