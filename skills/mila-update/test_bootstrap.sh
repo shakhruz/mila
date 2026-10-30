@@ -2,7 +2,7 @@
 # Мила клиента без навыка обновлений — текст хозяину, установка только с его «да», потом status и план работают.
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"
-T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
+T="$(mktemp -d)"; trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
 mkdir -p "$CLAUDE_CONFIG_DIR/skills/klient-svoy" "$MILA_WORK"; echo "знакомство: пройдено" > "$MILA_WORK/USER.md"; echo "свой навык" > "$CLAUDE_CONFIG_DIR/skills/klient-svoy/SKILL.md"
 cp -R "$REPO" "$T/rel"; rm -rf "$T/rel/.git"
 U="python3 $HERE/update.py"; I="python3 $T/rel/skills/mila-update/update.py"; ok=0; n=0

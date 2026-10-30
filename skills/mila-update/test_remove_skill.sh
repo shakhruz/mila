@@ -2,7 +2,7 @@
 # install-skill → remove-skill (нужны --from и --yes, бэкап, журнал); навык ядра не снимается; путь с ../ — отказ.
 set -u; unset TELEGRAM_STATE_DIR MILA_OUTBOX MILA_OWNER_CHAT
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"
-T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"; mkdir -p "$CLAUDE_CONFIG_DIR" "$MILA_WORK"
+T="$(mktemp -d)"; trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"; mkdir -p "$CLAUDE_CONFIG_DIR" "$MILA_WORK"
 U="python3 $HERE/update.py"; ok=0; n=0
 chk() { n=$((n+1)); if eval "$2"; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 $U install-skill "$REPO/packs/clinic/clinic-booking" --from test >/dev/null

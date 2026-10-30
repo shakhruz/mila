@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # хук pd-mask.py — после записи в память/журналы ярлыки вместо ПДн; вне списка, код, Read, PD_MASK=0 — не трогает.
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-set -u; unset TELEGRAM_STATE_DIR; T=$(mktemp -d); export HOME=$T/h MILA_WORK=$T/h/work CLAUDE_CONFIG_DIR=$T/h/.claude PD_KEY=$T/h/.config/mila/pd.key PD_VAULT=$T/h/work/state/pd/vault.enc
+set -u; unset TELEGRAM_STATE_DIR; T=$(mktemp -d); trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT; export HOME=$T/h MILA_WORK=$T/h/work CLAUDE_CONFIG_DIR=$T/h/.claude PD_KEY=$T/h/.config/mila/pd.key PD_VAULT=$T/h/work/state/pd/vault.enc
 mkdir -p $MILA_WORK/memory $MILA_WORK/razvitie $CLAUDE_CONFIG_DIR/skills; cp -r $REPO/skills/pd-vault $CLAUDE_CONFIG_DIR/skills/
 python3 $CLAUDE_CONFIG_DIR/skills/pd-vault/pd_vault.py init >/dev/null
 H=$REPO/install/pd-mask.py; ok=0; n=0; chk() { n=$((n+1)); if eval "$2"; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }

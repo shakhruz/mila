@@ -2,7 +2,7 @@
 # apply оставляет записанное читаемым (файлы go+r, каталоги go+rx) — иначе суточная копия дома падает
 # (Permission denied на ~/.claude/mila-update/new/<тег>/было-*). Журнал и бэкапы не открывает. Песочница, без сети.
 set -u
-REPO="$(cd "$(dirname "$0")/.." && pwd)"; T="$(mktemp -d)"
+REPO="$(cd "$(dirname "$0")/.." && pwd)"; T="$(mktemp -d)"; trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT
 export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
 mkdir -p "$CLAUDE_CONFIG_DIR" "$MILA_WORK"; echo "знакомство: пройдено" > "$MILA_WORK/USER.md"
 U="python3 $REPO/skills/mila-update/update.py"; ok=0; n=0

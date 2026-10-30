@@ -4,9 +4,10 @@
 set -u
 HERE="$(cd "$(dirname "${1:-$0}")" && pwd)"; [ -n "${1:-}" ] && HERE="$(cd "$1" && pwd)"
 U="python3 $HERE/update.py"; ok=0; n=0
+ALL_T=(); trap 'chmod -R u+w "${ALL_T[@]}" 2>/dev/null; rm -rf "${ALL_T[@]}"' EXIT   # песочницы не остаются в /tmp
 chk() { n=$((n+1)); if eval "$2"; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 fresh() {  # новая песочница: $T, релиз $T/rel с честным навыком и «чужим секретом» $T/secret.txt рядом
-  T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
+  T="$(mktemp -d)"; ALL_T+=("$T"); export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
   mkdir -p "$CLAUDE_CONFIG_DIR/skills" "$MILA_WORK" "$T/rel/skills/dobryj" "$T/elsewhere"
   printf -- '---\nname: dobryj\ndescription: тест\n---\nтело\n' > "$T/rel/skills/dobryj/SKILL.md"; echo "SECRET-VALUE" > "$T/secret.txt"
   echo "знакомство: пройдено" > "$MILA_WORK/USER.md"

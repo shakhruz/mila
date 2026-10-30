@@ -1,7 +1,7 @@
 #!/bin/bash
 # safe_read.py: --check показывает наличие полей и маску, значений нет; открытый сейф (644) — отказ; нет сейфа — подсказка. Номер карты
 # собирается в тесте. bash skills/safe-link/scripts/test_safe_read.sh
-set -u; H="$(cd "$(dirname "$0")" && pwd)"; T=$(mktemp -d); export SAFE_DIR=$T; R="python3 -I $H/safe_read.py"
+set -u; H="$(cd "$(dirname "$0")" && pwd)"; T=$(mktemp -d); trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT; export SAFE_DIR=$T; R="python3 -I $H/safe_read.py"
 ok=0; n=0; chk(){ n=$((n+1)); if eval "$2" >/dev/null 2>&1; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 P=$(python3 -c "
 import random;d=[8,6,0,0]+[random.randint(0,9) for _ in range(11)]

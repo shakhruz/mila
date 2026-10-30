@@ -1,7 +1,7 @@
 #!/bin/bash
 # live-frames: движок собирает 3-секундный ролик из подменного голоса и двух сцен (текст, значок, счётчик, пилюля) → mp4 нужной
 # длины со звуком. Без сети; нет numpy/Pillow — пропуск. bash skills/live-frames/test_live_frames.sh
-set -u; H="$(cd "$(dirname "$0")" && pwd)"; T=$(mktemp -d); cd $T
+set -u; H="$(cd "$(dirname "$0")" && pwd)"; T=$(mktemp -d); trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT; cd $T
 ok=0; n=0; chk(){ n=$((n+1)); if eval "$2" >/dev/null 2>&1; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 python3 -c "import numpy, PIL" 2>/dev/null || { echo "⏭ нет numpy/Pillow — пропуск"; echo "итог 0/0"; exit 0; }
 ffmpeg -nostdin -v error -y -f lavfi -i "sine=f=200:d=3" -ac 1 voice.wav

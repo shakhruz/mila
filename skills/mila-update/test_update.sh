@@ -2,7 +2,7 @@
 # тест mila-update в песочнице: ничего вне временной папки не трогает
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"
-T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
+T="$(mktemp -d)"; trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
 mkdir -p "$CLAUDE_CONFIG_DIR/skills/moy-lichny" "$MILA_WORK/memory" "$HOME/secrets"
 echo "мой навык" > "$CLAUDE_CONFIG_DIR/skills/moy-lichny/SKILL.md"; echo "NOW хозяина" > "$MILA_WORK/NOW.md"; echo "память" > "$MILA_WORK/memory/a.md"
 echo '{"x":1}' > "$CLAUDE_CONFIG_DIR/settings.json"; echo KEY > "$HOME/secrets/k.key"

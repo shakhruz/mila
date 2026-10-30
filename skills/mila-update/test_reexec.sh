@@ -3,7 +3,7 @@
 # Один раз, только вперёд по версии, только обычный файл внутри релиза; тот же файл — свой.
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
-T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
+T="$(mktemp -d)"; trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
 unset TELEGRAM_STATE_DIR MILA_OUTBOX MILA_OWNER_CHAT MILA_UPDATE_REEXEC
 mkdir -p "$MILA_WORK"; echo "знакомство: пройдено" > "$MILA_WORK/USER.md"
 ok=0; n=0

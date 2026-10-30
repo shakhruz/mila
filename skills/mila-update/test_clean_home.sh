@@ -3,7 +3,7 @@
 # release.json, навыки и хуки на месте → rollback возвращает «до». Ничего вне временной папки. bash skills/mila-update/test_clean_home.sh
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"
-T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
+T="$(mktemp -d)"; trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
 mkdir -p "$CLAUDE_CONFIG_DIR" "$MILA_WORK"; echo "знакомство: пройдено" > "$MILA_WORK/USER.md"
 cp -R "$REPO" "$T/rel"; rm -rf "$T/rel/.git"
 V=$(python3 -c "import json;print(json.load(open('$REPO/release.json'))['version'])")

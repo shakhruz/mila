@@ -1,7 +1,7 @@
 #!/bin/bash
 # hooks_sync.py: живая Мила без хуков mila-tasks → добавлены PostToolUse(reply) task-sent и SessionStart task-open; повтор — без изменений;
 # чужие хуки целы; бэкап есть; без навыка — честный отказ. bash tools/test_hooks_sync.sh
-set -u; H="$(cd "$(dirname "$0")" && pwd)"; T=$(mktemp -d); S="python3 -I $H/hooks_sync.py --home $T"
+set -u; H="$(cd "$(dirname "$0")" && pwd)"; T=$(mktemp -d); trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT; S="python3 -I $H/hooks_sync.py --home $T"
 ok=0; n=0; chk(){ n=$((n+1)); if eval "$2" >/dev/null 2>&1; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
 mkdir -p $T/.claude
 chk "без навыка mila-tasks — отказ с подсказкой" "! $S"

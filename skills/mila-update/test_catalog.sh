@@ -2,7 +2,7 @@
 # КАТАЛОГ-НАВЫКОВ-2810: update.py catalog — навыки каталога, которых у меня нет; «нет» хозяина — больше не предлагаю, «позже» — через 4 недели; карточка с ценой только из каталога.
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
-T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"; unset MILA_CATALOG_URL
+T="$(mktemp -d)"; trap 'chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"' EXIT; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"; unset MILA_CATALOG_URL
 mkdir -p "$CLAUDE_CONFIG_DIR/skills/aaa" "$CLAUDE_CONFIG_DIR/skills/bbb" "$CLAUDE_CONFIG_DIR/skills/ccc.bak-1" "$MILA_WORK"
 cat > "$T/catalog.json" <<'J'
 {"version": "2026-10-28", "skills": [

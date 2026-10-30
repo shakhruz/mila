@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # каждый хук, который install.sh прописал в settings.json, лежит файлом (иначе Stop-хук без файла = код 2 = сессия не останавливается).
 set -u; unset TELEGRAM_STATE_DIR
-REPO="$(cd "$(dirname "$0")/.." && pwd)"; T="$(mktemp -d)"; mkdir -p "$T/home/.claude"
+REPO="$(cd "$(dirname "$0")/.." && pwd)"; T="$(mktemp -d)"; trap 'chmod -R u+w "$T" "${T2:-}" 2>/dev/null; rm -rf "$T" "${T2:-}"' EXIT; mkdir -p "$T/home/.claude"
 export MILA_CC_VERSION=2.1.310
 OID="555""000111"   # вымышленный id владельца (tests/fixtures/fake_people.py), склейкой
 HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_OWNER_ID=$OID PATH=/usr/bin:/bin:/usr/local/bin bash "$REPO/install/install.sh" >/dev/null 2>&1
