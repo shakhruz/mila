@@ -607,14 +607,19 @@ def cmd_effect(a):
     print(json.dumps(r, ensure_ascii=False, indent=1))
 
 
-def reexec_release_updater(src, argv):
+def reexec_release_updater(src, rows, argv):
     """SELF-UPDATE-3010 (30.10, мой дом: старый update.py 1.5.1 не узнал свои файлы в путях хоста, обновил 16 из 52 и записал 1.6.5):
     apply делает update.py ИЗ РЕЛИЗА, если он новее моего, — тем же вызовом с --src <папка релиза>. Один раз (MILA_UPDATE_REEXEC),
-    только вперёд по версии (откат не запускает старый updater), только обычный файл внутри релиза. → не возвращается, если перезапустил."""
+    только вперёд по версии (откат не запускает старый updater), только обычный файл внутри релиза. → не возвращается, если перезапустил.
+    Качество 09:47: только ПОСЛЕ compare(src) без ManifestRefused, и update.py релиза — в строках манифеста (зона навыков в моём доме)
+    и проходит _bad_src (обычный файл, nlink 1, внутри релиза): чужой код не запускается раньше проверки цепочки поставки."""
     if os.environ.get("MILA_UPDATE_REEXEC"): return
     rel = os.path.join(src, "skills", "mila-update", "update.py")
     me = os.path.realpath(__file__)
-    if not os.path.isfile(rel) or os.path.islink(rel) or not _inside(rel, src) or os.path.realpath(rel) == me: return
+    if not os.path.isfile(rel) or os.path.realpath(rel) == me: return   # ссылки, жёсткие ссылки, «вне релиза» — _bad_src ниже
+    mine_dir = os.path.join(src, "skills", "mila-update")
+    if not any(os.path.realpath(r.get("src", "")) in (os.path.realpath(mine_dir), os.path.realpath(rel)) for r in rows): return   # не в манифесте
+    if _bad_src(rel, src): return
     try:
         if open(rel, "rb").read() == open(me, "rb").read(): return
         target = str(json.load(open(os.path.join(src, "release.json"))).get("version") or "")
@@ -638,9 +643,9 @@ def cmd_apply(a):
     nb = newborn_block("apply")
     if nb and not a.newborn_ok: sys.exit(json.dumps({"error": nb, "hint": "--newborn-ok — только по слову администратора"}, ensure_ascii=False))
     src = source(a)
-    reexec_release_updater(src, sys.argv[1:])
     try: m, rows = compare(src)
     except ManifestRefused as e: sys.exit(json.dumps({"error": "манифест релиза отклонён целиком — зона вне дома или подозрительная ссылка", "detail": str(e)}, ensure_ascii=False))
+    reexec_release_updater(src, rows, sys.argv[1:])
     take = set((a.take or "").split(",")) - {""}
     print(json.dumps(do_apply(src, m, rows, a.yes, take, src_label=a.src or REPO, sha_=git_sha(src)), ensure_ascii=False, indent=1))
 
