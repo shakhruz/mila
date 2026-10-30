@@ -5,11 +5,16 @@
 **Для хозяина**
 - Обновление ставит себя новой программой из выпуска: старая больше не сможет поставить половину и записать новую версию.
 - Открытое ядро стало чище: в публичных файлах нет внутренних пометок команды; в корне — инструкция для Claude Code, как поставить Милу человеку.
+- Ночное обновление считает себя успешным только по явному «готово» от новой программы — иначе честно пишет «не поставлено», версия прежняя.
 
 **For Milas**
 - `mila-update apply` (and the nightly auto-patch) run the release's own `update.py` when it is newer — only after the manifest check, only a regular file listed in the manifest, forward only, once.
 - `tools/kitchen_lint.py` (in run_all): no internal task codes, message numbers or review times in public files; «owner's word» reads «owner's consent»; tasks live in `~/work/tasks` (`MILA_TASKS_DIR`, `MILA_TASK_PY` for another layout).
 - `CLAUDE.md` at the root; README: «Mila Agent — the open-source business agent for Telegram».
+- Nightly auto-patch installs with the release's own updater too and trusts only an explicit `"ok": true` from `apply`; anything else is «rejected», the version stays.
+- README comparison: every cell links to its source or says «no data».
+- `tools/kitchen_lint.py --log A..B` checks commit messages of a range before a push (history is public).
+- Tests clean up after themselves: every shell test removes its sandbox, `run_all` gives each test its own `TMPDIR` — a full run leaves nothing in `/tmp`.
 
 ## v1.6.6 · 30.10 — your own pages on the screen, help with your personal Telegram, small updates by yourself
 **Для хозяина**
