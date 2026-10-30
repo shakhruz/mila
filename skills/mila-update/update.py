@@ -1033,7 +1033,7 @@ def cmd_nightly(a):
             ap = subprocess.run([sys.executable, ru[0], "apply", "--src", src, "--yes", yes, "--tag", tag], capture_output=True, text=True, env=env, timeout=1800)
             try: out = json.loads(ap.stdout)
             except ValueError: out = {}
-            if ap.returncode or not out.get("ok", "obnovleno" in out):
+            if ap.returncode or out.get("ok") is not True:   # apply отвечает явным "ok": true; иной ответ — не поставлено
                 jlog({"event": "nightly", "result": "release-updater-failed", "tag": tag, "rc": ap.returncode, "err": (ap.stderr or ap.stdout)[-300:]})
                 print(json.dumps(dict(res, status="rejected", reason="updater релиза не поставил: код %d" % ap.returncode), ensure_ascii=False)); sys.exit(1)
             hc = subprocess.run([sys.executable, ru[0], "health"], capture_output=True, text=True, env=env, timeout=300)
@@ -1049,7 +1049,7 @@ def cmd_nightly(a):
             print(json.dumps(dict(res, status="rolled-back", problems=probs, rollback_ok=rb.returncode == 0), ensure_ascii=False, indent=1)); sys.exit(1)
         jlog({"event": "nightly", "result": "ok", "tag": tag, "health": "ok"})
         res["card"] = deliver_card(card("done", tag, m.get("version"), text), "done", tag)
-        print(json.dumps(dict(res, status="updated", **{k: out[k] for k in ("obnovleno", "dobavleno", "backup")}), ensure_ascii=False, indent=1))
+        print(json.dumps(dict(res, status="updated", **{k: out.get(k) for k in ("obnovleno", "dobavleno", "backup")}), ensure_ascii=False, indent=1))
     finally:
         shutil.rmtree(src, ignore_errors=True)
 

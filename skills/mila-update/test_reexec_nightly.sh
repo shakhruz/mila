@@ -37,4 +37,10 @@ PY
 rel r4 v1.0.3
 $U nightly > "$T/n3.json" 2>&1
 chk "ночью: updater релиза упал (код 3) → «rejected», версия прежняя 1.0.2, не «updated»" "grep -q 'rejected' $T/n3.json && ! grep -q '\"status\": \"updated\"' $T/n3.json && grep -q '\"version\": \"1.0.2\"' $CLAUDE_CONFIG_DIR/mila-update/version.json"
+git tag -d v1.0.3 >/dev/null; manifest 1.0.4; skill 1.0.4; cp "$HERE/update.py" skills/mila-update/update.py; python3 - skills/mila-update/update.py <<'PY'
+import sys; p = sys.argv[1]; t = open(p).read(); t = t.replace("def cmd_apply(a):\n", "def cmd_apply(a):\n    print('{\"obnovleno\": []}'); return\n", 1); open(p, "w").write(t)
+PY
+rel r5 v1.0.4
+$U nightly > "$T/n4.json" 2>&1
+chk "ночью: updater релиза ответил код 0, но без \"ok\": true → «rejected», версия прежняя 1.0.2" "grep -q 'rejected' $T/n4.json && ! grep -q '\"status\": \"updated\"' $T/n4.json && grep -q '\"version\": \"1.0.2\"' $CLAUDE_CONFIG_DIR/mila-update/version.json"
 cd /; rm -rf "$T"; echo "итог $ok/$n"; [ $ok -eq $n ]
