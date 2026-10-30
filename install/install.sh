@@ -369,9 +369,5 @@ if [[ $DRY -eq 0 && -f "$CLAUDE_DIR/skills/pd-vault/pd_vault.py" ]]; then
   r="$(python3 "$CLAUDE_DIR/skills/pd-vault/pd_vault.py" init 2>/dev/null || true)"
   [[ "$r" == created ]] && say "personal data vault: key ~/.config/mila/pd.key created (600)" || say "personal data vault: key already there"
 fi
-echo "Done. Next, inside Claude Code:"
-echo "  /plugin marketplace add shakhruz/mila-telegram"
-echo "  /plugin install mila-telegram@mila"
-echo "  /mila-telegram:configure <your bot token>"
-echo
-echo "Then start a session with:  mila"
+echo "Done. Next: mila onboard  (bot token, Claude sign-in, pairing — each step checked), then start with: mila"
+echo "  No Telegram plugin yet? In Claude Code: /plugin marketplace add shakhruz/mila-telegram, then /plugin install mila-telegram@mila"

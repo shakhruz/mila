@@ -31,9 +31,9 @@ if [[ -e "$DIR" ]] && ! ours "$DIR" && [[ -n "$(ls -A "$DIR" 2>/dev/null)" ]]; t
   echo "  Run again with another folder, e.g.: MILA_DIR=\$HOME/mila-kit bash <(curl -fsSL …/install/get.sh)"; exit 1
 fi
 if [[ -d "$DIR/.git" ]]; then
-  echo "  updating $DIR"; git -C "$DIR" fetch -q --depth 1 origin "$REF" && git -C "$DIR" checkout -q FETCH_HEAD
+  echo "  updating $DIR"; git -C "$DIR" fetch -q --depth 1 origin "$REF" && git -C "$DIR" -c advice.detachedHead=false checkout -q FETCH_HEAD
 else
-  echo "  cloning into $DIR"; git clone -q --depth 1 --branch "$REF" "$REPO" "$DIR"
+  echo "  cloning into $DIR"; git -c advice.detachedHead=false clone -q --depth 1 --branch "$REF" "$REPO" "$DIR"
 fi
 bash "$DIR/install/install.sh" ${MILA_INSTALL_ARGS:-}
 # Плагин Telegram — тем же запуском (комиссия 22.10): повторный запуск ничего не ломает, оба шага у claude идемпотентны
@@ -47,11 +47,15 @@ elif claude plugin marketplace add "$MARKET" >/dev/null 2>&1 && claude plugin in
   echo "  ✓ mila-telegram@mila installed"; PLUGIN_OK=1
 else echo "  ✗ could not install it — in a Claude Code session: /plugin marketplace add $MARKET, then /plugin install mila-telegram@mila"
 fi
-cat <<'NEXT'
+M=mila
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) M="$HOME/.local/bin/mila"
+  echo; echo "  ~/.local/bin is not on your PATH yet — this shell: export PATH=\"\$HOME/.local/bin:\$PATH\" (add it to ~/.bashrc or ~/.zshrc)";;
+esac
+cat <<NEXT
 
 Next / дальше:
   1. Create a bot at @BotFather and keep its token.
-  2. mila onboard   — bot token, Claude sign-in, pair with your bot: three steps, each checked.
-  3. mila           — start Mila. Check any time:  mila doctor
+  2. $M onboard   — bot token, Claude sign-in, pair with your bot: three steps, each checked.
+  3. $M           — start Mila. Check any time:  $M doctor
   Details: README → Quick start.
 NEXT
