@@ -64,16 +64,16 @@ Mila:     Done ✅ I'll send the address and remind you on Saturday morning.
 
 OpenClaw, NanoClaw and Hermes Agent are excellent open agents — universal assistants for a person. Mila takes a narrower job: a digital employee for a business, on Telegram.
 
-| | **Mila** | OpenClaw | NanoClaw | Hermes Agent |
+| | **Mila** | [OpenClaw](https://github.com/openclaw/openclaw) | [NanoClaw](https://github.com/nanocoai/nanoclaw) | [Hermes Agent](https://github.com/NousResearch/hermes-agent) |
 |---|---|---|---|---|
 | What it is | digital employee for a business | universal personal agent | personal agent in containers | personal agent that grows with you |
-| Engine | Claude Code | own agent loop, models as plugins | Claude Agent SDK | own agent loop, any model |
-| Channels | Telegram: DMs, groups, your public bot | 20+ (WhatsApp, Telegram, Slack...) | many, each added by a skill | Telegram, Discord, Slack, WhatsApp... |
-| Business skills out of the box | CRM of dialogs, promises and tasks, owner cards, weekly rhythm, mailings | general skills (ClawHub) | general skills | self-written skills |
-| Nothing goes out without the owner's yes | partly: send-guard stops messages to chats the owner didn't connect, keys and internals; broadcasts from your bot and paid work above the limit wait for the owner's ✅ (`bot-send`, `spend`); ordinary replies in connected chats are not gated | exec approvals, Team preset | approval for credential use, self-modification and new chats; ordinary messages are not gated | approval for dangerous shell commands (fail-closed); no approval step for sending messages |
-| Spending limits | yes (`spend` skill: forecast, approval above the limit) | no data | no data | per-employee limit (Business plan) |
-| Your Mila moves with you | `mila export` / `mila restore` | Markdown memory files | per-group folders | own memory store |
-| License | Apache-2.0 | MIT | MIT | MIT |
+| Engine | [Claude Code](https://code.claude.com/docs/en/overview) | own agent loop, models as plugins | Claude Agent SDK | own agent loop, any model |
+| Channels | Telegram: DMs, groups, your public bot ([mila-telegram](https://github.com/shakhruz/mila-telegram)) | 20+ (WhatsApp, Telegram, Slack...) | many, each added by a skill | Telegram, Discord, Slack, WhatsApp... |
+| Business skills out of the box | [CRM of dialogs](skills/crm-dialogs/SKILL.md), [promises and tasks](skills/tasks-discipline/SKILL.md), [owner cards](skills/cards/SKILL.md), [weekly rhythm](canon/WEEK-RHYTHM.md), [mailings](skills/bot-send/SKILL.md) | general skills (ClawHub) | general skills | self-written skills |
+| Nothing goes out without the owner's yes | partly: [send-guard](templates/home/.claude/hooks/send-guard.py) stops messages to chats the owner didn't connect, keys and internals; broadcasts from your bot and paid work above the limit wait for the owner's ✅ ([`bot-send`](skills/bot-send/SKILL.md), [`spend`](skills/spend/SKILL.md)); ordinary replies in connected chats are not gated | exec approvals, Team preset | approval for credential use, self-modification and new chats; ordinary messages are not gated | approval for dangerous shell commands (fail-closed); no approval step for sending messages |
+| Spending limits | yes ([`spend`](skills/spend/SKILL.md): forecast, approval above the limit) | no data | no data | per-employee limit (Business plan) |
+| Your Mila moves with you | [`mila export` / `mila restore`](skills/mila-export/SKILL.md) | Markdown memory files | per-group folders | own memory store |
+| License | [Apache-2.0](LICENSE) | MIT | MIT | MIT |
 | Price | free, open source; setup help — MilaGPT Studio | free, self-host only | free; enterprise on request | free; Nous Portal $0-200/month |
 
 **Mila's honest minuses.** Telegram only: no WhatsApp, Slack or Discord. It needs Claude Code, signed in with your own Claude plan
