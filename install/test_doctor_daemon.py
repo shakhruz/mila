@@ -23,4 +23,15 @@ class R:
     def add(s, *a): s.rows.append(a)
 envs["202"] = {"TELEGRAM_STATE_DIR": ST}; D.running = lambda pat: list(L); r = R(); D.check_daemon(r)
 chk("check_daemon: сосед + мой → «работает (pid 202)», не «запущено 2 копии»", r.rows and "pid 202" in str(r.rows[0]) and "копий" not in str(r.rows[0]), r.rows)
+# канал в сессии: MCP-сервер соседнего дома (другой HOME) — не мой
+me = os.path.realpath(os.path.expanduser("~"))
+S = [("301", "bun /n/mila-telegram/server.ts"), ("302", "bun /m/mila-telegram/server.ts")]
+homes = {"301": {"HOME": "/elsewhere/home"}, "302": {"HOME": me}}
+D._proc_env = lambda pid: homes.get(pid)
+D.running = lambda pat: [S[0]] if pat == "server.ts" else []
+r = R(); D.check_flag(r)
+chk("канал в сессии: только MCP соседнего HOME → не OK «запущен»", bool(r.rows) and r.rows[0][0] != D.OK, r.rows)
+D.running = lambda pat: list(S) if pat == "server.ts" else []
+r = R(); D.check_flag(r)
+chk("канал в сессии: свой MCP есть → «MCP-сервер плагина запущен»", r.rows and r.rows[0][0] == D.OK, r.rows)
 print("итог %d/%d" % (ok, n)); sys.exit(0 if ok == n else 1)

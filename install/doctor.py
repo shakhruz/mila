@@ -221,6 +221,13 @@ def own_receivers(lines):
     return out
 
 
+def own_home(pid):
+    """Процесс этого дома: HOME в его окружении — мой (соседняя Мила под тем же пользователем живёт в своём HOME).
+    Окружение не прочитать (macOS) — считаю своим, как раньше."""
+    env = _proc_env(pid)
+    return env is None or os.path.realpath(env.get("HOME") or "") == os.path.realpath(os.path.expanduser("~"))
+
+
 def check_daemon(rep):
     """Демон и сессия не должны опрашивать Telegram одновременно."""
     lines = own_receivers(running("receiver.ts"))
@@ -513,14 +520,14 @@ def check_flag(rep):
     # канала: рабочий каталог задан отдельно, в команде его не видно.
     # Поэтому смотрим на две улики: сам server.ts и запускающую его строку
     # «bun run --cwd <плагин> ... start», где имя канала как раз есть.
-    servers = [cmd for _pid, cmd in running("server.ts")]
-    servers += [cmd for _pid, cmd in running("--cwd")
-                if "telegram" in cmd and "start" in cmd]
+    servers = [cmd for pid, cmd in running("server.ts") if own_home(pid)]   # MCP соседнего дома — не канал этой сессии
+    servers += [cmd for pid, cmd in running("--cwd")
+                if "telegram" in cmd and "start" in cmd and own_home(pid)]
     if servers:
         rep.add(OK, "канал в сессии", "MCP-сервер плагина запущен")
         return
-    sessions = [cmd for _pid, cmd in running("claude")
-                if re.search(r"/(claude)(\s|$)", cmd)]
+    sessions = [cmd for pid, cmd in running("claude")
+                if re.search(r"/(claude)(\s|$)", cmd) and own_home(pid)]
     if sessions:
         rep.add(BAD, "канал в сессии", "сессия работает, сервер канала не запущен",
                 "перезапусти через `mila` — без флага канала плагин не "
