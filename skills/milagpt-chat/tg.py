@@ -26,7 +26,7 @@ import sys
 
 # Экранируются все спецсимволы MarkdownV2, кроме тех, что мы сами вставляем
 # как разметку на последнем шаге.
-SPECIAL = r"_*[]()~`>#+-=|{}.!"
+SPECIAL = r"\_*[]()~`>#+-=|{}.!"
 
 
 def escape(text: str) -> str:
@@ -36,6 +36,7 @@ def escape(text: str) -> str:
 def convert(src: str) -> str:
     """Вынимаем разметку, экранируем остальное, возвращаем разметку на место."""
     slots: list[str] = []
+    src = src.replace("\x00", "")   # \x00 — служебный символ плейсхолдеров; из входа убираем, иначе «\x001\x00» в тексте роняет restore
 
     def stash(markup: str) -> str:
         slots.append(markup)
