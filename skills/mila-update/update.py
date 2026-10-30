@@ -607,25 +607,31 @@ def cmd_effect(a):
     print(json.dumps(r, ensure_ascii=False, indent=1))
 
 
-def reexec_release_updater(src, rows, argv):
-    """
-    apply делает update.py ИЗ РЕЛИЗА, если он новее моего, — тем же вызовом с --src <папка релиза>. Один раз (MILA_UPDATE_REEXEC),
-    только вперёд по версии (откат не запускает старый updater), только обычный файл внутри релиза. → не возвращается, если перезапустил.
-    только ПОСЛЕ compare(src) без ManifestRefused, и update.py релиза — в строках манифеста (зона навыков в моём доме)
-    и проходит _bad_src (обычный файл, nlink 1, внутри релиза): чужой код не запускается раньше проверки цепочки поставки."""
-    if os.environ.get("MILA_UPDATE_REEXEC"): return
+def release_updater(src, rows):
+    """update.py релиза, которому можно доверить обновление, — или None. Новее моего по версии, отличается
+    от моего, лежит в строках проверенного манифеста (compare уже прошёл) и проходит _bad_src (внутри релиза, не ссылка, nlink 1).
+    Вызывать только ПОСЛЕ compare(src) без ManifestRefused — чужой код не раньше проверки цепочки поставки."""
+    if os.environ.get("MILA_UPDATE_REEXEC"): return None
     rel = os.path.join(src, "skills", "mila-update", "update.py")
     me = os.path.realpath(__file__)
-    if not os.path.isfile(rel) or os.path.realpath(rel) == me: return   # ссылки, жёсткие ссылки, «вне релиза» — _bad_src ниже
+    if not os.path.isfile(rel) or os.path.realpath(rel) == me: return None   # ссылки, жёсткие ссылки, «вне релиза» — _bad_src ниже
     mine_dir = os.path.join(src, "skills", "mila-update")
-    if not any(os.path.realpath(r.get("src", "")) in (os.path.realpath(mine_dir), os.path.realpath(rel)) for r in rows): return   # не в манифесте
-    if _bad_src(rel, src): return
+    if not any(os.path.realpath(r.get("src", "")) in (os.path.realpath(mine_dir), os.path.realpath(rel)) for r in rows): return None   # не в манифесте
+    if _bad_src(rel, src): return None
     try:
-        if open(rel, "rb").read() == open(me, "rb").read(): return
+        if open(rel, "rb").read() == open(me, "rb").read(): return None
         target = str(json.load(open(os.path.join(src, "release.json"))).get("version") or "")
-    except Exception as e: soft_err("reexec", e); return
+    except Exception as e: soft_err("reexec", e); return None
     mine = str(load_version().get("version") or "")
-    if not target or (mine and vkey(target) < vkey(mine)): return
+    if not target or (mine and vkey(target) < vkey(mine)): return None
+    return rel, mine, target
+
+
+def reexec_release_updater(src, rows, argv):
+    """apply делает update.py ИЗ РЕЛИЗА, если ему можно (release_updater), — тем же вызовом с --src <папка релиза>. Один раз."""
+    ru = release_updater(src, rows)
+    if not ru: return
+    rel, mine, target = ru
     args = [x for x in argv if not x.startswith("--src=")]
     if "--src" in args:
         i = args.index("--src"); del args[i:i + 2]
@@ -1021,8 +1027,21 @@ def cmd_nightly(a):
             print(json.dumps(dict(res, status="offered: жду «да» хозяина"), ensure_ascii=False, indent=1)); return
         res["crons_saved"] = save_crons() or "кронов в state/ нет — сохранять нечего"
         yes = ("auto: хозяин включил auto в mila-update.json · канал " + ch) if CFG.get("auto") is True else ("auto=patch: хозяин разрешил патчи сами · " + tag)
-        out = do_apply(src, m, rows, yes, tag=tag, sha_=sha_, channel=ch, src_label=REPO)
-        probs = run_health(m, tag)
+        ru = release_updater(src, rows)   # ночью тем же порядком, что apply: ставит и проверяет updater релиза
+        if ru:
+            env = dict(os.environ, MILA_UPDATE_REEXEC="1"); jlog({"event": "reexec", "from": ru[1], "to": ru[2], "via": "nightly"})
+            ap = subprocess.run([sys.executable, ru[0], "apply", "--src", src, "--yes", yes, "--tag", tag], capture_output=True, text=True, env=env, timeout=1800)
+            try: out = json.loads(ap.stdout)
+            except ValueError: out = {}
+            if ap.returncode or not out.get("ok", "obnovleno" in out):
+                jlog({"event": "nightly", "result": "release-updater-failed", "tag": tag, "rc": ap.returncode, "err": (ap.stderr or ap.stdout)[-300:]})
+                print(json.dumps(dict(res, status="rejected", reason="updater релиза не поставил: код %d" % ap.returncode), ensure_ascii=False)); sys.exit(1)
+            hc = subprocess.run([sys.executable, ru[0], "health"], capture_output=True, text=True, env=env, timeout=300)
+            try: probs = json.loads(hc.stdout).get("problems") or ([] if hc.returncode == 0 else ["health релиза: код %d" % hc.returncode])
+            except ValueError: probs = ["health релиза не ответил"]
+        else:
+            out = do_apply(src, m, rows, yes, tag=tag, sha_=sha_, channel=ch, src_label=REPO)
+            probs = run_health(m, tag)
         if probs:
             rb = subprocess.run([sys.executable, os.path.abspath(__file__), "rollback"], capture_output=True, text=True)
             jlog({"event": "nightly", "result": "health-failed-rolled-back", "tag": tag, "problems": probs, "rollback_ok": rb.returncode == 0})
