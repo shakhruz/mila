@@ -7,7 +7,7 @@
 <p align="center"><b>Turn Claude Code into an employee that lives in Telegram.</b><br>
 Free, open source, Apache-2.0. Made with ❤️ in Uzbekistan.</p>
 
-<p align="center">She answers your customers on Telegram, remembers every promise — and asks your OK before anything goes out in your name.</p>
+<p align="center">She answers your customers on Telegram, remembers every promise — and asks your OK before broadcasts, paid work and anything sent to new chats.</p>
 
 <p align="center">
   <a href="#quick-start"><b>Install</b></a> ·
@@ -32,7 +32,7 @@ Free, open source, Apache-2.0. Made with ❤️ in Uzbekistan.</p>
 curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-agent/main/install/get.sh | bash
 ```
 <p align="center">≈ 5 minutes · macOS, Linux (Windows via WSL) · bring your own Claude plan or Anthropic API key<br>
-Latest: <a href="https://github.com/shakhruz/mila-agent/releases/latest">v1.6.6</a> · install checked from scratch on Oct 30</p>
+Latest: <a href="https://github.com/shakhruz/mila-agent/releases/latest">v1.6.6</a> · install command checked from scratch on Linux, Oct 30</p>
 
 <p align="center">If Mila saves you time, <a href="https://github.com/shakhruz/mila-agent/stargazers">star the repo</a> — it helps other business owners find her.<br>
 Questions and ideas: <a href="https://github.com/shakhruz/mila-agent/discussions">GitHub Discussions</a>.</p>
@@ -48,7 +48,7 @@ Mila is built the other way round — **a colleague with a job.**
 
 - **Answers your customers on Telegram** — day and night, in the language they write in.
 - **Remembers your business** — every client, conversation and promise; one short summary for you every morning.
-- **Acts in your name only with your yes** — a send-guard stops leaks between chats, broadcasts and spending above your limit wait for your ✅.
+- **Asks before the big steps** — a send-guard stops leaks between chats; broadcasts, paid work above your limit and messages to new chats wait for your ✅.
 - **Yours, 100%** — your files stay in your home folder; `mila export` / `mila restore` moves her to any machine.
 
 ```
