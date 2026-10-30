@@ -204,9 +204,26 @@ def check_access(rep):
                 "оставляй так только там, где доверяешь всем")
 
 
+def own_receivers(lines):
+    """Только демон ЭТОГО дома: pid из <state>/receiver.pid; без файла — по TELEGRAM_STATE_DIR в окружении процесса.
+    Соседняя Мила под тем же пользователем — не моя (у неё свой каталог состояния)."""
+    try:
+        mine = open(os.path.join(STATE, "receiver.pid")).read().strip()
+    except OSError:
+        mine = ""
+    if mine and any(pid == mine for pid, _ in lines):
+        return [(pid, cmd) for pid, cmd in lines if pid == mine]
+    st = os.path.realpath(STATE); out = []
+    for pid, cmd in lines:
+        env = _proc_env(pid)
+        if env is None or os.path.realpath(env.get("TELEGRAM_STATE_DIR") or os.path.expanduser("~/.claude/channels/telegram")) == st:
+            out.append((pid, cmd))   # окружение не прочитать (macOS) — считаю своим, как раньше
+    return out
+
+
 def check_daemon(rep):
     """Демон и сессия не должны опрашивать Telegram одновременно."""
-    lines = running("receiver.ts")
+    lines = own_receivers(running("receiver.ts"))
     if not lines:
         rep.add(WARN, "демон", "не запущен",
                 "без него сообщения, пришедшие при выключенной сессии, теряются. "
