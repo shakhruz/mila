@@ -4,15 +4,18 @@
 
 <h1 align="center">Mila Agent</h1>
 
-<p align="center"><b>The open-source AI employee for business.</b><br>
-She answers your customers on Telegram, remembers every promise — and asks your OK before anything goes out in your name.</p>
+<p align="center"><b>Turn Claude Code into an employee that lives in Telegram.</b><br>
+Free, open source, Apache-2.0. Made with ❤️ in Uzbekistan.</p>
+
+<p align="center">She answers your customers on Telegram, remembers every promise — and asks your OK before anything goes out in your name.</p>
 
 <p align="center">
-  <a href="https://milaagent.com">Website</a> ·
+  <a href="#quick-start"><b>Install</b></a> ·
+  <a href="https://github.com/shakhruz/mila-agent/stargazers"><b>★ Star</b></a> ·
+  <a href="https://github.com/shakhruz/mila-agent/discussions"><b>Community</b></a> ·
+  <a href="https://milaagent.com">milaagent.com</a> ·
   <a href="https://mila.market">Mila Market</a> ·
-  <a href="https://milagpt.io/akselerator/">MilaGPT Studio</a> ·
-  <a href="#quick-start">Quick start</a> ·
-  <a href="https://github.com/shakhruz/mila-agent/discussions">Community</a>
+  <a href="https://milagpt.io/akselerator/">MilaGPT Studio</a>
 </p>
 
 <p align="center">
@@ -28,7 +31,11 @@ She answers your customers on Telegram, remembers every promise — and asks you
 ```sh
 curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-agent/main/install/get.sh | bash
 ```
-<p align="center">≈ 5 minutes · macOS, Linux (Windows via WSL) · bring your own Claude plan or Anthropic API key</p>
+<p align="center">≈ 5 minutes · macOS, Linux (Windows via WSL) · bring your own Claude plan or Anthropic API key<br>
+Latest: <a href="https://github.com/shakhruz/mila-agent/releases/latest">v1.6.6</a> · install checked from scratch on Oct 30</p>
+
+<p align="center">If Mila saves you time, <a href="https://github.com/shakhruz/mila-agent/stargazers">star the repo</a> — it helps other business owners find her.<br>
+Questions and ideas: <a href="https://github.com/shakhruz/mila-agent/discussions">GitHub Discussions</a>.</p>
 
 <p align="center"><img src="docs/preview.png" alt="Mila answering a customer in Telegram" width="720"></p>
 

@@ -6,7 +6,8 @@ tag = json.load(open(os.path.join(R, "release.json")))["tag"]
 ok = n = 0
 for f in ("README.md", "README.ru.md", "README.uz.md", "README.zh-CN.md"):
     t = open(os.path.join(R, f), encoding="utf-8").read()
-    got = re.findall(r"\[(v\d+\.\d+\.\d+)\]\(https://github\.com/shakhruz/mila-agent/releases/latest\)", t)
+    got = re.findall(r"\[(v\d+\.\d+\.\d+)\]\(https://github\.com/shakhruz/mila-agent/releases/latest\)", t) \
+        + re.findall(r'<a href="https://github\.com/shakhruz/mila-agent/releases/latest">(v\d+\.\d+\.\d+)</a>', t)   # первый экран README — HTML-ссылка
     if not got and "releases/latest" in t and f == "README.md":   # первый экран — бейдж выпуска (тянет версию сам), строки нет
         n += 1; ok += 1; print("✅ %s: бейдж выпуска, строки версии нет" % f); continue
     n += 1; good = got == [tag]; ok += good
