@@ -30,6 +30,9 @@ if [[ -e "$DIR" ]] && ! ours "$DIR" && [[ -n "$(ls -A "$DIR" 2>/dev/null)" ]]; t
   echo "  $DIR is already used by something else (not the Mila kit) — I leave it untouched."
   echo "  Run again with another folder, e.g.: MILA_DIR=\$HOME/mila-kit bash <(curl -fsSL …/install/get.sh)"; exit 1
 fi
+if [[ " ${MILA_INSTALL_ARGS:-} " == *" --dry-run "* && ! -d "$DIR/.git" ]]; then   # пробный прогон ничего не оставляет в доме: набор — во временную папку
+  DIR="$(mktemp -d)/mila"; echo "  dry run: the kit goes to a temporary folder $DIR (nothing is written to your home)"
+fi
 if [[ -d "$DIR/.git" ]]; then
   echo "  updating $DIR"; git -C "$DIR" fetch -q --depth 1 origin "$REF" && git -C "$DIR" -c advice.detachedHead=false checkout -q FETCH_HEAD
 else

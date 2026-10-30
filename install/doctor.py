@@ -93,7 +93,7 @@ def running(pattern):
     а команду у ps: так работает везде.
     """
     try:
-        out = subprocess.run(["pgrep", "-f", pattern],
+        out = subprocess.run(["pgrep", "-u", str(os.getuid()), "-f", pattern],   # только свои процессы: демон соседнего дома — не мой
                              capture_output=True, text=True, timeout=8).stdout
     except Exception:
         return []
@@ -114,7 +114,7 @@ def check_token(rep):
     token, src = read_token()
     if not token:
         rep.add(BAD, "токен", "не найден",
-                "получи токен у @BotFather и выполни /mila-telegram:configure <токен>")
+                "получи токен у @BotFather и выполни: mila onboard")
         return None
     if not re.match(r"^\d{8,12}:[A-Za-z0-9_-]{30,}$", token):
         rep.add(BAD, "токен", "не похож на токен Telegram (%d символов)" % len(token),
