@@ -23,4 +23,15 @@ for src, want in [
 ]:
     got = K.clean(src)
     chk("clean: %s" % want.strip()[:50], got == want, got)
+import tempfile
+G = tempfile.mkdtemp(); env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(G, "gc"), GIT_CONFIG_SYSTEM="/dev/null")
+def g(*a): return subprocess.run(["git"] + list(a), cwd=G, capture_output=True, text=True, env=env)
+g("init", "-q"); g("config", "user.email", "t@t"); g("config", "user.name", "t")
+g("commit", "-q", "--allow-empty", "-m", "base")
+g("commit", "-q", "--allow-empty", "-m", "Add a clean feature that helps people")
+r = subprocess.run([sys.executable, os.path.join(H, "kitchen_lint.py"), "--log", "HEAD~1..HEAD"], capture_output=True, text=True, cwd=G)
+chk("--log: чистое сообщение коммита → 0, код 0", r.returncode == 0 and "сообщениях коммитов: 0" in r.stdout, r.stdout)
+g("commit", "-q", "--allow-empty", "-m", "Fix guard (" + "Quality" + " 11:21)")
+r = subprocess.run([sys.executable, os.path.join(H, "kitchen_lint.py"), "--log", "HEAD~1..HEAD"], capture_output=True, text=True, cwd=G)
+chk("--log: ссылка на приёмку «(Quality 11:21)» в сообщении → находка, код 1", r.returncode == 1 and "сообщениях коммитов: 1" in r.stdout, r.stdout)
 print("итог %d/%d" % (ok, n)); sys.exit(0 if ok == n else 1)

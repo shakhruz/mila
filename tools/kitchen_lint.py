@@ -4,7 +4,8 @@
 (ROLL…OUT с номером), датированные ссылки на чьё-то решение, личные пути одного дома. Смысл правила остаётся — уходит только «кто,
 когда, какой номер».
   kitchen_lint.py            — проверка (файлы git, кроме CHANGELOG.md и legacy/), код 1 при находках
-  kitchen_lint.py --fix      — убрать метки на месте (только метки и пустые скобки/знаки, оставшиеся от них)"""
+  kitchen_lint.py --fix      — убрать метки на месте (только метки и пустые скобки/знаки, оставшиеся от них)
+  kitchen_lint.py --log A..B — те же метки в сообщениях коммитов диапазона (история публичная), код 1 при находках"""
 import re, subprocess, sys
 
 CODE = r"\b[A-Z][A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{4}[a-z]?\b(?: [a-f]\b(?=[\s):,—]))?"
@@ -46,7 +47,30 @@ def clean(line):
     return s.rstrip() + ("\n" if line.endswith("\n") else "")
 
 
+REVIEW = re.compile(r"\((?:Quality|Качество|senior|старш\w*|admin)[^)]*\)", re.I)   # «(Quality 11:21)» — ссылка на приёмку
+
+
+def check_log(rng):
+    out = subprocess.run(["git", "log", "--format=%h%x00%B%x01", rng], capture_output=True, text=True)
+    if out.returncode:
+        print(out.stderr.strip()); return 2
+    found = 0
+    for rec in out.stdout.split("\x01"):
+        if "\x00" not in rec:
+            continue
+        h, body = rec.strip().split("\x00", 1)
+        for l in body.splitlines():
+            if l.startswith("Co-Authored-By:"):
+                continue
+            if RX.search(l) or REVIEW.search(l):
+                found += 1; print("%s: %s" % (h, l.strip()[:140]))
+    print("следов кухни в сообщениях коммитов: %d" % found)
+    return 1 if found else 0
+
+
 def main():
+    if "--log" in sys.argv:
+        sys.exit(check_log(sys.argv[sys.argv.index("--log") + 1]))
     fix = "--fix" in sys.argv
     found = 0
     for f in files():
