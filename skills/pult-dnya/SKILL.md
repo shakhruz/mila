@@ -18,6 +18,7 @@ Script: `python3 ~/.claude/skills/pult-dnya/scripts/day_board.py <command>`. The
 4. **Rhythm:**
    - Morning: `plan --pool "a; b; c"` — the day's plan plus an auto-pool of 3–5 of my own tasks, so the queue is never empty.
    - Day: after each change, `render` → `edit_message` of the pinned board. The board is edited, not reposted. `pin --chat C --message M` remembers which message is pinned.
+   - **Buttons on the board** (senior's draft 29.10): one button per «waiting for you» item, at most 6, rows of 1–3, the last one «❓ Ask me the rest» when there are more. `edit_message` changes the text but not the buttons: when the set of waiting items changes, send a new board with `reply` + buttons and `pin` it; the old one stops being the pinned board. Button format — only `{label, choice|url, style}` (skill `milagpt-chat`); Bot API `{text, callback_data}` does not work.
    - `/status` in Telegram (mila-telegram plugin) shows this board to the owner on demand: `render` returns `empty` (no plan today → «Make today's plan» button) and `waiting` (items waiting on the owner — `--on owner`/`хозяин` or a name from `MILA_OWNER_NAME` → «#N — answer» buttons). `render` never changes the day file.
    - Evening: `evening` → results with conclusions, what carries over, who waits for whom.
 5. **Closing needs evidence:** `done N --evidence <link, file, tool answer> --result "<conclusion in one line>"`. No evidence — not done. `drop N --why …` removes a task with a reason.
@@ -40,6 +41,6 @@ Script: `python3 ~/.claude/skills/pult-dnya/scripts/day_board.py <command>`. The
 
 - Don't write "waiting for you" anywhere except as a question with buttons.
 - Don't start a third task: close one or put it to wait with a question.
-- Don't post the board as a new message every time: edit the pinned one; a new message only for the morning plan and the evening result.
+- Don't post the board as a new message every time: edit the pinned one; a new message only for the morning plan, the evening result and a changed set of «waiting» buttons.
 - Name the task, not the person: not «call Ivan», but «a call to client X», and only if the chat is internal. The script masks cards (****1234), phones and e-mails anyway, on input and on output.
 - A wait older than an hour turns 🔴 on the board: ask again or decide myself. `--asked` takes only a t.me/c/… link or a message number.
