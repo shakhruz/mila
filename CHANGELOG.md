@@ -1,14 +1,31 @@
 # CHANGELOG · Mila
 
-## Unreleased (after v1.6.5)
+## Unreleased (after v1.6.6)
 
 **Для хозяина**
-- Новая сила «Личка хозяина» (`owner-telegram`): Мила разбирает ваш личный Telegram, кладёт черновики вашим голосом, ставит лайк вместо ответа на «спасибо» — только по вашему слову; отправляете всегда вы.
-- Новая сила «Своя личка Милы» (`own-inbox`): люди пишут Миле в её аккаунт — она отвечает от себя, как ИИ, о каждом новом человеке говорит вам строкой.
+- Обновление ставит себя новой программой из выпуска: старая больше не сможет поставить половину и записать новую версию.
+- Открытое ядро стало чище: в публичных файлах нет внутренних пометок команды; в корне — инструкция для Claude Code, как поставить Милу человеку.
 
 **For Milas**
-- `owner-telegram/scripts/reader.py` (read-only Telethon wrapper): `react` — emoji whitelist, private allowed chats only (no groups/channels), owner's word checked against the session account, U+FE0F stripped, journal line with by/ref; `draft-clear` — clears only Mila's own draft (hash in drafts.jsonl, text never stored), the owner's typed or edited draft only with `--replace` and only when his word is a reply to Mila's proposal; the owner's word for `react`/`draft-clear` is his real message in his DM with Mila's bot (`--msg <bot>/<id>`, read from his account: the Mila bot from `MILA_BOT` or `mila_bot`, written by him, ≤ 30 min, single use); `inbox`. Tests: test_reader 33/33 (fake telethon), test_folders 39/39 (skips without telethon).
-- `owner-dm` links to `owner-telegram`; `own-inbox` ≠ `owner-telegram` (Mila's own account vs the owner's).
+- `mila-update apply` (and the nightly auto-patch) run the release's own `update.py` when it is newer — only after the manifest check, only a regular file listed in the manifest, forward only, once.
+- `tools/kitchen_lint.py` (in run_all): no internal task codes, message numbers or review times in public files; «owner's word» reads «owner's consent»; tasks live in `~/work/tasks` (`MILA_TASKS_DIR`, `MILA_TASK_PY` for another layout).
+- `CLAUDE.md` at the root; README: «Mila Agent — the open-source business agent for Telegram».
+
+## v1.6.6 · 30.10 — your own pages on the screen, help with your personal Telegram, small updates by yourself
+**Для хозяина**
+- Мила показывает на вашем экране свои страницы — игру, слайды, квиз, — без помощи администратора.
+- Новая сила «Личка хозяина»: Мила разбирает ваш личный Telegram, кладёт черновики вашим голосом и ставит лайк на «спасибо» — только по вашему слову; отправляете всегда вы.
+- Скажете «мелкие обновления ставь сама» — Мила будет ставить исправления ночью сама; новые версии и правку конституции — только по вашей кнопке. Карточка обновления одна: новая заменяет прошлую.
+
+**For Milas**
+- `screen page put/show/list/rm` — own HTML page on own screen; the hub serves pages from a separate host under a CSP sandbox.
+- `mila-update`: a new offer says it replaces the previous one; `apply` refuses a tag older than offered (`--force-stale` by hand); `plan --offer` for manual cards; `auto=patch` — same x.y, risk ≤ medium, no constitution/canon change.
+- `owner-telegram` (new): the owner's personal Telegram — read, draft in his voice, reaction by his word (emoji whitelist, private allowed chats; the word is his real fresh message to Mila's bot, single use); `draft-clear` erases only Mila's own draft, his only by a reply to her proposal. `own-inbox` (new): Mila's own account, answers as herself. `owner-dm` links to `owner-telegram`. Tests run without the core clone.
+- `bot-send`: broadcast buttons the service would drop silently (not https, choice, row > 3, rows > 6, label > 40) are refused before the request, with reasons.
+- `milagpt-chat`: the reply tool's button format `{label, choice|url, style}` (Bot API `{text, callback_data}` does not work); `tg.py` escapes «\» for MarkdownV2 and drops `\x00` from input.
+- `pult-dnya`: one button per «waiting for you» item; a changed set of waiting items means a new pinned board (edit_message keeps the old buttons).
+- `jev skill`: Jev picks from the whole catalog; «no skill needed» counted separately; `rules_sure` marks weak rule advice.
+- CI installs telethon; `tests/run_ci_local.sh` uses exactly the workflow's Python packages. `mila-export` test: fake secret literals glued at run time.
 
 ## v1.6.5 · 28.10 — the approved constitution, a clearer update plan, green tests everywhere
 **Для хозяина**

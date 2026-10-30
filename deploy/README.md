@@ -42,7 +42,7 @@ prints every step it would take.
   daemon dies with the SSH session, which defeats the entire point of a durable
   receiver
 - **Runtimes** — Bun for the plugin, Node, Claude Code
-- **Kit** — clones the kit (`shakhruz/mila`) and runs its installer (skills, launcher, hooks)
+- **Kit** — clones the kit (`shakhruz/mila-agent`) and runs its installer (skills, launcher, hooks)
 - **State** — `~/.claude/channels/telegram/` and subdirectories at `0700`
 - **Daemon** — a systemd user unit for the receiver, written but not started:
   starting it before the plugin and token exist would only produce a crash loop

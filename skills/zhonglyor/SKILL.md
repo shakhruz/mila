@@ -4,7 +4,7 @@ description: "Use when a stream of assignments comes in while something is alrea
 ---
 > **When to use (full):** Task juggler (owner's word 28.10): the owner drops ideas one after another; Mila decides herself whether to finish the current job or switch, writes the new one into the plan and picks the way — herself, a helper, a workflow, another Mila, a cheaper model, Jev. Use when assignments keep coming while something is already in work. RU: Жонглёр задач — владелец накидывает идеи линейно, Мила сама решает: доделать текущее или переключиться, записать новое в план, выбрать способ (сама / помощник / workflow / другая Мила / модель подешевле / Jev). Когда идёт поток поручений, а в работе уже что-то есть.
 
-# Жонглёр задач (слово владельца 28.10)
+# Жонглёр задач
 «Накидываю идеи линейно — ты умеешь взять задачу в план и, не прерываясь, завершить начатое, если оно важно или срочно,
 потом взять следующее. Как проект-менеджер, но лучше: ты знаешь специфику своей работы».
 

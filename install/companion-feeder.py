@@ -83,7 +83,7 @@ def envelope(p, m):
         att = " [attachment_file_id: %s]" % m["attachment_file_id"]
     quote = ""
     if m.get("reply_quote"):
-        quote = " (replying to: %s)" % esc(str(m["reply_quote"])[:3000])  # TEAM-HEARING-1006
+        quote = " (replying to: %s)" % esc(str(m["reply_quote"])[:3000])
     if any(k in (p.get("content") or "").lower() for k in INJECTION_MARKS):
         try:
             with open(SUSP, "a", encoding="utf-8") as f:
@@ -271,7 +271,7 @@ def check_delivery():
         _save_pending()
 
 
-# TEAM-HEARING-1006: сообщения НАШИХ ботов в общих группах доходят до модели, если адресованы этой Миле
+# сообщения НАШИХ ботов в общих группах доходят до модели, если адресованы этой Миле
 # (@упоминание её бота или reply на её сообщение). Прежде фильтр user.endswith("_bot") глушил всех ботов.
 # Защита от зацикливания: не больше COMPANION_BOT_PAIR_MAX (по умолчанию 20) поданных сообщений от одного бота за час.
 OURS_FILE = os.environ.get("COMPANION_OUR_BOTS", os.path.expanduser("~/.mila-companion/our-bots.json"))
@@ -339,11 +339,11 @@ def gate_message(p, m, own=None, ours=None):
     return True
 
 
-# ── LOGIN-2610 (ROLLOUT №41 «без повисших задач», улика одной Милы 28.09) ─────────────────────────────────────────
+# ── ─────────────────────────────────────────
 # Пока вход потерян («Not logged in»), каждый поданный ход съеден, а проверка доставки считает его доставленным
 # (текст человека в транскрипте есть). Поэтому: 1) при первом обнаружении — курсор назад, к входящим за время простоя;
 # 2) держу входящие, раз в PROBE_S подаю пробу — удачный ответ на неё = вход вернулся; 3) после — строка «пропущено за
-# простой: N» и всё по порядку; 4) один раз на простой — 🔴 строка старшей (MILA_SENIOR_INBOX).
+# простой: N» и всё по порядку; 4) один раз на простой — 🔴 строка администратору (MILA_SENIOR_INBOX).
 LOGIN_STATE = os.path.join(COMPANION_STATE, "login-state.json")
 PROBE_S = int(os.environ.get("FEEDER_LOGIN_PROBE_S", "600"))
 REWIND_SLACK = 180
@@ -390,7 +390,7 @@ def _event_ts(e):
 
 def rewind_to(cursor, since, last_ok=None):
     """Смещение первого входящего не раньше since−REWIND_SLACK среди уже поданных (до курсора); нет таких — курсор как был.
-    Не раньше последнего удачного хода (Качество 26.10): всё, что пришло до него, уже получило ответ — второй ответ не нужен."""
+    Не раньше последнего удачного хода: всё, что пришло до него, уже получило ответ — второй ответ не нужен."""
     since = max(since - REWIND_SLACK, (last_ok or 0) + 1)
     pos = 0
     try:
@@ -426,7 +426,7 @@ def channel_events_after(cursor):
 
 
 def alert_senior(au, waiting):
-    """Одна 🔴 строка старшей на простой: вход потерян, сколько входящих ждёт. Нет её ящика — только журнал кормильца."""
+    """Одна 🔴 строка администратору на простой: вход потерян, сколько входящих ждёт. Нет её ящика — только журнал кормильца."""
     since = _lw.fmt_hm(au["since"], _lw.DEFAULT_TZ) if _lw else "?"
     text = ("🔴 Вход потерян с %s (ответ сессии «Not logged in»): ждут %d входящих, держу их и подам после входа. Нужен /login." % (since, waiting))
     log("login: " + text)
@@ -487,7 +487,7 @@ def login_step(cursor, now=None):
     return cursor, False
 
 
-# ── LIMIT-PROBE-2610 (старшая 26.10 10:39: клиент обновил подписку в 10:30, а кормилец держал до «resets 2pm») ───────────
+# ── (клиент обновил подписку в 10:30, а кормилец держал до «resets 2pm») ───────────
 # При лимите подписки — так же, как при потере входа: курсор назад к входящим, съеденным ходами 429; проба «ответь SKIP» раз в
 # PROBE_S и сразу после рестарта сессии; удачный ход = лимит снят раньше срока → «пропущено за простой: N» и всё по порядку.
 LIMIT_STATE = os.path.join(COMPANION_STATE, "limit-state.json")
@@ -592,13 +592,13 @@ def main():
         nl = chunk.rfind(b"\n")
         if nl < 0:
             time.sleep(0.5); continue
-        cursor, lheld = login_step(cursor)   # LOGIN-2610: потерян вход — держу, назад курсор, проба, «пропущено»
+        cursor, lheld = login_step(cursor)   # потерян вход — держу, назад курсор, проба, «пропущено»
         if lheld:
             time.sleep(5)
             continue
         if size < cursor:
             continue
-        cursor, held = limit_step(cursor)   # LIMIT-PROBE-2610: держу, откат, проба раз в PROBE_S, «пропущено»
+        cursor, held = limit_step(cursor)   # держу, откат, проба раз в PROBE_S, «пропущено»
         if held:
             time.sleep(5)
             continue

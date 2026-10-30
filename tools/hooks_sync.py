@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""HOOKS-SYNC-1020 (20.10, после раскатки 2.0: у Мил из образа нет PostToolUse журнала исходящих — tasks/sent.jsonl не пишется, обещания не
+"""(20.10, после раскатки 2.0: у Мил из образа нет PostToolUse журнала исходящих — tasks/sent.jsonl не пишется, обещания не
 закрываются с уликой): у уже живой Милы дописывает в ~/.claude/settings.json недостающие хуки mila-tasks — PostToolUse(reply) task-sent.py
 и SessionStart task-open.py. Идемпотентно (второй запуск ничего не меняет), бэкап settings.json, чужие хуки не трогает.
 mila-update settings.json не трогает, поэтому нужен этот шаг при раскатке.

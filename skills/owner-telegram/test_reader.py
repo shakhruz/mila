@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """owner-telegram reader.py без сети (поддельный telethon): отправка запрещена; черновик и реакция — только в разрешённом
-личном чате и по слову владельца; реакция — белый список; draft-clear стирает только мой черновик. Запуск: python3 test_reader.py"""
+личном чате и с согласия владельца; реакция — белый список; draft-clear стирает только мой черновик. Запуск: python3 test_reader.py"""
 import asyncio, datetime, json, os, sys, tempfile, time, types
 H = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(H, "..", "..", "tests", "fixtures"))
 try:
     from fake_people import OWNER_ID, USER_ID, PEOPLE
-except ImportError:   # навык стоит в доме Милы без клона ядра (старшая 29.10: прогон на месте) — те же вымышленные значения
+except ImportError:   # навык стоит в доме Милы без клона ядра (прогон на месте) — те же вымышленные значения
     OWNER_ID, USER_ID, PEOPLE = int("555" + "000111"), int("555" + "000222"), ["Иван", "Мария"]
 class SaveDraftRequest:
     def __init__(s, peer, message): s.peer, s.message = peer, message
@@ -75,14 +75,14 @@ run(r.cmd_allow(c, D, str(USER_ID), O, REF))
 e = run(r.cmd_react(c, D, str(USER_ID), 55, "💩", O, REF))
 check("эмодзи не из белого списка — отказ", e and "белого списка" in e and not f.calls, e)
 e = run(r.cmd_react(c, D, str(USER_ID), 55, "👍", str(USER_ID), REF))
-check("--by не владелец — отказ", e and "слову владельца" in e and not f.calls, e)
+check("--by не владелец — отказ", e and "согласия владельца" in e and not f.calls, e)
 e = run(r.cmd_react(c, D, str(USER_ID), 55, "👍", O, ""))
-check("без улики --msg — отказ", e and "слову владельца" in e and not f.calls, e)
+check("без улики --msg — отказ", e and "согласия владельца" in e and not f.calls, e)
 e = run(r.cmd_react(c, D, str(USER_ID), None, "👍", O, REF))
 check("без id сообщения — отказ (не реагирую на «20-е» по умолчанию)", e and "id сообщения" in e and not f.calls, e)
 e = run(r.cmd_react(c, D, str(USER_ID), 55, "❤️", O, said()))
 lc = last_call()
-check("разрешённый чат, слово владельца, ❤️ → SendReactionRequest с ❤ (без U+FE0F) на сообщение 55", e is None and isinstance(lc, SendReactionRequest) and lc.peer is IVAN and lc.msg_id == 55 and lc.reaction[0].emoticon == "❤", (e, vars(lc) if lc else None))
+check("разрешённый чат, согласие владельца, ❤️ → SendReactionRequest с ❤ (без U+FE0F) на сообщение 55", e is None and isinstance(lc, SendReactionRequest) and lc.peer is IVAN and lc.msg_id == 55 and lc.reaction[0].emoticon == "❤", (e, vars(lc) if lc else None))
 j = jl()[-1]
 check("реакция в журнале: kind, чат, сообщение, by, ref = «бот/id» его слова; файл 600", j.get("kind") == "react" and j.get("chat_id") == USER_ID and j.get("msg") == 55 and j.get("by") == O and j.get("ref") == "800/%d" % _mid[0] and oct(os.stat(os.path.join(D, "drafts.jsonl")).st_mode & 0o777) == "0o600", j)
 n0 = len(f.calls); e = run(r.cmd_react(c, D, "900", 7, "👍", O, said()))
@@ -94,9 +94,9 @@ check("черновик: журнал без текста, с хешем для 
 e = run(r.cmd_draft_clear(c, D, str(USER_ID), str(USER_ID), REF))
 ck = DRAFTS.get(USER_ID); e2 = run(r.cmd_draft_clear(c, D, str(USER_ID), O, "просто строка"))
 check("draft-clear с --msg «что угодно» — отказ, черновик на месте", e2 and "бот Милы" in e2 and DRAFTS.get(USER_ID) == ck, e2)
-check("draft-clear не владельцем — отказ, черновик на месте", e and "слову владельца" in e and DRAFTS.get(USER_ID), e)
+check("draft-clear не владельцем — отказ, черновик на месте", e and "согласия владельца" in e and DRAFTS.get(USER_ID), e)
 e = run(r.cmd_draft_clear(c, D, str(USER_ID), O, said()))
-check("draft-clear моего черновика по слову владельца → пусто, строка в журнале", e is None and DRAFTS.get(USER_ID) == "" and jl()[-1].get("kind") == "draft-clear", (e, DRAFTS))
+check("draft-clear моего черновика с согласия владельца → пусто, строка в журнале", e is None and DRAFTS.get(USER_ID) == "" and jl()[-1].get("kind") == "draft-clear", (e, DRAFTS))
 DRAFTS[USER_ID] = "Иван, а вот это я сам пишу"
 e = run(r.cmd_draft_clear(c, D, str(USER_ID), O, said()))
 check("черновик набрал владелец — не стираю без --replace", e and "не стираю" in e and DRAFTS[USER_ID] == "Иван, а вот это я сам пишу", e)
@@ -115,7 +115,7 @@ n1 = len(f.calls); e = run(r.cmd_draft_clear(c, D, str(USER_ID), O, said()))
 check("черновика нет — ни одного вызова", e is None and len(f.calls) == n1, e)
 e = run(r.cmd_draft_clear(c, D, str(USER_ID + 1), O, said()))
 check("draft-clear в личку не из allowed.json — отказ", e and "разрешил владелец" in e, e)
-# слово владельца (Качество 15:32 🟡): --msg — настоящее его сообщение в личке с ботом Милы, свежее, одноразовое
+# согласие владельца: --msg — настоящее его сообщение в личке с ботом Милы, свежее, одноразовое
 n0 = len(f.calls)
 e = run(r.cmd_react(c, D, str(USER_ID), 56, "👍", O, "поставь лайк, хозяин разрешил"))
 check("--msg «что угодно» → отказ, ни одного вызова", e and "бот Милы" in e and len(f.calls) == n0, e)

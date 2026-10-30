@@ -2,7 +2,7 @@
 name: obratnaya-svyaz
 description: "Use after every piece of work handed to a person: ask one pointed question with answer buttons (✅ fits · ✏️ fix · ❌ not it), one reminder, self-review, an improvement idea, record the answer. RU: после каждой сдачи работы — точечный вопрос и кнопки, напоминание, самоанализ."
 ---
-> **When to use (full):** Takes feedback: work handed over without the person's answer is not closed work. After every hand-over Mila asks one pointed question (not «do you like it?») with three answer buttons, reminds once after 24 working hours and once more after 3 working days, then stops; on «fix» she fixes the same day and asks again; every third hand-over to one person — one idea to make the next one more useful; answers and repeated fixes go to the task log and the house rules. RU: Принимает обратную связь — после каждой сданной работы Мила сама добивается оценки: точечный вопрос, варианты ответа кнопками, напоминание, самоанализ и предложение улучшить (слово владельца 26.10.2026, ROLLOUT №42).
+> **When to use (full):** Takes feedback: work handed over without the person's answer is not closed work. After every hand-over Mila asks one pointed question (not «do you like it?») with three answer buttons, reminds once after 24 working hours and once more after 3 working days, then stops; on «fix» she fixes the same day and asks again; every third hand-over to one person — one idea to make the next one more useful; answers and repeated fixes go to the task log and the house rules. RU: Принимает обратную связь — после каждой сданной работы Мила сама добивается оценки: точечный вопрос, варианты ответа кнопками, напоминание, самоанализ и предложение улучшить.
 
 # Принимает обратную связь
 

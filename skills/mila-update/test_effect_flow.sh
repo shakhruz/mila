@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# UPDATE-EFFECT-2810: apply пишет «до»; effect раньше 3 дней — молчит; через 4 дня — карточка «до → после»; хуже — кнопка отката; второй раз — нет.
+# apply пишет «до»; effect раньше 3 дней — молчит; через 4 дня — карточка «до → после»; хуже — кнопка отката; второй раз — нет.
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"
 T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"

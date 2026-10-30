@@ -27,7 +27,7 @@ J="$CLAUDE_CONFIG_DIR/mila-update/journal.jsonl"; V="$CLAUDE_CONFIG_DIR/mila-upd
 # ставим v1.0.0 как стартовую версию (git-тег + apply с «да»)
 git checkout -q v1.0.0 2>/dev/null; $U apply --src "$R" --yes "тест: старт" >/dev/null; git checkout -q main
 chk "старт: demo 1.0.0, версия 1.0.0" "grep -q 'demo 1.0.0' $CLAUDE_CONFIG_DIR/skills/demo/SKILL.md && grep -q '\"1.0.0\"' $V"
-chk "конфиг по умолчанию: stable, auto=false, публичный репо" "$U config | grep -q '\"auto\": false' && $U config | grep -q github.com/shakhruz/mila"
+chk "конфиг по умолчанию: stable, auto=false, публичный репо" "$U config | grep -q '\"auto\": false' && $U config | grep -q github.com/shakhruz/mila-agent"
 chk "config --set: неверное значение — отказ" "! $U config --set channel=zzz >/dev/null 2>&1"
 $U check > "$T/c.json"
 chk "check: yanked и -rc не предлагаются, newer = v1.1.0" "python3 -c \"import json,sys; d=json.load(open('$T/c.json')); sys.exit(0 if d['newer']==['v1.1.0'] and 'v1.2.0' in d['yanked'] else 1)\""

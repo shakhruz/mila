@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SELF-UPDATE-3010: apply запускает update.py из РЕЛИЗА, если он новее моего (старый updater не узнаёт свои файлы — 30.10).
+# apply запускает update.py из РЕЛИЗА, если он новее моего (старый updater не узнаёт свои файлы — 30.10).
 # Один раз, только вперёд по версии, только обычный файл внутри релиза; тот же файл — свой.
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -40,7 +40,7 @@ chk "MILA_UPDATE_REEXEC уже стоит → второй раз не пере�
 rel "$T/r5" 1.4.0; mv "$T/r5/skills/mila-update/update.py" "$T/evil.py"; printf "print('EVIL', flush=True)\n" >> "$T/evil.py"; ln -s "$T/evil.py" "$T/r5/skills/mila-update/update.py"
 out=$(python3 "$HERE/update.py" apply --src "$T/r5" --yes "тест: ссылка" 2>&1)
 chk "update.py релиза — ссылка наружу → не запускаю" "! printf '%s' \"\$out\" | grep -q EVIL && [ \$(grep -c '\"event\": \"reexec\"' $J) -eq 1 ]"
-# Качество 09:47: манифест с зоной вне дома + меченый update.py → отказ ДО запуска чужого кода, метки нет
+# манифест с зоной вне дома + меченый update.py → отказ ДО запуска чужого кода, метки нет
 rel "$T/r6" 1.5.0 PWNED-150; python3 - "$T/r6/release.json" <<'PY'
 import json, sys; p = sys.argv[1]; m = json.load(open(p)); m["zones"].append({"what": "чужое", "src": "skills/*", "dst": "/etc/*", "kind": "dir"}); json.dump(m, open(p, "w"))
 PY

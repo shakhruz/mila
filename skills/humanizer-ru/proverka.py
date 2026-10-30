@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""proverka.py — проверка русского текста перед отправкой наружу (ROLLOUT №40, слово владельца 26.10.2026).
+"""proverka.py — проверка русского текста перед отправкой наружу.
 
 Ловит то, что правила humanizer-ru по спискам слов не видят: сочетания, которых в русском нет («отвезти решение»),
 кальки, канцелярит, машинный тон. Три слоя:
@@ -17,7 +17,7 @@ import glob, html, json, os, re, sys, urllib.error, urllib.request
 MODEL = os.environ.get("PROVERKA_MODEL", "anthropic/claude-sonnet-5.5")
 API = os.environ.get("PROVERKA_API", "https://openrouter.ai/api/v1/chat/completions")
 MAX_TEXT = 12000
-MAX_DAY = int(os.environ.get("PROVERKA_MAX") or 30)   # платных чтений носителем в сутки на Милу (Качество 26.10: у клиентской Милы на нашем ключе — наши деньги)
+MAX_DAY = int(os.environ.get("PROVERKA_MAX") or 30)   # платных чтений носителем в сутки на Милу (у клиентской Милы на нашем ключе — наши деньги)
 COUNT = os.path.expanduser(os.environ.get("PROVERKA_COUNT") or "~/.cache/mila/proverka-count.json")
 _PD = [(re.compile(r"\+?\d[\d\s()-]{7,}\d"), "⟦тел⟧"), (re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+"), "⟦почта⟧"),
        (re.compile(r"\b(?:\d[ -]?){13,19}\b"), "⟦карта⟧")]
@@ -27,7 +27,7 @@ _LAB = {"phone": "⟦тел⟧", "email": "⟦почта⟧", "card": "⟦кар
 
 
 def _pd_find():
-    """Одна правда на всё ядро (Качество 26.10): поиск личных данных — pd_vault.find из соседнего навыка pd-vault (паспорт, ПИНФЛ,
+    """Одна правда на всё ядро: поиск личных данных — pd_vault.find из соседнего навыка pd-vault (паспорт, ПИНФЛ,
     телефоны без ложных на суммах и id). Нет навыка рядом — свой короткий список."""
     try:
         import importlib.util
@@ -174,7 +174,7 @@ def check(text, use_llm=True):
     if sp:
         found += dict_check(text, sp)
     else:
-        notes.append("словарь владельца не найден (~/work/canon/STIL.md) — слой пропущен")
+        notes.append("личный словарь не найден (~/work/canon/STIL.md) — слой пропущен")
     found += rules_check(text)
     if use_llm:
         f, note = llm_check(text)

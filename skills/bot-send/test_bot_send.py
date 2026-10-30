@@ -45,7 +45,7 @@ chk("в 08:05 отложенная ушла", r["flushed"][0]["sent"] == 2 and l
 lines = [json.loads(l) for l in open(b.journal)]
 ok_sent = sum(1 for c in calls if c[1]["chat_id"] != "403")
 chk("журнал: каждое отправленное с message_id", sum(1 for l in lines if l.get("mid")) == ok_sent)
-# CARD-MASK-1019: номер собираем в коде
+# номер собираем в коде
 import random as _r
 _d = [8, 6, 0, 0] + [_r.randint(0, 9) for _ in range(11)]
 _t = sum((x * 2 - 9 if x * 2 > 9 else x * 2) if i % 2 == 0 else x for i, x in enumerate(reversed(_d)))

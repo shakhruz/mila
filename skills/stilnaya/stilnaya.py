@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Мила стильная (слово владельца 28.10): задания трём независимым взглядам и свод их ответов.
+"""Мила стильная: задания трём независимым взглядам и свод их ответов.
   stilnaya.py prompts --audience «кто смотрит» --goal «что должно случиться»   → JSON: три задания, каждое отдельно
   stilnaya.py svod a.json b.json c.json   → {"ready", "amateur_by", "main_fix", "minor", "agree", "disagree"}; код 1 — не готово
 Ответ взгляда (JSON): {"role", "verdict": "профи"|"любитель", "main_fix": "…", "minor": ["…"], "sources": ["…"]}."""

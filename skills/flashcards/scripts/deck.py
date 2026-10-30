@@ -35,7 +35,7 @@ L10N = {
            "missed": "Missed only", "shuffle": "Shuffle", "show": "Show answer", "done": "Deck complete",
            "ask": "Ask for more", "copied": "Question copied — paste it into your chat with Mila", "next": "Next review"},
 }
-# TRAINER-V2-0925: строки тренажёра v2 (свайпы, итог сессии, кольцо прогресса)
+# строки тренажёра v2 (свайпы, итог сессии, кольцо прогресса)
 L10N["ru"].update({"due": "Сегодня", "missed": "Ошибки", "answer": "ответ", "again": "Повторить", "flip": "Перевернуть карту", "mode": "Какие карты", "language": "Язык",
     "progress": "Пройдено {n} из {t}", "difficulty": "Сложность", "swipe_hint": "Свайп вправо — знаю, влево — повторить",
     "key_hint": "Пробел — перевернуть · → знаю · ← повторить · ↓ трудно", "to_review": "Вернуться к этим картам",

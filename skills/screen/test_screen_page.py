@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PAGES-2910 (№109): screen.py page — своя HTML-страница на свой экран. Заглушка службы экрана на 127.0.0.1:
+"""screen.py page — своя HTML-страница на свой экран. Заглушка службы экрана на 127.0.0.1:
 put шлёт tar.gz папки (без скрытых файлов) с ключом и именем; ссылка в папке — отказ до отправки; show/list/rm — команды хаба. Без сети."""
 import gzip, http.server, io, json, os, subprocess, sys, tarfile, tempfile, threading
 H = os.path.dirname(os.path.abspath(__file__)); ok = n = 0; SEEN = []

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Жонглёр задач (слово владельца 28.10): когда и как браться за новое поручение, если в работе уже что-то есть.
+"""Жонглёр задач: когда и как браться за новое поручение, если в работе уже что-то есть.
   zhonglyor.py when [--urgent] [--current-left N] [--prio today|week]  → now | finish-first | queue-today | queue-week
   zhonglyor.py how --kind short|search|bulk|routine|other-mila|money|text-out  → способ одной строкой
 Правила — из SKILL.md; скрипт ничего не запускает, только отвечает."""

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AUTO-PATCH-2910: auto=patch — ночью сама ставлю только патч той же x.y с риском не выше среднего; новая x.y или хуки — карточка хозяину.
+# auto=patch — ночью сама ставлю только патч той же x.y с риском не выше среднего; новая x.y или хуки — карточка хозяину.
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"

@@ -15,7 +15,7 @@ if not (tool.endswith("__reply") or tool.endswith("__edit_message")):
     sys.exit(0)
 args = p.get("tool_input") or {}
 _body = str(args.get("text") or "")
-_cap = str(args.get("caption") or "")   # ALBUM-2610 (Качество 26.10): подпись к фото/альбому уходит в Telegram так же — проверяю вместе с текстом
+_cap = str(args.get("caption") or "")   # подпись к фото/альбому уходит в Telegram так же — проверяю вместе с текстом
 text = (_body + "\n" + _cap).strip() if _cap else _body
 chat_id = str(args.get("chat_id") or "").strip()
 owner = (os.environ.get("OWNER_ID") or "").strip()
@@ -29,10 +29,10 @@ _card_allow = set()
 try:
     _acc = json.load(open(os.path.expanduser("~/.claude/channels/telegram/access.json"), encoding="utf-8"))
     _allowed = {str(k) for k in (_acc.get("groups") or {}).keys()} | {str(x) for x in (_acc.get("allowFrom") or [])}
-    _card_allow = {re.sub(r"\D", "", str(x)) for x in (_acc.get("cardAllow") or [])}   # CARD-ALLOW-1019: наши реквизиты оплаты
+    _card_allow = {re.sub(r"\D", "", str(x)) for x in (_acc.get("cardAllow") or [])}   # наши реквизиты оплаты
 except Exception:
     pass
-# SELFHOST-1018 (Вебмастер: без OWNER_ID проверка адресата выключалась): нет OWNER_ID — хватает access.json (allowFrom + группы);
+# нет OWNER_ID — хватает access.json (allowFrom + группы);
 # нет ни того, ни другого — проверку адресата не делаем (Мила ещё не подключена, писать некуда кроме ответа)
 if chat_id and (owner or _allowed) and chat_id != owner and chat_id not in _allowed:
     why.append("адресат %s — не хозяин и не подключённый чат: говорю только там, куда меня подключили" % chat_id)
@@ -48,7 +48,7 @@ SECRETS = [
 for rx, name in SECRETS:
     if re.search(rx, text):
         why.append("в тексте %s — секреты в чат не пишем, хозяину: «перевыпустить»" % name)
-# CARD-MASK-1019 (утечка 19.10: вечерний отчёт вставил тело письма с полным номером карты клиента): 13–19 цифр подряд
+# 13–19 цифр подряд
 # (пробелы/дефисы между ними — можно), проходят Луну → номер карты. В группу — стоп, автору переписать без номера;
 # хозяину и в личку — уходит, но номер заменён маской ****1234 (updatedInput). Телефон с «+» — не карта.
 _PAN = re.compile(r"(?<![\d+])(?:\d[ -]?){12,}\d(?![\d])")
@@ -115,7 +115,7 @@ if fmt != "markdownv2":
         why.append("разметка (%s) без format=markdownv2 — получатель увидит сырые звёздочки; "
                    "собери через tg.py умения milagpt-chat или убери разметку" % ", ".join(marks))
 
-# --- FOREIGN-CHAT-0920 (D-NNNN, 20.09.2026) ---------------------------------------
+# --- (D-NNNN, 20.09.2026) ---------------------------------------
 # У компаньона одна сессия на все чаты, стены между ними нет. Замок на выходе: в чат X не
 # уходит @тег человека или название чата, которых в X никогда не было, а в другом чате они есть.
 # Хозяину и внутренним чатам (~/.claude/hooks/internal-chats.json — список id) можно всё.

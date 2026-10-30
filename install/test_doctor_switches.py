@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""doctor check_switches (SWITCHES-2810): «включено в настройке, но не работает» — гостевой контур без флага окружения, без ключа,
+"""doctor check_switches: «включено в настройке, но не работает» — гостевой контур без флага окружения, без ключа,
 без handoffFile; ученики без промпта; Jev без адреса; обновления без owner_chat. Всё во временной папке."""
 import importlib.util, json, os, sys, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__)); ok = n = 0

@@ -5,10 +5,10 @@
 
 Правила (не обходятся параметрами):
 - Писать можно только тому, кто сам хоть раз писал боту (known(user_id) — из conversations/dialogs движка).
-- Вызов — только по слову владельца в его личке (owner_gate — проверяет движок: инструмент доступен только в сессии хозяина).
+- Вызов — только с согласия владельца в его личке (owner_gate — проверяет движок: инструмент доступен только в сессии хозяина).
 - Рассылка: сначала превью «N человек, текст» владельцу с кнопкой ✅; отправка — только confirm(preview_id) после нажатия.
 - Не больше 20 сообщений в секунду; заблокировавшие бота (403) и сказавшие «стоп» — в стоп-лист, им больше не пишем.
-- Тихие часы 22:00–08:00 по Ташкенту: рассылка встаёт в очередь на 08:00 (личное сообщение по прямому слову владельца уходит сразу).
+- Тихие часы 22:00–08:00 по Ташкенту: рассылка встаёт в очередь на 08:00 (личное сообщение с прямого согласия владельца уходит сразу).
 - Каждое отправленное — в журнал (кому, когда, message_id) и в диалог человека как исходящее (record_outgoing), чтобы dialogs видел «наш ход закрыт».
 """
 import json, os, re, time, urllib.request, urllib.error, uuid
@@ -21,7 +21,7 @@ PREVIEW_TTL = 3600         # превью рассылки живёт час
 RETRY_MAX = 3              # 429 одному человеку — не больше трёх повторов
 PAUSE_AUTO = 3600          # c (Качество, закон 3): пауза Telegram дольше часа — остаток только по новому ✅ владельца
 RETRY_CAP = 60             # и не дольше минуты ожидания за раз
-# CARD-MASK-1019 (утечка 19.10): номер карты (13–19 цифр, Луна) наружу не уходит — маска ****1234
+# номер карты (13–19 цифр, Луна) наружу не уходит — маска ****1234
 _PAN = re.compile(r"(?<![\d+])(?:\d[ -]?){12,}\d(?![\d])")
 
 
@@ -38,7 +38,7 @@ def _luhn(d):
 def mask_cards(text, allow=None):
     """Номер карты (13–19 цифр подряд, пробелы/дефисы между группами, Луна) → ****1234. Внутри длинной цепочки групп ищем
     окно, которое проходит Луну («карта <номер> 100 USD» — сумма после номера не мешает)."""
-    allow = {re.sub(r"\D", "", str(x)) for x in (allow if allow is not None else os.environ.get("CARD_ALLOW", "").split(",")) if str(x).strip()}   # CARD-ALLOW-1019
+    allow = {re.sub(r"\D", "", str(x)) for x in (allow if allow is not None else os.environ.get("CARD_ALLOW", "").split(",")) if str(x).strip()}
 
     def rep(m):
         txt = m.group(); parts = [g.span() for g in re.finditer(r"\d+", txt)]; out, pos, i = [], 0, 0
@@ -151,7 +151,7 @@ class BotSend:
             q = self._rj(self.queue_f, []); q.append(dict(p, t=self.clock(), qid=pid)); self._wj(self.queue_f, q)
             self._log({"kind": "broadcast", "queued": len(p["to"]), "segment": p["segment"], "not_before": p["not_before"]})
             return {"ok": True, "queued": len(p["to"]), "note": "уйдёт после " + datetime.fromtimestamp(p["not_before"], TZ).strftime("%d.%m %H:%M") + " по Ташкенту",
-                    "buttons": [[{"label": "Отменить отправку " + datetime.fromtimestamp(p["not_before"], TZ).strftime("%d.%m"), "choice": "bc_cancel_" + pid}]]}   # c3 (Качество): до срока владелец может отменить
+                    "buttons": [[{"label": "Отменить отправку " + datetime.fromtimestamp(p["not_before"], TZ).strftime("%d.%m"), "choice": "bc_cancel_" + pid}]]}   # c3: до срока владелец может отменить
         if not p or self.clock() - p["t"] > PREVIEW_TTL: return {"ok": False, "error": "превью нет или устарело — сделайте новое"}
         if self.quiet():
             q = self._rj(self.queue_f, []); q.append(dict(p, qid=pid)); self._wj(self.queue_f, q)   # c4: qid и ночной — отменяемо

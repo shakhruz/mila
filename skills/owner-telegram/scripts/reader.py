@@ -7,7 +7,7 @@
   reader.py map            — карта: каналы и группы (без личных переписок), непрочитанное → map.json
   reader.py pulse          — пульс: число контактов и личных диалогов, каналы/группы со звуком → live.json
   reader.py last <чат> [N]            — последние N (≤50) сообщений; личный чат — только из списка allowed.json
-  reader.py draft <чат> --text «…» [--replace] — ЧЕРНОВИК в поле ввода чата владельца (DRAFT-1015): не отправляется,
+  reader.py draft <чат> --text «…» [--replace] — ЧЕРНОВИК в поле ввода чата владельца: не отправляется,
                            отправляет сам владелец; личный чат — только из allowed.json; свой черновик владельца в чате
                            не затираю без --replace (его «да» на замену). Журнал drafts.jsonl (без текста).
   reader.py allow <чат> --by <user_id> --msg <чат/сообщение> — добавить личный чат в allowed.json: --by должен быть
@@ -15,7 +15,7 @@
   reader.py disallow <чат> — убрать из списка.
   reader.py inbox --by <id владельца> --msg <его слово> — личные чаты с непрочитанным (прочитанным не помечает).
   reader.py react <чат> <id сообщения> --emoji 👍 --by <id владельца> --msg <бот Милы>/<id его сообщения> — реакция от владельца
-                           (REACT-2910): белый список эмодзи, только разрешённый личный чат, строка в drafts.jsonl.
+: белый список эмодзи, только разрешённый личный чат, строка в drafts.jsonl.
   reader.py draft-clear <чат> --by <id владельца> --msg <его слово> — стереть МОЙ черновик; черновик, набранный
                            владельцем, не трогаю без --replace.
   <чат> — id, @ник или часть названия/имени (одно совпадение среди диалогов).
@@ -28,7 +28,7 @@
 """
 import argparse, asyncio, hashlib, json, os, re, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import owner_folders   # FOLDERS-1025: папки — чтение и применение плана (запись — только FolderWriter)
+import owner_folders   # папки — чтение и применение плана (запись — только FolderWriter)
 
 DEVICE = dict(device_model="Mila reader", system_version="read-only", app_version="1.0")
 
@@ -54,8 +54,8 @@ def api_keys(d):
 class ReadOnly:
     """Белая обёртка: наружу только чтение диалогов, сообщений и списка контактов."""
     ALLOWED = {"connect", "disconnect", "is_user_authorized", "get_me",
-               "iter_dialogs", "get_dialogs", "iter_messages", "get_messages", "get_entity", "download_media"}   # VOICE-2210: скачать голосовое — тоже чтение
-    ALLOWED_REQUESTS = {"GetContactsRequest", "SaveDraftRequest", "GetDialogFiltersRequest", "SendReactionRequest"}   # FOLDERS-1025: чтение папок   # DRAFT-1015: черновик — да; отправка/правка/удаление — нет
+               "iter_dialogs", "get_dialogs", "iter_messages", "get_messages", "get_entity", "download_media"}   # скачать голосовое — тоже чтение
+    ALLOWED_REQUESTS = {"GetContactsRequest", "SaveDraftRequest", "GetDialogFiltersRequest", "SendReactionRequest"}   # чтение папок   # черновик — да; отправка/правка/удаление — нет
 
     def __init__(self, client):
         object.__setattr__(self, "_c", client)
@@ -150,10 +150,10 @@ async def owner_word(c, by, ref, what):
     """Слово владельца на действие: --by — id самого владельца (сверка с аккаунтом сессии), --msg — улика его «да»."""
     me = await c.get_me()
     if not by or str(by) != str(getattr(me, "id", "")) or not (ref or "").strip():
-        sys.exit("%s только по слову владельца: --by <его id> --msg <чат/сообщение>" % what)
+        sys.exit("%s только с согласия владельца: --by <его id> --msg <чат/сообщение>" % what)
 
 
-WORD_TTL = int(os.environ.get("OWNER_TG_WORD_MIN") or 30) * 60   # слово владельца на действие — не старше 30 мин
+WORD_TTL = int(os.environ.get("OWNER_TG_WORD_MIN") or 30) * 60   # согласие владельца на действие — не старше 30 мин
 
 
 def mila_bot(d):
@@ -178,7 +178,7 @@ def ref_used(d, key):
 
 
 async def owner_said(c, d, by, ref, what, reply=False):
-    """Качество 29.10 15:32 🟡 (как SPEND-TAP): --by и --msg передаёт сама Мила — строка «--msg что угодно» не слово.
+    """--by и --msg передаёт сама Мила — строка «--msg что угодно» не слово.
     --msg = <бот Милы>/<id сообщения> — сообщение в личке владельца с его Милой. Читаю его с аккаунта владельца и проверяю:
     чат — тот самый бот Милы, автор — владелец (out), не старше WORD_TTL, это сообщение ещё не использовано. → ключ «<id бота>/<id>»."""
     await owner_word(c, by, ref, what)
@@ -190,9 +190,9 @@ async def owner_said(c, d, by, ref, what, reply=False):
         ent = await c.get_entity(int(m.group(1)) if re.fullmatch(r"-?\d+", m.group(1)) else m.group(1))
         want = await c.get_entity(bot)
     except (ValueError, KeyError, TypeError):   # чат или бот не нашёлся в аккаунте владельца
-        sys.exit("%s: слово владельца — только в его личке с ботом Милы" % what)
+        sys.exit("%s: согласие владельца — только в его личке с ботом Милы" % what)
     if not getattr(ent, "bot", False) or getattr(ent, "id", None) != getattr(want, "id", None):
-        sys.exit("%s: слово владельца — только в его личке с ботом Милы" % what)
+        sys.exit("%s: согласие владельца — только в его личке с ботом Милы" % what)
     try:
         msg = await c.get_messages(ent, ids=int(m.group(2)))
     except (ValueError, KeyError, TypeError):
@@ -202,8 +202,8 @@ async def owner_said(c, d, by, ref, what, reply=False):
         sys.exit("%s: такого сообщения владельца в личке с Милой нет" % what)
     ts = msg.date.timestamp() if getattr(msg, "date", None) else 0
     if not (time.time() - WORD_TTL <= ts <= time.time() + 60):
-        sys.exit("%s: слово владельца старше %d мин — нужно новое" % (what, WORD_TTL // 60))
-    if reply:   # Качество 15:49: необратимое (стереть набранное им) — смысл проверяет код: его сообщение — ОТВЕТ на предложение Милы
+        sys.exit("%s: согласие владельца старше %d мин — нужно новое" % (what, WORD_TTL // 60))
+    if reply:   # необратимое (стереть набранное им) — смысл проверяет код: его сообщение — ОТВЕТ на предложение Милы
         rid = getattr(getattr(msg, "reply_to", None), "reply_to_msg_id", None) or getattr(msg, "reply_to_msg_id", None)
         try:
             prev = await c.get_messages(ent, ids=int(rid)) if rid else None
@@ -214,7 +214,7 @@ async def owner_said(c, d, by, ref, what, reply=False):
             sys.exit("%s: стереть набранное владельцем — только если его сообщение — ответ на моё предложение в личке с Милой" % what)
     key = "%s/%s" % (ent.id, m.group(2))
     if ref_used(d, key):
-        sys.exit("%s: это слово владельца уже использовано — одно слово, одно действие" % what)
+        sys.exit("%s: это согласие владельца уже использовано — одно слово, одно действие" % what)
     return key
 
 
@@ -263,7 +263,7 @@ async def own_draft(c, ent):
 
 
 def media_kind(m):
-    """VOICE-2210: что вложено — voice/audio/video_note/video/photo/doc (+секунды), чтобы видеть голосовые в last."""
+    """что вложено — voice/audio/video_note/video/photo/doc (+секунды), чтобы видеть голосовые в last."""
     if getattr(m, "voice", None): k = "voice"
     elif getattr(m, "video_note", None): k = "video_note"
     elif getattr(m, "audio", None): k = "audio"
@@ -276,12 +276,12 @@ def media_kind(m):
 
 
 async def cmd_voice(c, d, chat, msg_id):
-    """VOICE-2210: скачать голосовое/кружок/аудио одного сообщения разрешённого чата в media/ (0700) и напечатать путь."""
+    """скачать голосовое/кружок/аудио одного сообщения разрешённого чата в media/ (0700) и напечатать путь."""
     ent = await resolve(c, chat)
     private_guard(d, ent, "слушаю")
     m = await c.get_messages(ent, ids=int(msg_id))
     mk = media_kind(m) if m else None
-    if not mk or mk.split(":")[0] not in ("voice", "video_note", "audio", "video", "doc"):   # DOC-2210: файлы (шаблоны) — тоже чтение
+    if not mk or mk.split(":")[0] not in ("voice", "video_note", "audio", "video", "doc"):   # файлы (шаблоны) — тоже чтение
         sys.exit("в сообщении %s нет голосового/аудио" % msg_id)
     md = os.path.join(d, "media")
     os.makedirs(md, mode=0o700, exist_ok=True)
@@ -292,10 +292,10 @@ async def cmd_voice(c, d, chat, msg_id):
 
 
 async def cmd_inbox(c, d, by, msg, n=15):
-    """INBOX-2510 (владелец 35977: «веди людей, которые пишут мне в личку»): личные чаты с непрочитанными — кто, сколько, последнее входящее. Только по его «да» (--by/--msg), прочитанным не помечает."""
+    """(«веди людей, которые пишут мне в личку»): личные чаты с непрочитанными — кто, сколько, последнее входящее. Только по его «да» (--by/--msg), прочитанным не помечает."""
     me = await c.get_me()
     if not by or str(by) != str(getattr(me, "id", "")) or not (msg or "").strip():
-        sys.exit("inbox только по слову владельца: --by <его id> --msg <чат/сообщение>")
+        sys.exit("inbox только с согласия владельца: --by <его id> --msg <чат/сообщение>")
     k = 0
     async for dl in c.iter_dialogs(limit=200):
         if not dl.is_user or not dl.unread_count or getattr(dl.entity, "bot", False):
@@ -344,7 +344,7 @@ REACT_OK = {"👍", "❤", "🔥", "🙏", "👏", "🤝", "😁", "🎉", "💯
 
 
 async def cmd_react(c, d, chat, msg_id, emoji, by, ref):
-    """Реакция от имени владельца (REACT-2910): лайк вместо текста на «спасибо / ок».
+    """Реакция от имени владельца: лайк вместо текста на «спасибо / ок».
     Только по его слову (--by = id владельца, --msg — улика), только эмодзи из белого списка, только в разрешённом личном чате."""
     emoji = (emoji or "").replace("\ufe0f", "").strip()
     if emoji not in REACT_OK:
@@ -378,8 +378,8 @@ def my_last_hash(d, chat_id):
 
 
 async def cmd_draft_clear(c, d, chat, by, ref, replace=False):
-    """Стереть черновик в поле ввода — только по слову владельца и только мой. Набранное или дописанное им — только с --replace
-    и только если его слово — ответ на моё предложение стереть (его черновик не вернуть — Качество 15:49)."""
+    """Стереть черновик в поле ввода — только с согласия владельца и только мой. Набранное или дописанное им — только с --replace
+    и только если его слово — ответ на моё предложение стереть (его черновик не вернуть)."""
     ent = await resolve(c, chat)
     private_guard(d, ent, "черновик")
     cur = await own_draft(c, ent)

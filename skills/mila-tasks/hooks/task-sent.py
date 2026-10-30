@@ -15,12 +15,12 @@ import os
 import re
 import sys
 
-TASK_PY = os.environ.get("MILA_TASK_PY") or next((p for p in (os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "task.py"), os.path.expanduser("~/milagpt/ops/task.py")) if os.path.exists(p)), os.path.expanduser("~/milagpt/ops/task.py"))
+TASK_PY = os.environ.get("MILA_TASK_PY") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "task.py")   # другой — env MILA_TASK_PY
 
 
 def log(msg):
     try:
-        base = os.environ.get("MILA_TASKS_DIR") or os.path.expanduser("~/milagpt/tasks")
+        base = os.environ.get("MILA_TASKS_DIR") or os.path.expanduser("~/work/tasks")
         os.makedirs(base, exist_ok=True)
         with open(os.path.join(base, "hooks.log"), "a", encoding="utf-8") as f:
             f.write("%s task-sent: %s\n" % (dt.datetime.now().isoformat(timespec="seconds"), msg))

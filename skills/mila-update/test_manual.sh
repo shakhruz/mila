@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# UPDATE-MANUAL-2810 (часть В): ручная вставка — только с записью (что, почему, кто); status видит; план говорит «заменит / сохранит».
+# ручная вставка — только с записью (что, почему, кто); status видит; план говорит «заменит / сохранит».
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"
 T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
@@ -12,10 +12,10 @@ chk "без причины или автора — понятный отказ �
 chk "путь вне дома — отказ" "! $U manual --what /etc/passwd --why x --by admin >/dev/null 2>&1"
 echo "# аварийная правка" >> "$CLAUDE_CONFIG_DIR/skills/visual/SKILL.md"
 echo "# аварийная правка 2" >> "$CLAUDE_CONFIG_DIR/skills/screen/SKILL.md"
-$U manual --what "$CLAUDE_CONFIG_DIR/skills/visual/SKILL.md,$CLAUDE_CONFIG_DIR/skills/screen" --why "авария 28.10: мост падал" --by "старшая" > "$T/m.json"
+$U manual --what "$CLAUDE_CONFIG_DIR/skills/visual/SKILL.md,$CLAUDE_CONFIG_DIR/skills/screen" --why "авария 28.10: мост падал" --by "администратор" > "$T/m.json"
 chk "ручная вставка записана: событие manual, кто, почему, sha" "grep -q '\"event\": \"manual\"' $CLAUDE_CONFIG_DIR/mila-update/journal.jsonl && grep -q 'мост падал' $CLAUDE_CONFIG_DIR/mila-update/journal.jsonl && grep -q '\"sha\"' $CLAUDE_CONFIG_DIR/mila-update/journal.jsonl"
 $U status > "$T/s.json"
-chk "status: ручных вставок с последнего обновления — 1, видно кто и почему" "grep -q '\"manual_since_update\": 1' $T/s.json && grep -q 'старшая' $T/s.json"
+chk "status: ручных вставок с последнего обновления — 1, видно кто и почему" "grep -q '\"manual_since_update\": 1' $T/s.json && grep -q 'администратор' $T/s.json"
 echo "# новая строка релиза" >> "$T/rel/skills/screen/SKILL.md"
 $U plan --src "$T/rel" > "$T/p.txt"; $U plan --src "$T/rel" --json > "$T/p.json"
 chk "план: ручные правки — «сохранятся» (хозяин/админ правил навык — не затираю) по обоим путям" "grep -q 'Ручные правки администратора сохранятся' $T/p.txt && grep -q 'skills/visual' $T/p.json && grep -q 'skills/screen' $T/p.json"

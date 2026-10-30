@@ -11,7 +11,7 @@ OUT = os.path.join(os.environ.get("MILA_WORK") or os.path.expanduser("~/work"), 
 
 
 def button_errors(buttons):
-    """TIHIE-OTKAZY-2910: служба рассылки (bot_send._markup) берёт только {label, url https://}, ряд ≤3, рядов ≤6, подпись ≤40 —
+    """служба рассылки (bot_send._markup) берёт только {label, url https://}, ряд ≤3, рядов ≤6, подпись ≤40 —
     остальное выбрасывала молча: хозяин одобрил текст с кнопкой, а кнопка не ушла. Проверяю до заявки → список ошибок."""
     if not isinstance(buttons, list): return ["кнопки — массив рядов: [[{\"label\": \"Сайт\", \"url\": \"https://…\"}]]"]
     err = []

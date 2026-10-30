@@ -71,7 +71,7 @@ $U status >/dev/null 2>&1
 chk "битый version.json — не молча: строка error в журнале" "grep -q '\"event\": \"error\", \"where\": \"load_version\"' $CLAUDE_CONFIG_DIR/mila-update/journal.jsonl"
 cp "$T/v.bak" "$CLAUDE_CONFIG_DIR/mila-update/version.json"
 chk "заголовки всех SKILL.md репо разбираются YAML (нужен pyyaml)" "python3 $REPO/tools/check_frontmatter.py $REPO/skills $REPO/templates >/dev/null"
-# SG-ONFAIL-1024: миграция настроек — только onFailure: block хукам send-guard; остальное как было; бэкап; симлинк не трогаем
+# миграция настроек — только onFailure: block хукам send-guard; остальное как было; бэкап; симлинк не трогаем
 S="$CLAUDE_CONFIG_DIR/settings.json"; cp "$S" "$T/s.bak"
 python3 - "$S" <<'PY'
 import json, sys; json.dump({"x": 1, "env": {"OWNER_ID": "1"}, "hooks": {"PreToolUse": [{"matcher": "m", "hooks": [{"type": "command", "command": "python3 /h/send-guard.py"}]},

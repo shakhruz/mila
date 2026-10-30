@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# RENAMED-1017: обновление 1.3 → 1.4 с переименованием навыков. Ничего вне временной папки не трогает.
+# обновление 1.3 → 1.4 с переименованием навыков. Ничего вне временной папки не трогает.
 set -u
 unset TELEGRAM_STATE_DIR MILA_OUTBOX MILA_OWNER_CHAT
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"

@@ -17,7 +17,7 @@ const BIN = process.env.CLAUDE_BIN || 'claude'
 export function scenariosOf(doc) {
   const list = Array.isArray(doc) ? doc : doc.scenarios || doc.cases || doc.tests || []
   const txt = (v) => Array.isArray(v) ? v.map(x => '· ' + x).join(' ') : String(v || '')
-  return list.filter(s => !s.skip && !s.nosell).map((s, i) => ({   // nosell (№9) решает мост, не CC — покрыт тестом моста
+  return list.filter(s => !s.skip && !s.nosell).map((s, i) => ({   // nosell решает мост, не CC — покрыт тестом моста
     id: String(s.id ?? s.n ?? i + 1).replace(/^s0?/, ''), name: s.name || s.title || '', lang: s.lang || 'ru', must: !!(s.required || s.mandatory || s.must === true),
     turns: (s.turns || s.steps || s.messages || s.say || []).map(t => typeof t === 'string' ? t : t.text || t.say || (t.button ? '[кнопка] ' + t.button : '')).filter(Boolean),
     expect: txt(s.expect || s.must || s.criteria || s.pass || s.ждём), fail: txt(s.fail || s.must_not || s.провал),
@@ -99,7 +99,7 @@ if (import.meta.main) {
   const stamp = new Date(Date.now() + 5 * 3600e3).toISOString().slice(0, 16).replace('T', ' ')
   const sha = createHash('sha256').update(fs.readFileSync(PROMPT)).digest('hex').slice(0, 16), shaFull = createHash('sha256').update(fs.readFileSync(pf)).digest('hex').slice(0, 16)
   const md = [`# Экспресс «${YAML.split('/').pop()}» · ${stamp} (UTC+5) · ${MODEL}, подписка${REP > 1 ? ` · каждый сценарий ×${REP}` : ''}`, `Промпт: ${PROMPT} · sha256 ${sha} (с разметкой моста ${shaFull}) — сверять с промптом в бою`,
-    `Не покрыто экспрессом (Качество 17.10): навыки дома Милы (--setting-sources '' — они не грузятся), мост (кнопки, счёт, «не продавать») — это тесты моста и живой прогон.`,
+    `Не покрыто экспрессом: навыки дома Милы (--setting-sources '' — они не грузятся), мост (кнопки, счёт, «не продавать») — это тесты моста и живой прогон.`,
     `**Итог: ${ok}/${res.length}**${mustBad.length ? ` · обязательные не сданы: ${mustBad.join(', ')}` : ' · обязательные сданы'}${caught.length ? ` · подложенные провалы пойманы: ${caught.filter(c => c.caught).length}/${caught.length}` : ''} · ${Math.round((Date.now() - t0) / 1000)} с · $${res.reduce((a, r) => a + r.cost, 0).toFixed(3)} (по счётчику, подписка)`, '',
     '| # | сценарий | итог | почему | цитата |', '|---|---|---|---|---|',
     ...res.map(r => `| ${r.id}${r.must ? '*' : ''} | ${r.name} | ${r.verdict.pass ? '✅' : '❌'}${r.of > 1 ? ` ${r.k}/${r.of}` : ''} | ${String(r.verdict.why || '').replace(/\|/g, '/')} | ${String(r.verdict.quote || '').replace(/\|/g, '/').replace(/\n/g, ' ').slice(0, 160)} |`), '',

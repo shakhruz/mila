@@ -6,14 +6,18 @@ Python/shell tools around Claude Code and a Telegram channel.
 ## Ground rules
 - One logical change per pull request; small commits.
 - No secrets, no real chat ids, no names of real customers or people in code,
-  examples or tests - use placeholders (`acme_bot`, `<chat_id>`, "Anna").
+  examples or tests - use the fake values in `tests/fixtures/fake_people.py`; token-shaped strings are glued at run time.
+- No internal notes in public files or commit messages: no task codes, message numbers or reviewer timestamps
+  (`python3 tools/kitchen_lint.py` must be clean). A commit message says what changed and what a person gets.
 - Skills: `SKILL.md` needs valid frontmatter. Check with
   `python3 tools/check_frontmatter.py skills templates`.
 - JS/HTML: `python3 tools/check_comments.py <files>` (no code after `//` on one line).
 
 ## Tests
 `bash tests/run_all.sh` runs every test in the repo (sandboxed `HOME`) plus the frontmatter check — all green before a
-pull request. CI runs the same script, plus gitleaks on the whole history. To run one test while you work:
+pull request, also with `CI=true` and through `bash tests/run_ci_local.sh` (clean HOME, UTC, exactly the workflow's Python
+packages). CI runs the same script, plus gitleaks on the whole history. A test that needs a new library adds it to the
+`pip install` line in `.github/workflows/tests.yml`. To run one test while you work:
 ```sh
 python3 templates/home/.claude/hooks/test_send_guard.py
 bash skills/mila-update/test_update.sh

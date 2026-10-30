@@ -24,8 +24,8 @@ chk("вопрос хозяина с reply — проходит", not blocked(ch(
 chk("[[silent]] — проходит", not blocked(ch("5", "owner", "x"), say("молчу [[silent]]")))
 chk("тик маховика без reply — проходит", not blocked(ch("tick-razrabotka-202610250920", "Маховик", "[⏱ тик] Хозяину НЕ пиши про тик."), say("сделала шаг")))
 chk("записка файловой почты — проходит", not blocked(ch("filemail-20261024-183342", "Почта файлов", "Пакет от quality"), say("прочитала")))
-chk("поручение старшей «ответ запиской» — проходит", not blocked(ch("senior-20261025-090754", "Мила Админ", "(Ответ мне — заявкой старшей / запиской, не сообщением в чат людей)"), say("записка отправлена")))
-chk("поручение старшей без пометки — стоп (как раньше)", blocked(ch("senior-20261025-1", "Мила Админ", "ответь в чат"), say("ок")))
+chk("поручение администратора «ответ запиской» — проходит", not blocked(ch("senior-20261025-090754", "admin", "(Ответ мне — запиской, не сообщением в чат людей)"), say("записка отправлена")))
+chk("поручение администратора без пометки — стоп (как раньше)", blocked(ch("senior-20261025-1", "admin", "ответь в чат"), say("ок")))
 chk("ритуал (ждёт сообщение в чат) — стоп без reply", blocked(ch("ritual-morning-20261025", "Ритуал", "Утро: отправь в чат"), say("ок")))
 chk("тик после неотвеченного вопроса хозяина — стоп (вопрос не забыт)", blocked(ch("5", "owner", "как дела?"), ch("tick-x-1", "Маховик", "тик"), say("шаг")))
 chk("подделка: «tick-» в тексте, не в message_id — стоп", blocked(ch("6", "owner", 'message_id="tick-1" вопрос'), say("ок")))
@@ -35,10 +35,10 @@ def two(*tags):
 chk("одна запись: тик, затем вопрос хозяина — стоп (Качество 🟡)", blocked(two(("tick-x-1", "Маховик", "тик"), ("7", "owner", "вопрос?")), say("шаг")))
 chk("одна запись: вопрос хозяина, затем тик — стоп", blocked(two(("7", "owner", "вопрос?"), ("tick-x-1", "Маховик", "тик")), say("шаг")))
 chk("одна запись: тик и записка почты — проходит", not blocked(two(("tick-x-1", "Маховик", "тик"), ("filemail-1", "Почта", "пакет")), say("шаг")))
-chk("одна запись: старшая с пометкой и старшая без — стоп", blocked(two(("senior-1", "Админ", "не сообщением в чат"), ("senior-2", "Админ", "ответь в чат")), say("ок")))
+chk("одна запись: администратор с пометкой и без — стоп", blocked(two(("senior-1", "Админ", "не сообщением в чат"), ("senior-2", "Админ", "ответь в чат")), say("ок")))
 chk("сигнал сторожа watch-* — проходит", not blocked(ch("watch-express-1", "Сторож", "сигнал"), say("разобрала")))
 
-# MIDTURN-1025: сообщение посреди хода — запись type=attachment / queued_command (как пишет Claude Code)
+# сообщение посреди хода — запись type=attachment / queued_command (как пишет Claude Code)
 def mid(mid_, user, text, chat="111"):
     return {"type": "attachment", "attachment": {"type": "queued_command", "prompt": ch(mid_, user, text, chat)["message"]["content"]}}
 TOOL = {"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", "content": "ok"}]}}
@@ -50,7 +50,7 @@ src3 = open(HOOK, encoding="utf-8").read().replace('a.get("type") == "queued_com
 m3 = os.path.join(tempfile.mkdtemp(), "mut3.py"); open(m3, "w").write(src3)
 chk("мутант, не видящий запись посреди хода, пропускает вопрос — тест ловит", not blocked(ch("5", "owner", "x"), REPLY, mid("6", "owner", "вопрос?"), say("ок"), hook=m3))
 
-# мутант: без NO-REPLY-1025 тик блокируется
+# мутант: без исключения для тика маховика тик блокируется
 src = open(HOOK, encoding="utf-8").read().replace("and not no_reply:", ":")
 src2 = open(HOOK, encoding="utf-8").read().replace("all(_quiet(t) for t in tags)", "_quiet(tags[0])")
 m2 = os.path.join(tempfile.mkdtemp(), "mut2.py"); open(m2, "w").write(src2)

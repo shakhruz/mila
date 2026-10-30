@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""UPDATE-EFFECT-2810 (владелец 37034, часть Б): три числа работы Милы за окно дней — до обновления и после.
+"""три числа работы Милы за окно дней — до обновления и после.
 Источники — только то, что есть в любом доме Компаньона; нет источника — None («нет данных»), не ноль.
   replies — ответов в день: вызовы инструмента reply в журналах сессий (~/.claude/projects/**/*.jsonl);
   errors  — ошибок в день: строки с error/429/timeout/ECONN в журнале приёмника канала;
@@ -15,7 +15,7 @@ def _ts(s):
     if not isinstance(s, str) or len(s) < 19:
         return None
     try:
-        return calendar.timegm(time.strptime(s[:19], "%Y-%m-%dT%H:%M:%S"))   # журналы — UTC; mktime − timezone ошибался на час в поясах с летним временем (CI-TZ-2810)
+        return calendar.timegm(time.strptime(s[:19], "%Y-%m-%dT%H:%M:%S"))   # журналы — UTC; mktime − timezone ошибался на час в поясах с летним временем
     except ValueError:
         return None
 
@@ -78,7 +78,7 @@ def metrics(home, claude, t0, t1):
                 t = _ts(m.group(1)) if m else None
                 if t is not None and t0 <= t < t1 and ERR.search(l):
                     errors += 1
-    inbound = None   # Качество 11:50 🟡1: входящие — чтобы «хозяин тише писал» не выглядело как «Мила хуже»
+    inbound = None   # входящие — чтобы «хозяин тише писал» не выглядело как «Мила хуже»
     ins = inbound_files(home, claude)
     if ins:
         inbound = 0
@@ -102,7 +102,7 @@ def share(m):
 
 def compare(before, after):
     """Сравнение «до/после» → (строки хозяину простыми словами, хуже ли). Хуже: ошибок ×1,5 и ≥ 3 в день, или доля отвеченных
-    (ответы на 100 входящих) упала на 30 % при ≥ 3 входящих в день до и после — «хозяин тише писал» хуже не считается (Качество 11:50)."""
+    (ответы на 100 входящих) упала на 30 % при ≥ 3 входящих в день до и после — «хозяин тише писал» хуже не считается."""
     lines, worse = [], False
     def fmt(v): return "нет данных" if v is None else ("%g" % v)
     for k, name in (("inbound", "сообщений вам в день"), ("replies", "моих ответов в день"), ("errors", "сбоев в день")):

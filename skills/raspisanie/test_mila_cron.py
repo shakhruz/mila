@@ -24,7 +24,7 @@ for args, why in ((["add", "Bad_ID", "0 9 * * *", "x"], "id"), (["add", "a", "* 
 code, out = k("add", "vecher", "30 19 * * *", "Вечерняя проверка", "--by", "owner", "--word", "-100" + "1/2189", "--no-expire")
 chk("без срока — нельзя никому, даже с --by owner (Качество: вечная задача тратит подписку молча)", code == 1 and "без срока нельзя" in out)
 code, out = k("add", "vecher", "30 19 * * *", "Вечерняя проверка", "--by", "owner", "--word", "-100" + "1/2189", "--expires", "2027-01-20")
-chk("по слову владельца — с word, до 90 дней", code == 0 and [j for j in jobs() if j["id"] == "vecher"][0]["expires"] == "2027-01-20")
+chk("с согласия владельца — с word, до 90 дней", code == 0 and [j for j in jobs() if j["id"] == "vecher"][0]["expires"] == "2027-01-20")
 chk("pause / resume / extend", k("pause", "vecher")[0] == 0 and not [j for j in jobs() if j["id"] == "vecher"][0]["enabled"]
     and k("resume", "vecher")[0] == 0 and k("extend", "vtoroy-vzglyad", "2026-12-20")[0] == 0 and [j for j in jobs() if j["id"] == "vtoroy-vzglyad"][0]["expires"] == "2026-12-20")
 code, out = k("next", "0 9 * * 1", "3")

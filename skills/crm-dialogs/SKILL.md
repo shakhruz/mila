@@ -36,7 +36,7 @@ commands:
 ---
 > **When to use (full):** Dialog CRM: intake log, whose turn, promises, gone-cold conversations, reminders, report. Commands /inbox /hod /obeschania /ostyli /dialog /zakryt /ne-klient /rezhim /lid /otchet-dialogi via dialogs_* tools, five of them run without the model. Triggers: "whose turn", "open promises", "cold leads". RU: CRM диалогов: приёмный журнал, чей ход, обещания, остывшие, напоминания, отчёт. Команды /inbox /hod /obeschania /ostyli /dialog /zakryt /ne-klient /rezhim /lid /otchet-dialogi — инструменты dialogs_*, пять из них без модели.
 
-> **Requires (SELFHOST-1018):** the `dialogs_*` tools come from the dialogs MCP server that runs next to hosted Milas (it reads the operator's `crm/dialogs.db`). It is not part of this repository yet. Without it every command answers one line: «На этой Миле журнала диалогов нет — он работает на размещённых Милах» — and does not guess. RU: инструменты `dialogs_*` даёт MCP-сервер диалогов на размещённых Милах; в открытом коде его пока нет — без него навык честно говорит, что журнала нет.
+> **Requires:** the `dialogs_*` tools come from the dialogs MCP server that runs next to hosted Milas (it reads the operator's `crm/dialogs.db`). It is not part of this repository yet. Without it every command answers one line: «На этой Миле журнала диалогов нет — он работает на размещённых Милах» — and does not guess. RU: инструменты `dialogs_*` даёт MCP-сервер диалогов на размещённых Милах; в открытом коде его пока нет — без него навык честно говорит, что журнала нет.
 
 # 🗂 CRM диалогов (Коммуникатор 2.0)
 
@@ -51,15 +51,15 @@ commands:
   говорю, что напоминание ставится кнопкой ⏰ на карточке или словами «напомни про Х завтра 15:00»
   (тогда вызываю dialogs_set(who, "stop_until"…) НЕ надо — напоминания ставит только человек тапом).
 - Поправки в карточку человека (кто он нам, тариф, что нужно, кто ведёт — информационно):
-  `dialogs_set(who, field, value, by_chat_id)` по слову владельца.
+  `dialogs_set(who, field, value, by_chat_id)` с согласия владельца.
 - Что знаю о человеке — с меткой источника (владелец 16.10: «берём себе»): **✅ сказал сам** (рядом его слова дословно),
   **⚠ мой вывод** (из чего выведено), **❌ не сказано** (чего не знаю — так и пишу, не додумываю). Свой вывод не записываю
   как слова человека; в заготовке лида и в «кто он нам» — те же метки.
   Метки ✅/⚠/❌ — только в карточку и внутренние заметки; в текст человеку (гостю, клиенту, хозяину в разговоре) не попадают никогда.
 
 ## Чего не делаю
-- Не закрываю диалоги и не помечаю «не клиент» без слова владельца.
+- Не закрываю диалоги и не помечаю «не клиент» без согласия владельца.
 - Не завожу лид в CRM молча — показываю заготовку и спрашиваю.
 - Не пересказываю содержимое документов — в журнале только тип вложения.
 - Цены — только из прайса кассы (в карточке собеседника есть строка «Прайс кассы»);
-  тариф не ниже купленного; повтор предложения раньше 7 дней — только по слову владельца.
+  тариф не ниже купленного; повтор предложения раньше 7 дней — только с согласия владельца.

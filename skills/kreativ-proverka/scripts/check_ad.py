@@ -9,7 +9,7 @@ Telegram Ads (https://ads.telegram.org/guidelines): ≤160 знаков с пр�
 import argparse, json, re, sys, unicodedata
 
 SHORTENERS = ("bit.ly", "tinyurl", "goo.gl", "t.co/", "cutt.ly", "clck.ru", "is.gd", "ow.ly", "rebrand.ly", "vk.cc")
-# Telegram запрещает «unsupported use of comparatives and superlatives» — без подтверждения (Качество 22.10)
+# Telegram запрещает «unsupported use of comparatives and superlatives» — без подтверждения
 SUPERLATIVES = r"(?<!\w)(лучш\w*|самы\w+|наилучш\w*|№\s?1|номер\s+один|best|#1|number one|most \w+|eng \w+)(?!\w)"
 SUPPORT = r"\d|по данным|по версии|по рейтингу|по оценке|according to|ma'lumotlariga ko"
 WON = r"(вы выиграли|вы победили|you( have)? won|siz yutdingiz)"

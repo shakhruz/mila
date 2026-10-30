@@ -2,7 +2,7 @@
 name: inbox
 description: "Use when the owner writes \"inbox\", \"questions for me\", \"what is waiting for me\": waiting questions, one card at a time. RU: «входящие», «inbox», «вопросы ко мне», «что ждёт меня», «что от меня нужно»."
 ---
-> **When to use (full):** Inbox: questions waiting for the owner's word, one card at a time. Use when the owner writes "inbox", "questions for me", "what is waiting for me", "what do you need from me". RU: Входящие — вопросы, которые ждут слова владельца, по одной карточке. Применять, когда владелец пишет «входящие», «inbox», «вопросы ко мне», «что ждёт меня», «что от меня нужно».
+> **When to use (full):** Inbox: questions waiting for the owner's word, one card at a time. Use when the owner writes "inbox", "questions for me", "what is waiting for me", "what do you need from me". RU: Входящие — вопросы, которые ждут согласия владельца, по одной карточке. Применять, когда владелец пишет «входящие», «inbox», «вопросы ко мне», «что ждёт меня», «что от меня нужно».
 
 # Входящие · вопросы ко мне по одной
 

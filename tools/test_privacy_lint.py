@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """privacy-lint на выдуманном списке (живых значений в тесте нет): id и внутри длинного числа, адрес, слаг словом, имя по корню; ложных нет.
-В дереве нет ни списка, ни хешей (Качество 25.10: хеш с открытой солью угадывается перебором)."""
+В дереве нет ни списка, ни хешей (хеш с открытой солью угадывается перебором)."""
 import importlib.util, json, os, subprocess, sys, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__)); REPO = os.path.dirname(HERE)
 spec = importlib.util.spec_from_file_location("pl", os.path.join(HERE, "privacy_lint.py")); P = importlib.util.module_from_spec(spec); spec.loader.exec_module(P)
@@ -11,7 +11,7 @@ def chk(name, cond):
 FAKE = {"terms": [{"label": "id #1", "value": "77712345", "kind": "num"}, {"label": "адрес #1", "value": "10.20.30.40", "kind": "num"},
                   {"label": "клиент #1", "value": "zebrino", "kind": "word"}, {"label": "имя #1", "value": "квиринт", "kind": "stem"}]}
 T = tempfile.mkdtemp(); fj = os.path.join(T, "p.json"); json.dump(FAKE, open(fj, "w"), ensure_ascii=False)
-_CI = os.environ.pop("CI", None)   # GitHub ставит CI=true всегда; положительные проверки ищут свою метку — режим CI (обезличенные метки) проверяю отдельно ниже (Качество 26.10: CI 4/9)
+_CI = os.environ.pop("CI", None)   # GitHub ставит CI=true всегда; положительные проверки ищут свою метку — режим CI (обезличенные метки) проверяю отдельно ниже (CI 4/9)
 P.PRIVATE = fj; terms = P.load_terms(); f = lambda s: P.find(s, terms)
 chk("id целиком", f("chat_id = 77712345") == ["id #1"])
 chk("id внутри длинного числа (так родилась утечка 1025d)", f("пример 7771" + "23450 в тесте") == ["id #1"])

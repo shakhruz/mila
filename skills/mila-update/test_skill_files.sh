@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SHELF-CHECK-1018: install-skill не ставит навык, у которого SKILL.md называет scripts/… (и др.), а файлов в папке нет;
+# install-skill не ставит навык, у которого SKILL.md называет scripts/… (и др.), а файлов в папке нет;
 # --allow-missing — ставит осознанно и показывает missing; файлы чужого навыка и примеры-заглушки не мешают; все навыки ядра и пакетов — полные.
 set -u; unset TELEGRAM_STATE_DIR MILA_OUTBOX MILA_OWNER_CHAT
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"

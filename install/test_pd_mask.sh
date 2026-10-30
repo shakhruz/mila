@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PD-MASK-1017: хук pd-mask.py — после записи в память/журналы ярлыки вместо ПДн; вне списка, код, Read, PD_MASK=0 — не трогает.
+# хук pd-mask.py — после записи в память/журналы ярлыки вместо ПДн; вне списка, код, Read, PD_MASK=0 — не трогает.
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 set -u; unset TELEGRAM_STATE_DIR; T=$(mktemp -d); export HOME=$T/h MILA_WORK=$T/h/work CLAUDE_CONFIG_DIR=$T/h/.claude PD_KEY=$T/h/.config/mila/pd.key PD_VAULT=$T/h/work/state/pd/vault.enc
 mkdir -p $MILA_WORK/memory $MILA_WORK/razvitie $CLAUDE_CONFIG_DIR/skills; cp -r $REPO/skills/pd-vault $CLAUDE_CONFIG_DIR/skills/

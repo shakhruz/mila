@@ -1,4 +1,4 @@
-"""mila-export: формы строк живого дома (по описанию Качества 25.10) — код и заглушки не секрет; литерал — секрет. Usage: python3 -I proby_live.py <папка>"""
+"""mila-export: формы строк живого дома (по описанию) — код и заглушки не секрет; литерал — секрет. Usage: python3 -I proby_live.py <папка>"""
 import os, sys; sys.path.insert(0, sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__file__))); import mila_export as M   # без аргумента — рядом (run_all)
 cases=[("const KEY = process.env.OPENROUTER_API_KEY",0),("TOKEN = os.environ['BOT_TOKEN']",0),("API_KEY=os.getenv('X')",0),("SECRET = secrets.token_urlsafe(18)",0),
 ("TELEGRAM_BOT_TOKEN=1234" + "56789:AAH...",0),("OPENROUTER_API_KEY=$OPENROUTER_API_KEY",0),("BOT_TOKEN={{ bot_token }}",0),("PD_KEY=<64 hex>",0),("API_KEY=xxxxxxxx"+"xxxxxxxx",0),

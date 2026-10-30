@@ -17,7 +17,7 @@ printf '{"env":{"DISABLE_TELEMETRY":"1","MY_API_%s":"zzz-not-for-archive"},"hook
 echo '{"plugins":{"mila-telegram@mila":{"version":"1.0.0"}}}' > "$C/plugins/installed_plugins.json"
 TGID="1234""56789"   # склейкой: в строке нет 9 цифр подряд (pre-push)
 echo '{"dmPolicy":"allowlist","allowFrom":["'"$TGID"'"],"groups":{"-100123":{"requireMention":true}}}' > "$C/channels/telegram/access.json"
-echo "TELEGRAM_BOT_""TOK""EN=notreallyatoken" > "$C/channels/telegram/.env"   # склейкой: сторож пуша флота ищет «…TOKEN=значение» в файлах (старшая 29.10)
+echo "TELEGRAM_BOT_""TOK""EN=notreallyatoken" > "$C/channels/telegram/.env"   # склейкой: сторож пуша флота ищет «…TOKEN=значение» в файлах
 echo "ELEVENLABS_API_KE""Y=qzv9wxfake" > "$W/.env"   # склейкой — сторож пуша флота
 echo "сообщение гостя" > "$C/channels/telegram/inbound/events.jsonl"
 echo "карточка чата" > "$C/channels/telegram/chats/c1.md"

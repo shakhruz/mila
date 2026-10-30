@@ -4,7 +4,7 @@ description: "Use when the owner's DM has a complaint about a Mila or an agent (
 ---
 > **When to use (full):** Owner's DM review (owner's word 28.10): understand the person, check the claim against the agents' journals and put an answer of facts with a ready step. Use when the owner's DM has a complaint about our Mila or agent («silent», «doesn't work», «I'd rather not use it»), a request, a doubt or a new person. RU: Разбор переписки в личке владельца — понять человека, проверить претензию по журналам агентов и положить ответ фактами с готовым шагом. Когда в личке владельца жалоба на нашу Милу или агента («молчит», «не работает», «лучше не буду пользоваться»), просьба, сомнение или новый человек.
 
-# Разбор лички владельца (слово владельца 28.10)
+# Разбор лички владельца
 
 Образец (вымышленные имена): Иван, клиент X, пишет хозяину: «помощник опять пропал… лучше не буду пользоваться».
 По журналу помощника: он ответил Ивану через 2 и через 4 минуты, а «молчание» — это отказ поставить чужую подпись

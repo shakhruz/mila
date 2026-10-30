@@ -4,7 +4,7 @@ description: "Use before every event with a time — meeting, call, talk, worksh
 ---
 > **When to use (full):** Be prepared (owner's word 28.10): before a meeting, launch, release, talk, call or any event ask «am I ready, what am I missing», go through the inspection list — every item by a check, not by memory — and close what's missing BEFORE the start; never say «it won't work» before looking at the real thing. RU: Будь готова — перед встречей, запуском, выпуском, выступлением, созвоном или любым делом спросить себя «готова ли я, чего мне не хватает», пройти инспекцию по списку и закрыть недостающее ДО начала; «не получится» — только после проверки.
 
-# Будь готова (слово владельца 28.10)
+# Будь готова
 «Перед тем как что-то делать: готова ли я? Чего мне не хватает? Нас инспектировали: пришёл — а инструментов нет. Почему ты не подготовился?»
 
 ## Когда

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""SCREEN-HAIRPIN-2610: адрес службы экрана — SCREEN_API из окружения; в контейнере — host.containers.internal:8949; вне — tv.milagpt.io.
-И голосовой код пары (SCREEN-PAIR-1017) на месте. Без сети. python3 test_screen_api.py"""
+"""адрес службы экрана — SCREEN_API из окружения; в контейнере — host.containers.internal:8949; вне — tv.milagpt.io.
+И голосовой код пары на месте. Без сети. python3 test_screen_api.py"""
 import importlib.util, os, sys
 H = os.path.dirname(os.path.abspath(__file__)); ok = n = 0
 def chk(name, cond, extra=""):
@@ -20,7 +20,7 @@ chk("в контейнере — служба на хосте напрямую",
 chk("вне контейнера — публичный адрес", load(container=False).API == "https://tv.milagpt.io/api/screen/")
 chk("SCREEN_API из окружения — главнее всего", load(env="http://example.test/api/screen/", container=True).API == "http://example.test/api/screen/")
 _e = SRC.index("    return (rest[0] if rest else \"\"), \" \".join(rest[1:])", SRC.index("def split_pair")); g = {}; exec(SRC[SRC.index("_W = {"):SRC.index("\n", _e)], g)
-chk("голосовой код пары на месте (SCREEN-PAIR-1017): «семьсот тридцать три четыреста восемьдесят девять» → 733489", g["code6"]("семьсот тридцать три четыреста восемьдесят девять".split()) == "733489")
+chk("голосовой код пары на месте: «семьсот тридцать три четыреста восемьдесят девять» → 733489", g["code6"]("семьсот тридцать три четыреста восемьдесят девять".split()) == "733489")
 sp = lambda t: g["split_pair"](t.split())
 for t, want in (("семьсот тридцать три четыреста восемьдесят девять Кухня", ("733489", "Кухня")), ("сто двадцать три четыреста пятьдесят шесть", ("123456", "")),
                 ("двести двадцать два триста тридцать три Зал", ("222333", "Зал")), ("7 3 3 4 8 9 Кухня", ("733489", "Кухня")), ("733489 Большой зал", ("733489", "Большой зал")),

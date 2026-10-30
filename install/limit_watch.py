@@ -60,7 +60,7 @@ FILES_MAX = 6                      # сколько свежих транскр�
 
 RE_RESET = re.compile(r"resets\s+(?P<when>[^()\n]+?)\s*\((?P<tz>[^)]+)\)")
 RE_LIMIT_TXT = re.compile(r"You've (?:hit|reached) your (?P<what>[^.·\n]+?) limit", re.I)
-# LOGIN-2610 (ROLLOUT №41, улика одной Милы 28.09): потерян вход — type=assistant, isApiErrorMessage=true, error=authentication_failed,
+# потерян вход — type=assistant, isApiErrorMessage=true, error=authentication_failed,
 # model=<synthetic>, текст «Not logged in · Please run /login». Ход съеден: человеку ничего не ушло.
 RE_AUTH_TXT = re.compile(r"Not logged in|Please run /login|Invalid API key|OAuth token (?:has )?expired|authentication_failed", re.I)
 KIND_RU = {"five_hour": "сессионный, окно 5 часов",
@@ -219,7 +219,7 @@ def scan_file(path):
                 st = d.get("apiErrorStatus")
                 text = _content_text(msg)
                 if d.get("error") == "authentication_failed" or (msg.get("model") == "<synthetic>" and RE_AUTH_TXT.search(text)):
-                    auth.append({"at": ts, "text": text.strip()[:120], "file": path})   # LOGIN-2610
+                    auth.append({"at": ts, "text": text.strip()[:120], "file": path})
                 elif st == 429 or d.get("error") == "rate_limit" or RE_LIMIT_TXT.search(text):
                     ql = d.get("quotaLimits") or {}
                     api_reset = ql.get("resetsAt")
@@ -495,7 +495,7 @@ def _read_pid(pid_file):
 
 
 def detect_auth(claude_dir=CLAUDE_DIR, files=None, window_h=WINDOW_H, now=None):
-    """LOGIN-2610: потерян ли вход. down — последний ход съеден «Not logged in» и удачного после нет;
+    """потерян ли вход. down — последний ход съеден «Not logged in» и удачного после нет;
     since — первая такая запись подряд (начало простоя). → {down, since, last_at, count, last_ok}."""
     now = now or time.time()
     auth, last_ok = [], None

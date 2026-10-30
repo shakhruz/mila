@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# REMOVE-SKILL-1017: install-skill → remove-skill (нужны --from и --yes, бэкап, журнал); навык ядра не снимается; путь с ../ — отказ.
+# install-skill → remove-skill (нужны --from и --yes, бэкап, журнал); навык ядра не снимается; путь с ../ — отказ.
 set -u; unset TELEGRAM_STATE_DIR MILA_OUTBOX MILA_OWNER_CHAT
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"
 T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"; mkdir -p "$CLAUDE_CONFIG_DIR" "$MILA_WORK"

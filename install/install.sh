@@ -113,7 +113,7 @@ for f in reply-required.py pd-mask.py; do
   run chmod 755 "$HOOK_DIR/$f"
   say "hook → $HOOK_DIR/$f"
 done
-# SELFHOST-1018 (Вебмастер, разбор v1.3.0): сторож отправки и журнал обещаний — у self-host тоже из коробки
+# сторож отправки и журнал обещаний — у self-host тоже из коробки
 for f in send-guard.py; do
   install_file "$ROOT/templates/home/.claude/hooks/$f" "$HOOK_DIR/$f" "$f"
   run chmod 755 "$HOOK_DIR/$f"
@@ -289,10 +289,10 @@ if not any('pd-mask.py' in json.dumps(x) for x in hooks.get('PostToolUse', [])):
     ck_missing.append(('PostToolUse', {'matcher': 'Write|Edit|MultiEdit', 'hooks': [{'type': 'command', 'command': pm}]}))
 if not any('reply-required.py' in json.dumps(x) for x in hooks.get('Stop', [])):
     ck_missing.append(('Stop', {'hooks': [{'type': 'command', 'command': rr}]}))
-# SELFHOST-1018: PreToolUse(reply|edit_message) — send-guard блокирует отправку не туда, ключи, кухню; PostToolUse(reply) — task-sent
+# PreToolUse(reply|edit_message) — send-guard блокирует отправку не туда, ключи, кухню; PostToolUse(reply) — task-sent
 # пишет исходящие и обещания; SessionStart — task-open показывает сорванные и горящие обещания
 SEND_RE = 'mcp__plugin_(mila-)?telegram_telegram__reply|mcp__plugin_(mila-)?telegram_telegram__edit_message'
-# SG-ONFAIL-1024: "onFailure" у хука — с CC 2.1.295; на старой CC ключ не пишем (строгая CC могла бы отбросить весь хук сторожа)
+# "onFailure" у хука — с CC 2.1.295; на старой CC ключ не пишем (строгая CC могла бы отбросить весь хук сторожа)
 import re as _re, subprocess as _sp
 try: _v = _sp.run(['claude', '--version'], capture_output=True, text=True, timeout=10).stdout
 except Exception: _v = ''
@@ -303,7 +303,7 @@ if not ONFAIL_OK: print('  send-guard: onFailure пропущен — стара
 sg = 'python3 ' + os.path.join(cfg_dir, 'hooks', 'send-guard.py')
 if not any('send-guard.py' in json.dumps(x) for x in hooks.get('PreToolUse', [])):
     ck_missing.append(('PreToolUse', {'matcher': SEND_RE, 'hooks': [dict({'type': 'command', 'command': sg}, **({'onFailure': 'block'} if ONFAIL_OK else {}))]}))
-# SG-ONFAIL-1024 (Вебмастер 24.10): сторож упал/завис → сообщение НЕ уходит. Уже записанный хук без onFailure — дописываем ключ
+# сторож упал/завис → сообщение НЕ уходит. Уже записанный хук без onFailure — дописываем ключ
 for e in hooks.get('PreToolUse', []):
     for hk in (e.get('hooks') or []) if isinstance(e, dict) else []:
         if ONFAIL_OK and isinstance(hk, dict) and 'send-guard.py' in str(hk.get('command', '')) and hk.get('onFailure') != 'block':
@@ -364,7 +364,7 @@ if [[ ${#BACKUPS[@]} -gt 0 ]]; then
   done
   echo
 fi
-# PD-VAULT-1017: ключ хранилища личных данных — по умолчанию (слой 2а); уже есть — не трогаем
+# ключ хранилища личных данных — по умолчанию (слой 2а); уже есть — не трогаем
 if [[ $DRY -eq 0 && -f "$CLAUDE_DIR/skills/pd-vault/pd_vault.py" ]]; then
   r="$(python3 "$CLAUDE_DIR/skills/pd-vault/pd_vault.py" init 2>/dev/null || true)"
   [[ "$r" == created ]] && say "personal data vault: key ~/.config/mila/pd.key created (600)" || say "personal data vault: key already there"

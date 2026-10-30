@@ -1,5 +1,5 @@
 """jev.py: off/shadow/main, таймаут 1,2 с → правила, неуверенный Jev → правила, журнал без текста, ключ в заголовке;
-готовность к main — только по сверке с правдой (check), роль чата и автор цитаты (ROLLOUT №32, сверка 27.10).
+готовность к main — только по сверке с правдой (check), роль чата и автор цитаты (сверка 27.10).
 Заглушка шлюза на 127.0.0.1. python3 -I test_jev.py"""
 import http.server, json, os, subprocess, sys, tempfile, threading, time
 H = os.path.dirname(os.path.abspath(__file__)); ok = tot = 0; SEEN = []; MODE = {"m": "ok"}
@@ -37,7 +37,7 @@ row = json.loads(open(os.path.join(T, ".claude", "jev-diff.jsonl")).read().split
 chk("shadow: журнал расхождения без текста (только длина)", row["same"] is False and "text" not in row and row["len"] > 5, row)
 chk("site уходит в шлюз", SEEN[-1][0]["site"] == "test-mila")
 os.makedirs(os.path.join(T, "secrets")); open(os.path.join(T, "secrets", "jev.key"), "w").write("KEY123\n")
-# --- ROLLOUT №32: готовность — по сверке с правдой, не по согласию с правилами ---
+# --- готовность — по сверке с правдой, не по согласию с правилами ---
 def sample(rows):
     f = os.path.join(T, "sample.jsonl"); open(f, "w").write("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows)); return f
 p = os.path.join(T, ".claude", "jev-diff.jsonl"); open(p, "w").write("".join(json.dumps({"kind": "reply", "same": True, "len": 3}) + "\n" for i in range(62)))
@@ -91,7 +91,7 @@ j("config", "--set", "url="); rc, o = j("check", "--file", sample(good)); chk("c
 pr = subprocess.run([sys.executable, "-I", os.path.join(H, "jev.py"), "reply", "--text", "-", "--mentioned"], input="привет из stdin",
                     capture_output=True, text=True, env=dict(os.environ, HOME=T, JEV_MODE="off"))
 chk("--text - : текст из stdin (не в argv)", json.loads(pr.stdout).get("decision") is True, pr.stdout)
-# BARABAN-2810: в журнале и молчание шлюза (таймаут), и main; stats --hours даёт корзины уверенности
+# в журнале и молчание шлюза (таймаут), и main; stats --hours даёт корзины уверенности
 p = os.path.join(T, ".claude", "jev-diff.jsonl"); open(p, "w").close()
 srv2 = Q(("127.0.0.1", 0), S); threading.Thread(target=srv2.serve_forever, daemon=True).start(); URL2 = f"http://127.0.0.1:{srv2.server_port}/decide"
 MODE["m"] = "slow"; rc, o = j("reply", "--text", "помоги", JEV_MODE="shadow", JEV_URL=URL2)

@@ -1,14 +1,14 @@
-# Mila
+# Mila Agent
 
-**Telegramdagi ochiq kodli raqamli xodim. Sizning Claude obunangizda ishlaydi, biznesingizni eslab qoladi, sizning nomingizdan faqat roziligingiz bilan ish qiladi.**
+**Telegram uchun ochiq kodli biznes-agent. Sizning Claude obunangizda ishlaydi, biznesingizni eslab qoladi, sizning nomingizdan faqat roziligingiz bilan ish qiladi.**
 
 *Iliqlik uchun yaratilgan.*
 
-[![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
+[![tests](https://github.com/shakhruz/mila-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila-agent/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-agent?sort=semver&label=release)](https://github.com/shakhruz/mila-agent/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-agent)](LICENSE)
 
 [English](README.md) · [中文](README.zh-CN.md) · [Русский](README.ru.md) · **Oʻzbekcha**
 
-**Joriy chiqish: [v1.5.3](https://github.com/shakhruz/mila/releases/latest)** · [nima yangi](CHANGELOG.md)
+**Joriy chiqish: [v1.6.6](https://github.com/shakhruz/mila-agent/releases/latest)** · [nima yangi](CHANGELOG.md)
 
 Mila — kattaroq narsaning bir qismi. Manifestimizni o‘qing (rus va ingliz tillarida): [milagpt.io/manifest](https://milagpt.io/manifest/) · [English](https://milagpt.io/en/manifest/)
 
@@ -38,7 +38,7 @@ Qutidan 3 ta til — **inglizcha, ruscha, o‘zbekcha**; o‘zingiznikini bitta 
 ≈ 5 daqiqa. Kerak: Claude Code (Claude obunasi bilan), [Bun](https://bun.sh), `@BotFather`dan bot tokeni.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
+curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-agent/main/install/get.sh | bash
 ```
 
 Buyruq Claude Code, Bun va git’ni tekshiradi, to‘plamni `~/mila` ga yuklaydi va Telegram plaginini `mila-telegram` o‘rnatadi.
@@ -60,6 +60,6 @@ Keyin — `mila`. `mila onboard --check` hech narsani o‘zgartirmasdan uch qada
 ## Hamjamiyat
 
 <!-- Discord: badge + invite link go here when the invite is ready -->
-Savollar, g‘oyalar, Milangiz nima qilayotganini ko‘rsating: [GitHub Discussions](https://github.com/shakhruz/mila/discussions). Xatolar — [Issues](https://github.com/shakhruz/mila/issues).
+Savollar, g‘oyalar, Milangiz nima qilayotganini ko‘rsating: [GitHub Discussions](https://github.com/shakhruz/mila-agent/discussions). Xatolar — [Issues](https://github.com/shakhruz/mila-agent/issues).
 
 To‘liq ma’lumot — [English README](README.md) va [docs/REFERENCE.md](docs/REFERENCE.md).

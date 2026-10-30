@@ -32,7 +32,7 @@ Script: `python3 ~/.claude/skills/pult-dnya/scripts/day_board.py <command>`. The
 ⏳ Queue
 #8 Day board skill · admin · after #7
 🤝 Waiting for an answer
-#5 Wallet for Discord · waiting: owner · asked: dev 2090
+#5 Wallet for Discord · waiting: owner · asked:
 ✅ Done
 #3 macOS tests → rollback fixed · b29e066
 ```

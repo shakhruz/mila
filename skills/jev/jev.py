@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""jev.py — быстрый разборщик для Милы (ROLLOUT №25, слой ядра «Проводник»): за ~0,5 с ответить на узкий вопрос
+"""jev.py — быстрый разборщик для Милы (слой ядра «Проводник»): за ~0,5 с ответить на узкий вопрос
 «отвечать ли мне», «кому это», «нужны ли кнопки» — без большой модели. Нет шлюза Jev, не ответил за 1,2 с, не уверен —
 решают простые правила, Мила работает как раньше.
 
@@ -20,7 +20,7 @@
 Режимы: off — только правила (по умолчанию, открытый продукт без нашего сервера); shadow — решают правила, Jev спрашиваем
 и пишем расхождения в ~/.claude/jev-diff.jsonl; main — решает Jev, если уверен (≥ min_conf), иначе правила.
 Ключ шлюза — env JEV_KEY или ~/secrets/jev.key (заголовок X-Jev-Key), не печатаю. Ответ — JSON {decision, source, conf, ms}.
-Готовность к main (ROLLOUT №32, сверка 27.10): только по сверке с правдой — ≥ 100 разных сообщений, Jev ≥ 90 % и не хуже правил.
+Готовность к main (сверка 27.10): только по сверке с правдой — ≥ 100 разных сообщений, Jev ≥ 90 % и не хуже правил.
 Согласие Jev с правилами в shadow — не мерило: оба могут ошибаться одинаково («100 % на 62 одинаковых пробах»)."""
 import argparse, hashlib, json, os, re, sys, time, urllib.request
 
@@ -32,7 +32,7 @@ CAT_CACHE = os.path.join(HOME, ".claude", "jev-catalog.json")
 CAT_TTL = 86400
 CATALOG_URL = "https://milagpt.io/navyki/catalog.json"
 CHECK_SKILL_P = os.path.join(HOME, ".claude", "jev-check-skill.json")
-NONE_ROWS, NONE_PCT = 20, 85     # JEV-NONE-2910 (Качество 10:05): верное «никакой» на строках без навыка — отдельным числом, ≥ 20 строк и ≥ 85 %
+NONE_ROWS, NONE_PCT = 20, 85     # верное «никакой» на строках без навыка — отдельным числом, ≥ 20 строк и ≥ 85 %
 SKILL_ROWS, SKILL_PCT = 50, 80   # навык под задачу: в main — по сверке на ≥ 50 настоящих задачах, попал в тройку ≥ 80 % и не хуже правил   # тот же, что DEFAULT_CATALOG в mila-update
 READY_ROWS, READY_PCT = 100, 90
 DEF = {"mode": "off", "url": "", "site": "", "timeout": 1.2, "min_conf": 0.6}
@@ -112,7 +112,7 @@ def rules_buttons(text):
 
 
 def log_diff(kind, text, rules, jev, conf_, ms=None, why=None, mode=None):
-    """Строка журнала решения (без текста — только длина). BARABAN-2810 (старшая 10:10): пишу и молчание шлюза —
+    """Строка журнала решения (без текста — только длина). пишу и молчание шлюза —
     jev=None, why «таймаут» | «нет ответа»; ms — время; mode — shadow | main."""
     try:
         os.makedirs(os.path.dirname(DIFF_P), exist_ok=True)
@@ -239,7 +239,7 @@ def load_catalog(src=None):
     return cat, None
 
 
-RULES_SURE = 8.2   # JEV-RULES-SURE-2910 (Качество 10:17, вариант Б): счёт лучшего совпадения ниже — совет правил помечен rules_sure: false
+RULES_SURE = 8.2   #: счёт лучшего совпадения ниже — совет правил помечен rules_sure: false
 
 
 def rules_scored(text, skills):
@@ -383,7 +383,7 @@ def cmd_check(a):
             d = json.loads(l)
             if not isinstance(d, dict) or not isinstance(d.get("truth"), bool) or not str(d.get("text") or "").strip():
                 continue
-            r = Row(d)   # ключ дедупа — все поля, по которым решают правила и Jev (Качество 27.10: иначе «мне или другому» склеивались)
+            r = Row(d)   # ключ дедупа — все поля, по которым решают правила и Jev (иначе «мне или другому» склеивались)
             h = hashlib.sha256(json.dumps([r.text, r.dm, r.mentioned, r.reply_to_me, r.from_bot, r.to_other, r.chat_role, r.quote_author], ensure_ascii=False).encode()).hexdigest()
             if h in seen:
                 continue                  # одинаковые пробы считаю один раз
@@ -493,7 +493,7 @@ def main():
     p = sp.add_parser("stats"); p.add_argument("--hours", type=float, help="только последние N часов (например 24)")
     p = sp.add_parser("config"); p.add_argument("--set", action="append")
     a = ap.parse_args()
-    if getattr(a, "text", None) == "-":   # JEV-STDIN-1022: текст из stdin — не виден в списке процессов (ps)
+    if getattr(a, "text", None) == "-":   # текст из stdin — не виден в списке процессов (ps)
         a.text = sys.stdin.read()[:4000]
     r = {"reply": cmd_reply, "who": cmd_who, "buttons": cmd_buttons, "skill": cmd_skill, "check": cmd_check, "stats": cmd_stats, "config": cmd_config}[a.cmd](a)
     print(json.dumps(r, ensure_ascii=False))

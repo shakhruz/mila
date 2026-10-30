@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Папки Telegram в личном аккаунте владельца (FOLDERS-1025, слово владельца 25.10, кнопка «Дать умение менять папки»).
+"""Папки Telegram в личном аккаунте владельца (кнопка «Дать умение менять папки»).
 
 Модуль для reader.py; клиент приходит снаружи (ReadOnly для чтения, FolderWriter — только для применения с --yes).
 
@@ -96,7 +96,7 @@ CONSENT_TTL = 24 * 3600
 
 
 def was_sha(changes):
-    """FOLDERS-WAS-2710 (Качество): sha «было» у папок, которые план трогает. Входит в код «да» — владелец поправил эти папки
+    """sha «было» у папок, которые план трогает. Входит в код «да» — владелец поправил эти папки
     руками между карточкой и применением → код другой, старое «да» не подходит, его правка не перезаписывается."""
     was = [w for _a, w, _n in changes]
     return hashlib.sha256(json.dumps(was, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
@@ -108,7 +108,7 @@ def plan_code(plan_path, was=""):
 
 
 async def consent_saved(c, plan_path, was=""):
-    """c (старшая 25.10: «службы кнопки нет»): «да» — сообщение САМОГО владельца в его «Избранном» (Saved Messages)
+    """c («службы кнопки нет»): «да» — сообщение САМОГО владельца в его «Избранном» (Saved Messages)
     вида «да <код плана>», не старше суток и новее файла плана. Написать туда может только он: читалка — только чтение,
     черновик (SaveDraft) сообщением не является. → (ok, причина, id сообщения)."""
     code = plan_code(plan_path, was); now = time.time(); mt = os.path.getmtime(plan_path)
@@ -307,7 +307,7 @@ def build_filter(new, peers):
 async def cmd_apply(c, d, plan_path, by, msg, yes=False, writer=None):
     me = await c.get_me()
     if not by or str(by) != str(getattr(me, "id", "")):
-        sys.exit("папки меняются только по слову владельца: --by <его id> (сверка с аккаунтом сессии)")
+        sys.exit("папки меняются только с согласия владельца: --by <его id> (сверка с аккаунтом сессии)")
     if not MSG_RE.match((msg or "").strip()):
         sys.exit("нужна улика «да»: --msg <чат>/<сообщение> с его словом")
     try:

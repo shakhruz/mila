@@ -1,21 +1,21 @@
-# Мила
+# Mila Agent
 
-**Цифровой сотрудник с открытым кодом в Telegram. Работает на вашей подписке Claude, помнит ваше дело, действует от вашего имени только с вашего согласия.**
+**Бизнес-агент для Telegram с открытым кодом.** Работает на вашей подписке Claude, помнит ваше дело, действует от вашего имени только с вашего согласия.
 
 *Тёплая по замыслу.*
 
 [English](README.md) · [中文](README.zh-CN.md) · **Русский** · [Oʻzbekcha](README.uz.md)
 
-[![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
+[![tests](https://github.com/shakhruz/mila-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila-agent/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-agent?sort=semver&label=release)](https://github.com/shakhruz/mila-agent/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-agent)](LICENSE)
 
 Мила — часть большего. Прочитайте наш Манифест: [milagpt.io/manifest](https://milagpt.io/manifest/)
 
 ![Mila](docs/preview.png)
 
 
-**Текущий выпуск: [v1.5.3](https://github.com/shakhruz/mila/releases/latest)** · [что нового](CHANGELOG.md)
+**Текущий выпуск: [v1.6.6](https://github.com/shakhruz/mila-agent/releases/latest)** · [что нового](CHANGELOG.md)
 
-**Какую версию брать:** стабильная — [Releases](https://github.com/shakhruz/mila/releases) (теги `vX.Y.Z`); canary — ветка `main` (новее, может ломаться).
+**Какую версию брать:** стабильная — [Releases](https://github.com/shakhruz/mila-agent/releases) (теги `vX.Y.Z`); canary — ветка `main` (новее, может ломаться).
 
 ### Claude — по правилам Anthropic
 
@@ -39,8 +39,7 @@
   которое переносит один разговор в другой; трата сверх лимита - с вашего одобрения.
 - **Открытое ядро, Apache-2.0.** Навыки, хуки, инструменты и шаблоны - здесь. Форкайте, учите, присылайте pull request.
 
-Не хотите настраивать сами? Напишите [Миле Ташкент](https://t.me/mila_tashkent_bot): она заведёт вашу Милу за один разговор -
-3 дня за $5, дальше $50 в месяц. Облачная версия и сообщество: <https://milagpt.io/mila/>.
+Mila Agent бесплатен и открыт. Нужна помощь с запуском? **MilaGPT Studio** заведёт вашу Милу и будет растить её вместе с делом (акселерация): <https://milagpt.io/akselerator/>. Готовые навыки и роли от других авторов — **Mila Market**: <https://mila.market>. Сайт: <https://milaagent.com>.
 Telegram-плагин - отдельный открытый репозиторий: [shakhruz/mila-telegram](https://github.com/shakhruz/mila-telegram).
 
 [English](README.md) · [Полный справочник (EN)](docs/REFERENCE.md) · [Сравнение с OpenClaw, NanoClaw, Hermes Agent (EN)](README.md#how-mila-compares)
@@ -69,7 +68,7 @@ API-ключом; сама Мила работает только на Claude (�
 Одной командой:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
+curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-agent/main/install/get.sh | bash
 ```
 
 Она проверит Claude Code, Bun и git, склонирует набор в `~/mila`, запустит `install/install.sh` и поставит плагин Telegram `mila-telegram` (заменяемые файлы сохраняются как `<файл>.bak-ГГГГММДД-ЧЧММСС`). Хотите сначала посмотреть — склонируйте и запустите `./install/install.sh --dry-run`: покажет, что будет затронуто.
@@ -129,8 +128,8 @@ MILAGPT - небольшая команда: **Шахруз Ашот Аширо�
 ## Сообщество
 
 <!-- Discord: badge + invite link go here when the invite is ready -->
-Вопросы, идеи, покажите, что делает ваша Мила: [GitHub Discussions](https://github.com/shakhruz/mila/discussions).
-Ошибки — [Issues](https://github.com/shakhruz/mila/issues). Уязвимости — [SECURITY.md](SECURITY.md).
+Вопросы, идеи, покажите, что делает ваша Мила: [GitHub Discussions](https://github.com/shakhruz/mila-agent/discussions).
+Ошибки — [Issues](https://github.com/shakhruz/mila-agent/issues). Уязвимости — [SECURITY.md](SECURITY.md).
 
 ## Безопасность, вклад, лицензия
 

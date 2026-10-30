@@ -436,7 +436,7 @@ def _proc_env(pid):
 
 
 def check_switches(rep, daemon_env="auto", home=None):
-    """SWITCHES-2810 (мысль дня 28.10: стенд test20 потерял прогон — гостевой контур был включён в access, а флаг окружения нет):
+    """
     «включено в настройке, но не работает». Каждая строка — что включено, чего не хватает, что сделать."""
     home = home or os.path.expanduser("~")
     try:

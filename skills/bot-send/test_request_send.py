@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """request_send.py: кнопки, которые служба рассылки выбросила бы молча (не https, choice, ряд >3, рядов >6, подпись >40), — отказ до заявки
-(TIHIE-OTKAZY-2910); правильные {label, url https://} — заявка пишется."""
+; правильные {label, url https://} — заявка пишется."""
 import json, os, subprocess, sys, tempfile
 H = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(H, "..", "..", "tests", "fixtures"))
 try:

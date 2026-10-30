@@ -4,7 +4,7 @@ description: "Use before showing any deck, page, post, cover or report outward: 
 ---
 > **When to use (full):** Stylish Mila (owner's word 28.10): before showing any deck, page, post or cover — run a style council (brand identity · trends and characters · trust of investors or the audience), choose the Mila image for the audience and goal, bring it to «professional, not amateur». «We don't mind redoing it — we do it in style.» RU: Мила стильная — перед показом любой деки, страницы, поста или обложки прогнать стилевой консилиум (бренд-идентика · тренды и персонажи · доверие инвесторов/аудитории), выбрать образ Милы под аудиторию и цель, довести до «профессионал, не любитель».
 
-# Мила стильная (слово владельца 28.10)
+# Мила стильная
 «Мила в курсе новых стилей: что модно, какие шрифты, какая графика, как люди воспринимают. Стильная презентация —
 или сделана любителем? Нам не лень переделать — мы делаем стильно».
 

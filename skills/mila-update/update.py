@@ -18,19 +18,19 @@
   update.py health                       — проверка здоровья после обновления (команда из release.json или встроенная)
   update.py slot                         — смещение ночного запуска в минутах (0–119) по имени дома, чтобы Милы не шли разом
 
-Ядро — публичный git-репозиторий (по умолчанию github.com/shakhruz/mila; свой форк — MILA_CORE_REPO или "repo" в
+Ядро — публичный git-репозиторий (по умолчанию github.com/shakhruz/mila-agent; свой форк — MILA_CORE_REPO или "repo" в
 ~/.claude/mila-update.json). Каналы: stable — теги vX.Y.Z (без -rc, без отозванных из yanked.json), canary — ветка main.
 Нет доступа — навык не падает: одна строка хозяину.
 Что обновляется и что никогда — release.json релиза + неприкосновенный список ниже (он сильнее манифеста).
 Пути: {claude}=~/.claude (CLAUDE_CONFIG_DIR), {work}=~/work (MILA_WORK), {home}=~. Только stdlib."""
 import argparse, fnmatch, glob, hashlib, json, os, re, shutil, stat, subprocess, sys, tarfile, tempfile, time
 
-# FLEET-1021 (пилот test20 21.10): раскатка с хоста — MILA_HOME=/srv/…/<slug>/home (дом Милы вместо ~), запуск от root,
+# раскатка с хоста — MILA_HOME=/srv/…/<slug>/home (дом Милы вместо ~), запуск от root,
 # MILA_CHOWN=uid[:gid] — после записи всё, что тронули (и папка mila-update), отдаётся хозяину дома.
 HOME = os.environ.get("MILA_HOME") or os.path.expanduser("~")
 CLAUDE = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(HOME, ".claude")
 WORK = os.environ.get("MILA_WORK") or os.path.join(HOME, "work")
-DEFAULT_REPO = "https://github.com/shakhruz/mila.git"   # открытое ядро: ключ не нужен
+DEFAULT_REPO = "https://github.com/shakhruz/mila-agent.git"   # открытое ядро: ключ не нужен
 CONFIG = os.path.join(CLAUDE, "mila-update.json")
 DEFAULT_CATALOG = "https://milagpt.io/navyki/catalog.json"   # КАТАЛОГ-НАВЫКОВ-2810: каталог навыков, страница — milagpt.io/navyki/
 DEFAULT_CFG = {"channel": "stable", "auto": False, "repo": DEFAULT_REPO, "owner_chat": "", "catalog_url": DEFAULT_CATALOG}   # auto=false: ставит только по «да» хозяина
@@ -84,7 +84,7 @@ def sha(path):
     return h.hexdigest()[:16]
 
 
-RUN_TOUCHED = set()   # FLEET-1021b: что тронул ЭТОТ запуск — только отсюда chown, журналу в доме не верим
+RUN_TOUCHED = set()   # что тронул ЭТОТ запуск — только отсюда chown, журналу в доме не верим
 
 
 def jlog(rec):
@@ -95,13 +95,13 @@ def jlog(rec):
 
 
 def soft_err(where, e):
-    """Сбой, после которого идём дальше, — не молча: строка в журнал (Качество 22.10). Сам журнал не пишется — не падаем."""
+    """Сбой, после которого идём дальше, — не молча: строка в журнал. Сам журнал не пишется — не падаем."""
     try: jlog({"event": "error", "where": where, "error": ("%s: %s" % (type(e).__name__, e))[:200]})
     except Exception: pass
 
 
 def here_path(p):
-    """FLEET-KEYS-2810: путь из version.json — к нынешнему дому. Обновление с хоста (MILA_HOME) пишет пути хоста
+    """путь из version.json — к нынешнему дому. Обновление с хоста (MILA_HOME) пишет пути хоста
     (<host>/<slug>/home/.claude/…), изнутри дома это /home/…/.claude/… — без пересчёта mila-update не узнаёт
     свои файлы и считает всё «отличается» (раскатка v1.6.1 28.10: 45 навыков ядра v1.5.1 — «чужие»)."""
     if not isinstance(p, str) or not p.startswith("/"): return p
@@ -292,7 +292,7 @@ def fleet_chown():
     spec = os.environ.get("MILA_CHOWN", "").strip()
     if not spec: return
     uid, _, gid = spec.partition(":"); uid = int(uid); gid = int(gid or uid)
-    paths = set(RUN_TOUCHED) | {STATE}   # FLEET-1021b (Качество): только то, что тронул этот запуск, не journal.jsonl из дома
+    paths = set(RUN_TOUCHED) | {STATE}   #: только то, что тронул этот запуск, не journal.jsonl из дома
     home = os.path.realpath(HOME)
     def own(p):
         # внутри дома; жёсткая ссылка (nlink>1) — пропуск: lchown сменил бы владельца общего inode, напр. /etc/shadow
@@ -333,7 +333,7 @@ def compare(src):
 
 
 def manual_since_update():
-    """UPDATE-MANUAL-2810 (владелец 37034, часть В): ручные вставки администратора после последнего обновления — из журнала Милы."""
+    """ручные вставки администратора после последнего обновления — из журнала Милы."""
     out = []
     try:
         for l in open(JOURNAL, encoding="utf-8"):
@@ -419,7 +419,7 @@ def backup(paths, tag):
 
 
 def readable(p, deep=True):
-    """PERMS-1022 (Админ: суточная копия companion-backup падала на new/<тег>/было-* с правами 600): что записал apply —
+    """что записал apply —
     читаемо для группы и прочих: файлы go+r, каталоги go+rx. Ссылки не трогаем, лишних прав на запись не даём."""
     def one(q):
         try:
@@ -446,7 +446,7 @@ def put(src, dst, kind):
 
 
 def is_internal():
-    """INTERNAL-1022: Мила самой команды (её рождает администратор по своему чек-листу, знакомство с хозяином ей не нужно) —
+    """Мила самой команды (её рождает администратор по своему чек-листу, знакомство с хозяином ей не нужно) —
     "internal": true в mila-update.json или MILA_INTERNAL=1 при раскатке. Гейт новорождённой к ней не относится."""
     return "config" if CFG.get("internal") is True else "env" if os.environ.get("MILA_INTERNAL") == "1" else ""
 
@@ -459,7 +459,7 @@ def newborn_block(where=""):
     t = open(u, encoding="utf-8", errors="replace").read()
     if re.search(r"знакомство:\s*пройдено", t): return ""
     how = is_internal()
-    if how:   # обход видно в журнале: администратор ловит internal у клиентской Милы (Качество 22.10)
+    if how:   # обход видно в журнале: администратор ловит internal у клиентской Милы
         jlog({"event": "newborn_gate_skipped", "reason": "internal", "source": how, "where": where})
         return ""
     return "знакомство ещё не пройдено — обновление ядра после него (USER.md «знакомство: пройдено»)"
@@ -470,7 +470,7 @@ ONFAIL_MIN = (2, 1, 295)   # с этой версии Claude Code знает "on
 
 def cc_version():
     """Версия Claude Code этой Милы: env MILA_CC_VERSION (раскатка с хоста от root — там свой claude), иначе `claude --version`.
-    Не узнали — None (ключ не дописываем: старая CC могла бы отбросить весь хук сторожа — Качество 24.10)."""
+    Не узнали — None (ключ не дописываем: старая CC могла бы отбросить весь хук сторожа)."""
     v = os.environ.get("MILA_CC_VERSION", "")
     if not v:
         try:
@@ -482,7 +482,7 @@ def cc_version():
 
 
 def migrate_settings(tag):
-    """SG-ONFAIL-1024 (Вебмастер 24.10): у установок через install.sh хук send-guard записан без "onFailure": "block" —
+    """у установок через install.sh хук send-guard записан без "onFailure": "block" —
     упал сторож, и сообщение уходит. Единственная правка settings.json при обновлении: дописать этот ключ хукам send-guard
     (больше ничего не трогаем; бэкап рядом; путь — только внутри дома, без симлинка). Нет правки — None."""
     p = os.path.join(CLAUDE, "settings.json")
@@ -523,7 +523,7 @@ def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_labe
     """Бэкап → запись → версия и журнал. Возвращает словарь результата (печатает вызывающий)."""
     tag = tag or m.get("tag")
     if not tag: sys.exit(json.dumps({"error": "в манифесте нет tag (и не задан --tag) — не обновляюсь, бэкап не делаю"}, ensure_ascii=False))
-    # RENAMED-1017 (v1.4.0, международные имена): release.json "renamed" {старое: новое}. По старому имени в релизе — алиас
+    # release.json "renamed" {старое: новое}. По старому имени в релизе — алиас
     # (обёртки скриптов, без SKILL.md — навыком не грузится). Старую папку заменяем алиасом даже при правке хозяина, иначе навык задвоится;
     # его правку кладём в mila-update/new/<тег>/было-<старое> и называем в отчёте.
     ren = m.get("renamed") or {}
@@ -537,7 +537,7 @@ def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_labe
     for r in kept: put(r["dst"], os.path.join(newdir, "было-" + r["name"]), r["kind"])   # правка хозяина под старым именем — до замены алиасом
     for r in todo: put(r["src"], r["dst"], r["kind"])
     for r in side: put(r["src"], os.path.join(newdir, r["name"]), r["kind"])
-    mig = migrate_settings(tag)   # SG-ONFAIL-1024: точечная миграция настроек (settings.json целиком не перезаписываем — он в never)
+    mig = migrate_settings(tag)   # точечная миграция настроек (settings.json целиком не перезаписываем — он в never)
     if mig: touched_extra = [mig]
     else: touched_extra = []
     files = dict(load_version().get("files", {}))
@@ -551,7 +551,7 @@ def do_apply(src, m, rows, yes, take=(), tag=None, sha_="", channel="", src_labe
     if side or kept:   # путь до new/<тег> — только сами каталоги (go+rx), не всё содержимое STATE (журнал и бэкапы не открываем)
         for q in (STATE, os.path.join(STATE, "new")): readable(q, deep=False)
         readable(newdir)
-    effect_before(tag, m.get("version"))   # UPDATE-EFFECT-2810: «до» — три числа за 7 дней перед обновлением
+    effect_before(tag, m.get("version"))   # «до» — три числа за 7 дней перед обновлением
     jlog({"event": "update", "tag": tag, "version": m.get("version"), "yes": yes, "backup": b, "added": added, "touched": touched,
           "updated": [r["name"] for r in todo if r["cur"] is not None], "new_beside": [r["name"] for r in side],
           "renamed": {r["name"]: ren[r["name"]] for r in rows if r["name"] in ren and r["cur"] is not None}, "renamed_kept_edit": [r["name"] for r in kept]})
@@ -566,7 +566,7 @@ EFFECT_AFTER_DAYS = 3   # «после» не раньше чем через 3 �
 
 
 def effect_before(tag, version, now=None):
-    """UPDATE-EFFECT-2810 (владелец 37034, часть Б): при обновлении — три числа работы за 7 дней ДО него."""
+    """при обновлении — три числа работы за 7 дней ДО него."""
     try:
         import effect as E
         now = time.time() if now is None else now
@@ -608,10 +608,10 @@ def cmd_effect(a):
 
 
 def reexec_release_updater(src, rows, argv):
-    """SELF-UPDATE-3010 (30.10, мой дом: старый update.py 1.5.1 не узнал свои файлы в путях хоста, обновил 16 из 52 и записал 1.6.5):
+    """
     apply делает update.py ИЗ РЕЛИЗА, если он новее моего, — тем же вызовом с --src <папка релиза>. Один раз (MILA_UPDATE_REEXEC),
     только вперёд по версии (откат не запускает старый updater), только обычный файл внутри релиза. → не возвращается, если перезапустил.
-    Качество 09:47: только ПОСЛЕ compare(src) без ManifestRefused, и update.py релиза — в строках манифеста (зона навыков в моём доме)
+    только ПОСЛЕ compare(src) без ManifestRefused, и update.py релиза — в строках манифеста (зона навыков в моём доме)
     и проходит _bad_src (обычный файл, nlink 1, внутри релиза): чужой код не запускается раньше проверки цепочки поставки."""
     if os.environ.get("MILA_UPDATE_REEXEC"): return
     rel = os.path.join(src, "skills", "mila-update", "update.py")
@@ -635,7 +635,7 @@ def reexec_release_updater(src, rows, argv):
 
 def cmd_apply(a):
     if not a.yes: sys.exit(json.dumps({"error": "нужно «да» хозяина: --yes \"<кто, где, когда>\" — без него не обновляюсь"}, ensure_ascii=False))
-    off = load_version().get("offered")   # ONE-CARD (Качество 11:34): кнопка устаревшей карточки — не применяю, даже если модель вызвала apply
+    off = load_version().get("offered")   # ONE-CARD: кнопка устаревшей карточки — не применяю, даже если модель вызвала apply
     stale = bool(getattr(a, "tag", None) and off and re.match(r"^v\d", off) and re.match(r"^v\d", a.tag) and vkey(a.tag) < vkey(off))   # старее предложенной; новее — свежая карточка, ручная или ночная
     if stale and not getattr(a, "force_stale", False):
         sys.exit(json.dumps({"error": "карточка устарела: хозяину предложена %s, а нажата %s — ставлю только предложенную" % (off, a.tag),
@@ -750,7 +750,7 @@ def _owner_lines(body, n=3, head=OWNER_ANY):
     return [l.lstrip("-·• ").strip().replace("`", "") for l in lines if l.lstrip("-·• ").strip()][:n]
 
 
-GET_MAX = 90   # Качество 19:10: строка пользы — до ~90 знаков, чтобы в 900 влезли строки ≥ 3 версий, а не одна длинная
+GET_MAX = 90   # строка пользы — до ~90 знаков, чтобы в 900 влезли строки ≥ 3 версий, а не одна длинная
 
 
 def short_line(l, n=GET_MAX):
@@ -765,7 +765,7 @@ def short_line(l, n=GET_MAX):
 
 
 def changelog_since(src, cur_tag, new_tag, per=2, total=None):
-    """UPDATE-PLAN-2810 (владелец 37034): «что получит» — строки «Для хозяина» ВСЕХ версий новее стоящей до новой включительно,
+    """«что получит» — строки «Для хозяина» ВСЕХ версий новее стоящей до новой включительно,
     не только последней (Милы стоят на v1.5.1, а ядро ушло на две версии). Кандидаты (-rc) пропускаю."""
     try: t = open(os.path.join(src, "CHANGELOG.md"), encoding="utf-8").read()
     except OSError: return []
@@ -776,7 +776,7 @@ def changelog_since(src, cur_tag, new_tag, per=2, total=None):
         if cur_tag and re.match(r"^v\d", cur_tag) and vkey(v) <= vkey(cur_tag): continue
         if new_tag and re.match(r"^v\d", new_tag) and vkey(v) > vkey(new_tag): continue
         title, body = mm.group(2), mm.group(3)
-        # Качество 28.10 🟡: хозяину — по-русски и простыми словами. Есть «Для хозяина» — он; нет — строка без английского текста
+        # хозяину — по-русски и простыми словами. Есть «Для хозяина» — он; нет — строка без английского текста
         if not re.search(r"^\**%s\**" % OWNER_RU, body, re.M | re.I):
             out.append((v, "%s: улучшения навыков (описания для хозяина в этой версии нет)" % v)); continue
         for l in _owner_lines(body, per, OWNER_RU):
@@ -811,7 +811,7 @@ def risk_of(rows, m):
         files = changed_files(r)
         if not files: continue
         any_ch = True
-        if os.path.basename(r["dst"]) == "CONSTITUTION.md" or "/canon/" in r["dst"] + "/":   # слово владельца — не ниже среднего
+        if os.path.basename(r["dst"]) == "CONSTITUTION.md" or "/canon/" in r["dst"] + "/":   # решение владельца — не ниже среднего
             word.append(r["name"])
         if "/hooks/" in r["dst"] or r["dst"].endswith("/.local/bin/mila") or "plugin" in r["dst"] or "settings" in os.path.basename(r["dst"]):
             why_hi.append(r["name"]); continue
@@ -832,7 +832,7 @@ GUARD_TAKE = {"send-guard.py": "Сторож отправки"}
 
 
 def order_get(get):
-    """«Что получите» по одной строке с каждой версии, потом вторые строки (Качество 17:13: 900 знаков кончались на свежих
+    """«Что получите» по одной строке с каждой версии, потом вторые строки (900 знаков кончались на свежих
     патчах, а главное — выпуск x.y.0 — не попадало). Порядок версий: сначала x.y.0 (новые от свежей), потом остальные от свежей."""
     by, order = {}, []
     for v, l in get:
@@ -847,7 +847,7 @@ def order_get(get):
 
 
 def plan_text(src, m, rows, cur_tag, tag):
-    """Читаемый план хозяину (UPDATE-PLAN-2810): что получит, что изменится, что не тронется, риск. → (текст ≤ 900, словарь)."""
+    """Читаемый план хозяину: что получит, что изменится, что не тронется, риск. → (текст ≤ 900, словарь)."""
     get = changelog_since(src, cur_tag, tag)
     ch, keep = {}, {}
     for r in rows:
@@ -858,14 +858,14 @@ def plan_text(src, m, rows, cur_tag, tag):
     kept = keep.get("ваша правка", []) + keep.get("отличается", [])
     word = [r["name"] for r in rows if r["state"] in ("обновится", "новое") and (os.path.basename(r["dst"]) == "CONSTITUTION.md" or "/canon/" in r["dst"] + "/") and changed_files(r)]
     def _n(k, one, many): return "%d %s" % (k, one if k % 10 == 1 and k % 100 != 11 else many)
-    mine, other = keep.get("ваша правка", []), keep.get("отличается", [])   # хозяину — числом, без имён латиницей (Качество 17:13)
+    mine, other = keep.get("ваша правка", []), keep.get("отличается", [])   # хозяину — числом, без имён латиницей
     tail = ["Не тронется: ваша память, настройки, ключи, личные навыки" + ("; ваши правки в %s сохранятся" % _n(len(mine), "месте", "местах") if mine else "")
             + ("; навыки и файлы, поставленные не этим обновлением (%d), не меняю — заменить можно отдельно" % len(other) if other else "") + "."]
     if word: tail.append("Меняется конституция или канон (%s) — прочитайте до «Обновиться»." % ", ".join(word[:3]))
-    mf = manual_fate(rows)   # UPDATE-MANUAL-2810: ручные вставки администратора после прошлого обновления
+    mf = manual_fate(rows)   # ручные вставки администратора после прошлого обновления
     if mf["zatryot"]: tail.append("Ручные правки администратора, которые обновление заменит: %s." % ", ".join(mf["zatryot"][:3]))
     if mf["sohranit"]: tail.append("Ручные правки администратора сохранятся: %s." % ", ".join(mf["sohranit"][:3]))
-    # GUARD-TAKE-2810 (Качество 17:27): сторож отправки и конституция, поставленные не обновлением, mila-update сам не обновит
+    # сторож отправки и конституция, поставленные не обновлением, mila-update сам не обновит
     # никогда — у Милы клиента новая защита не дойдёт молча. Отдельной строкой — совет заменить (кнопка, apply --take).
     take = [n for n in keep.get("отличается", []) if n in GUARD_TAKE]
     if take:
@@ -873,7 +873,7 @@ def plan_text(src, m, rows, cur_tag, tag):
         tail.append(("%s у вас отличаются от ядра и ставились не обновлением" if len(take) > 1 else "%s у вас отличается от ядра и ставился не обновлением") % nm
                     + " — советую заменить вместе с обновлением.")
     tail.append("Риск: %s — %s. Отменить можно." % (lvl, why))
-    def change_lines(names):   # Качество 10:12: ужимаю имена в «что изменится», а не пользу
+    def change_lines(names):   # ужимаю имена в «что изменится», а не пользу
         if not ch: return ["Что изменится: ничего — у вас уже всё из этой версии."]
         if names: return ["Что изменится:"] + ["· %s: %d (%s)" % (w, len(n), ", ".join(n[:4]) + (" …" if len(n) > 4 else "")) for w, n in ch.items()]
         short = lambda w: re.split(r" \(| — ", w, 1)[0]   # без пояснений зоны в скобках: хозяину — коротко
@@ -899,7 +899,7 @@ def cmd_plan(a):
     except ManifestRefused as e: sys.exit(json.dumps({"error": "манифест релиза отклонён целиком", "detail": str(e)}, ensure_ascii=False))
     tag = m.get("tag") or getattr(a, "tag", None)
     txt, d = plan_text(src, m, rows, load_version().get("tag"), tag)
-    if getattr(a, "offer", False) and tag:   # ONE-CARD c (Качество 11:45): ручная карточка раскатки тоже пишет offered —
+    if getattr(a, "offer", False) and tag:   # ONE-CARD c: ручная карточка раскатки тоже пишет offered —
         v = load_version(); prev = v.get("offered")   # тогда кнопку её предшественницы запрет apply ловит так же, как у ночной
         if prev and prev != tag:
             txt += "\nЭта карточка заменяет прошлую — про %s; та больше не действует." % prev
@@ -968,7 +968,7 @@ def candidate():
 def cmd_nightly(a):
     ch = CFG["channel"]; auto = bool(CFG["auto"])
     res = {"channel": ch, "auto": auto, "dry_run": a.dry_run}
-    if not a.dry_run:   # UPDATE-EFFECT-2810: через 3–7 дней после обновления — карточка «что изменилось»
+    if not a.dry_run:   # через 3–7 дней после обновления — карточка «что изменилось»
         try:
             r = effect_check()
             if r: res["effect"] = {"worse": r["worse"], "card": deliver_card(r["card"], "effect", "")}
@@ -1003,17 +1003,17 @@ def cmd_nightly(a):
         if a.dry_run:
             print(json.dumps(dict(res, status="dry-run: ничего не записано"), ensure_ascii=False, indent=1)); return
         text = changelog_card(src, tag, m.get("version")) if ch == "stable" else ""
-        plan_txt, plan_d = plan_text(src, m, rows, load_version().get("tag"), tag)   # UPDATE-PLAN-2810: в карточке — читаемый план
+        plan_txt, plan_d = plan_text(src, m, rows, load_version().get("tag"), tag)   # в карточке — читаемый план
         res["plan"] = plan_d
-        if CFG.get("auto") == "patch":   # AUTO-PATCH-2910: хозяин разрешил ставить сами только патчи x.y.Z с риском не выше среднего
+        if CFG.get("auto") == "patch":   # хозяин разрешил ставить сами только патчи x.y.Z с риском не выше среднего
             cur = load_version().get("tag") or ""
             same_xy = bool(re.match(r"^v\d", cur) and re.match(r"^v\d", tag) and vkey(cur)[:2] == vkey(tag)[:2] and vkey(tag) > vkey(cur))
-            auto = same_xy and plan_d.get("risk") in ("нет", "низкий", "средний") and not plan_d.get("word")   # конституция и каноны — только словом хозяина (закон 4, Качество 12:15)
+            auto = same_xy and plan_d.get("risk") in ("нет", "низкий", "средний") and not plan_d.get("word")   # конституция и каноны — только согласием хозяина (закон 4)
             res["auto"] = "patch: %s" % ("ставлю сама" if auto else "не патч, риск высокий или меняется конституция/канон — карточка хозяину")
         if not auto:
             if load_version().get("offered") == tag:
                 print(json.dumps(dict(res, status="offered-already"), ensure_ascii=False)); return
-            prev = load_version().get("offered")   # ONE-CARD-2910 (мысль дня): прошлая карточка без ответа — новая говорит, что заменяет её
+            prev = load_version().get("offered")   #: прошлая карточка без ответа — новая говорит, что заменяет её
             extra = ("\nЭта карточка заменяет прошлую — про %s; та больше не действует." % prev) if prev and prev != tag else ""
             res["card"] = deliver_card(card("offer", tag, m.get("version"), plan_txt, extra), "offer", tag)
             v = load_version(); v["offered"] = tag; os.makedirs(STATE, exist_ok=True); json.dump(v, open(VERSION, "w"), ensure_ascii=False, indent=1)
@@ -1062,12 +1062,12 @@ def cmd_rollback(a):
     ups = [u for u in ups if u.get("event") in ("update", "install-skill") and u.get("backup") not in done]
     if not ups: sys.exit(json.dumps({"error": "откатывать нечего"}, ensure_ascii=False))
     u = ups[-1]
-    # FLEET-1021b: журнал и бэкап лежат в доме Милы — при запуске от root им не верим: удаляем и распаковываем только внутри дома,
+    # журнал и бэкап лежат в доме Милы — при запуске от root им не верим: удаляем и распаковываем только внутри дома,
     # из архива — только обычные файлы и папки (и симлинки, чья цель внутри дома); жёсткие ссылки и устройства — нет
     if not inside_home(u.get("backup", "")): sys.exit(json.dumps({"error": "бэкап вне дома — откат отклонён"}, ensure_ascii=False))
     home = os.path.realpath(HOME)
     def in_home_lex(path):
-        # MACOS-1022: родителей сводим через realpath, как и сам дом. Иначе на macOS дом /var/folders/… (ссылка на /private/var/…)
+        # родителей сводим через realpath, как и сам дом. Иначе на macOS дом /var/folders/… (ссылка на /private/var/…)
         # не совпадал с путями из архива, и откат пропускал всё. Родитель-ссылка наружу теперь тоже отсекается.
         q = os.path.normpath(path)
         q = os.path.join(os.path.realpath(os.path.dirname(q)), os.path.basename(q))
@@ -1080,7 +1080,7 @@ def cmd_rollback(a):
         if os.path.isdir(p) and not os.path.islink(p): shutil.rmtree(p)
         elif os.path.lexists(p): os.remove(p)
     skipped = []
-    # CHAIN-1022 (Качество): распаковка в сам дом (dest = realpath(home)), по одному члену, с фильтром «data». Фильтр смотрит
+    # распаковка в сам дом (dest = realpath(home)), по одному члену, с фильтром «data». Фильтр смотрит
     # каждый член уже ПОСЛЕ распаковки предыдущих, поэтому цепочка ссылок (a → c, где c — давняя ссылка из дома наружу) и файл
     # a/x отсекаются: LinkOutsideDestinationError, снаружи ничего. Имена в архиве — от корня; переводим их в путь от дома.
     homes = {os.path.normpath(os.path.abspath(HOME)), home}
@@ -1089,7 +1089,7 @@ def cmd_rollback(a):
             if full.startswith(h + os.sep): return full[len(h) + 1:]
         return None
     has_data = hasattr(tarfile, "data_filter")
-    if not has_data and (os.geteuid() == 0 or os.environ.get("MILA_CHOWN")):   # флот от root без фильтра — закрыто (Качество 22.10)
+    if not has_data and (os.geteuid() == 0 or os.environ.get("MILA_CHOWN")):   # флот от root без фильтра — закрыто
         sys.exit(json.dumps({"error": "откат от root нужен python с tarfile.data_filter (3.12+, или 3.8.17/3.9.17/3.10.12/3.11.4+)"}, ensure_ascii=False))
     def lands_inside(rel):
         """Без фильтра «data» (python до 3.12 без бэкпорта): перед записью члена — его родитель по realpath, с учётом уже
@@ -1131,7 +1131,7 @@ SKILL_REF = re.compile(r"(?:~/\.claude/skills/([A-Za-z0-9._-]+)/|(?<![\w./-]))((
 
 
 def missing_refs(d):
-    """SHELF-CHECK-1018 (Сила: у сил коробок 2–5 на полке был только SKILL.md): файлы своей папки, которые называет SKILL.md
+    """файлы своей папки, которые называет SKILL.md
     (scripts/…, templates/…, examples/…, knowledge/…, assets/…, fonts/…, data/…), должны лежать в папке навыка."""
     name = os.path.basename(d.rstrip("/"))
     txt = open(os.path.join(d, "SKILL.md"), encoding="utf-8", errors="replace").read()
@@ -1154,7 +1154,7 @@ def cmd_install_skill(a):
                              "missing": miss[:30]}, ensure_ascii=False))
     if not a.sender: sys.exit(json.dumps({"error": "нужно --from: кто прислал (Мила-администратор)"}, ensure_ascii=False))
     if name == "mila-update" and not os.path.isdir(os.path.join(CLAUDE, "skills", "mila-update")) and not (a.yes or "").strip():
-        # UPDATE-BOOTSTRAP-2810 (часть Г): Миле клиента навык обновлений ставится только по «да» её хозяина (bootstrap-note → кнопка)
+        # Миле клиента навык обновлений ставится только по «да» её хозяина (bootstrap-note → кнопка)
         sys.exit(json.dumps({"error": "навык обновлений ставится впервые — нужно «да» хозяина: --yes \"<кто, где, когда, кнопка>\" (текст для него — update.py bootstrap-note)"}, ensure_ascii=False))
     for root, _, files in os.walk(d):
         for f in files:
@@ -1169,7 +1169,7 @@ def cmd_install_skill(a):
 
 
 def cmd_bootstrap_note(a):
-    """UPDATE-BOOTSTRAP-2810 (часть Г): текст карточки хозяину Милы, у которой ещё нет навыка обновлений, — для его «да».
+    """текст карточки хозяину Милы, у которой ещё нет навыка обновлений, — для его «да».
     Что даст, что не тронет, кнопки. Ничего не пишет; администратор отправляет его через Милу клиента."""
     who = (a.name or "").strip()[:60]
     text = ("%sоставить мне навык обновлений.\n"
@@ -1182,13 +1182,13 @@ def cmd_bootstrap_note(a):
 
 
 def cmd_remove_skill(a):
-    """REMOVE-SKILL-1017 (Сила, пакеты коробок): снять навык, поставленный install-skill. Навыки ядра не снимает (их ведёт обновление);
-    перед удалением — бэкап (вернуть: rollback или распаковать бэкап). Нужно «--from» (кто велел) и «--yes» (слово хозяина)."""
+    """снять навык, поставленный install-skill. Навыки ядра не снимает (их ведёт обновление);
+    перед удалением — бэкап (вернуть: rollback или распаковать бэкап). Нужно «--from» (кто велел) и «--yes» (согласие хозяина)."""
     name = os.path.basename(a.name.rstrip("/"))
     dst = os.path.join(CLAUDE, "skills", name)
     if not re.fullmatch(r"[A-Za-z0-9._-]+", name) or not os.path.isdir(dst): sys.exit(json.dumps({"error": "нет такого навыка: " + name}, ensure_ascii=False))
     if dst in load_version().get("files", {}): sys.exit(json.dumps({"error": "это навык ядра — его ведёт mila-update, снимать нельзя"}, ensure_ascii=False))
-    if not a.sender or not a.yes: sys.exit(json.dumps({"error": "нужно --from (кто велел) и --yes (слово хозяина)"}, ensure_ascii=False))
+    if not a.sender or not a.yes: sys.exit(json.dumps({"error": "нужно --from (кто велел) и --yes (согласие хозяина)"}, ensure_ascii=False))
     b = backup([dst], "remove-" + name)
     shutil.rmtree(dst)
     jlog({"event": "remove-skill", "skill": name, "from": a.sender, "yes": a.yes, "backup": b, "touched": [dst]})
@@ -1255,7 +1255,7 @@ def cmd_catalog(a):
         if not r: sys.exit(json.dumps({"error": "в каталоге нет навыка " + a.card}, ensure_ascii=False))
         price = r.get("price") or ""
         price = "Бесплатно." if price == "бесплатно" else ("Сам навык бесплатный, работа — по вашему «да» на расход." if "платн" in price else ("Цена: %s." % price if price else "Цену уточню."))
-        g = (r.get("gives") or r["name"]).rstrip(".")   # хозяину — что даст, без имени навыка латиницей (Качество 16:42)
+        g = (r.get("gives") or r["name"]).rstrip(".")   # хозяину — что даст, без имени навыка латиницей
         g = g[0].lower() + g[1:] if len(g) > 1 and g[1].islower() else g
         print("Могу научиться: %s. %s\n[✅ Хочу] [Позже] [✖️ Не надо]" % (g, price)); return
     who = set(filter(None, (a.who or "хозяин").split(",")))

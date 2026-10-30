@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FLEET-1021: раскатка с хоста — MILA_HOME (чужой дом вместо ~), MILA_CHOWN (всё тронутое и созданные родители — хозяину,
+"""раскатка с хоста — MILA_HOME (чужой дом вместо ~), MILA_CHOWN (всё тронутое и созданные родители — хозяину,
 и после apply, и после rollback); нет доступа к дому — честный отказ, не «новое». os.chown подменён — запись, без root. python3 test_fleet.py"""
 import json, os, runpy, shutil, subprocess, sys, tempfile
 H = os.path.dirname(os.path.abspath(__file__)); REPO = os.path.abspath(os.path.join(H, "..", ".."))
@@ -28,7 +28,7 @@ r, c = run("rollback", chown="4242:4242")
 check("MILA_CHOWN после rollback — то, что вернули, и папка mila-update", any(p.endswith(".claude/mila-update") for p, u, g in c), c[:3])
 r, c = run("apply", "--src", rel, "--yes", "без chown")
 check("без MILA_CHOWN — chown не зовётся", c == [], c[:3])
-# --- подлог (блокер Качества 21.10): журнал и бэкап в доме пишет сама Мила ---
+# --- подлог (блокер): журнал и бэкап в доме пишет сама Мила ---
 import tarfile, io
 other = os.path.join(T, "srv", "other", "home"); os.makedirs(other); victim = os.path.join(other, "secret.txt"); open(victim, "w").write("чужое")
 outside = os.path.join(T, "outside.txt"); open(outside, "w").write("вне дома")
@@ -59,7 +59,7 @@ C = json.loads(r.stdout.strip().splitlines()[-1]) if r.stdout.strip() else []
 check("прямой вызов: внутри папки — файлы навыка да; ссылка-симлинк — сама ссылка, не цель; жёсткая ссылка, чужой дом, /etc, сосед acme2 — нет",
       any(p.endswith("SKILL.md") for p in C) and os.path.join(sk, "hard-out") not in C and os.path.realpath(outside) not in [os.path.realpath(p) for p in C if not os.path.islink(p)]
       and victim not in C and "/etc/passwd" not in C and (home + "2") not in C, (r.stderr[-300:], C[:6]))
-# CHAIN-1022 (Качество): в доме давняя ссылка наружу c → /вне; подложенный бэкап: ссылка a → c и файл a/x. Откат не пишет вне дома.
+# в доме давняя ссылка наружу c → /вне; подложенный бэкап: ссылка a → c и файл a/x. Откат не пишет вне дома.
 far = os.path.join(T, "far-outside"); os.makedirs(far)
 cdir = os.path.join(home, ".claude", "skills", "c-link"); os.symlink(far, cdir)
 chain_tar = os.path.join(home, ".claude", "mila-update", "backups", "chain.tgz")

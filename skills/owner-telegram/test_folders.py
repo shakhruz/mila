@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""FOLDERS-1025: folders / folders-apply на заглушке клиента (настоящие типы Telethon, без сети и сессии)."""
+"""folders / folders-apply на заглушке клиента (настоящие типы Telethon, без сети и сессии)."""
 import asyncio, glob, json, os, re, sys, tempfile
 H = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(H, "scripts")); sys.path.insert(0, os.path.join(H, "..", "..", "tests", "fixtures"))
 try:
     from fake_people import OWNER_ID
-except ImportError:   # навык стоит в доме Милы без клона ядра (старшая 29.10: прогон на месте) — те же вымышленные значения
+except ImportError:   # навык стоит в доме Милы без клона ядра (прогон на месте) — те же вымышленные значения
     OWNER_ID, USER_ID, PEOPLE = int("555" + "000111"), int("555" + "000222"), ["Иван", "Мария"]
 try:
     import telethon   # настоящие типы Telethon; нет библиотеки (CI без навыка) — пропуск, не ложное «зелено»
@@ -67,7 +67,7 @@ D = tempfile.mkdtemp()
 import hashlib, time, datetime
 SAVED = []   # «Избранное» владельца в заглушке: сюда кладётся его «да <код>»
 def card_code(plan_path, st=None):
-    """Код — как владелец видит его на карточке: dry-run на том же состоянии папок (FOLDERS-WAS-2710: код = план + «было»)."""
+    """Код — как владелец видит его на карточке: dry-run на том же состоянии папок (код = план + «было»)."""
     with contextlib.redirect_stdout(io.StringIO()) as b: run(of.cmd_apply(st or Stub(base()), D, plan_path, OWNER, str(OWNER) + "/1", yes=False))
     m = re.search(r"«да ([0-9a-f]{8})»", b.getvalue()); return m.group(1) if m else "нет-кода"
 def consent(msg, plan_path, by=OWNER, ts=None, what="folders-apply", st=None):
@@ -178,7 +178,7 @@ chk("«да» на другое действие → отказ", c == 4 and non
 c, none, t = apply_yes(str(OWNER) + "/9006", lambda pp: consent(str(OWNER) + "/9006", pp))
 chk("настоящее «да» на этот план → применено", c is None and not none)
 
-# 5b2. FOLDERS-WAS-2710 (Качество): владелец поправил папку руками между карточкой и «да» — его правку не перезаписываем
+# 5b2.: владелец поправил папку руками между карточкой и «да» — его правку не перезаписываем
 def edited_state():
     return [type("Default", (), {})(), F(2, "Работа", include=[GR, U1], pinned=[CH], emoticon="💼"),
             DialogFilterChatlist(id=3, title=TextWithEntities(text="Общая", entities=[]), pinned_peers=[], include_peers=[CH])]
@@ -195,7 +195,7 @@ j = [json.loads(l) for l in open(os.path.join(D, "folders.jsonl"))]
 chk("новая карточка → новое «да» → применено; в журнале sha «было»", code is None and any(isinstance(c, UpdateDialogFilterRequest) for c in st.calls) and len(j[-1].get("was_sha256", "")) == 64)
 chk("правка ДРУГОЙ папки (не из плана) код не меняет", card_code(pp, Stub(base())) == card_code(pp, Stub([base()[0], base()[1], DialogFilterChatlist(id=3, title=TextWithEntities(text="Общая", entities=[]), pinned_peers=[], include_peers=[CH, U1])])))
 
-# 5c. живые папки владельца (Админ 25.10): «Избранное» = InputPeerSelf, пустой InputPeerEmpty — folders не падает
+# 5c. живые папки владельца: «Избранное» = InputPeerSelf, пустой InputPeerEmpty — folders не падает
 from telethon.tl.types import InputPeerSelf, InputPeerEmpty
 class StubSelf(Stub):
     async def iter_dialogs(self, **kw):

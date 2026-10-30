@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""proverka.py (ROLLOUT №40): пять текстов с известными ошибками ловятся; живой текст проходит; модель — через подменный сервер вместо OpenRouter.
+"""proverka.py: пять текстов с известными ошибками ловятся; живой текст проходит; модель — через подменный сервер вместо OpenRouter.
 Словарь — выдуманный STIL во временной папке (настоящий STIL владельца в ядро не кладём). Ключ — выдуманный, склейкой."""
 import io, json, os, subprocess, sys, tempfile, threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -42,7 +42,7 @@ chk("живой текст (имя «Анна», «примем решение»
 code, out = run("<html><style>.a{}</style><p>Наш <b>адвайзер</b> свяжется.</p></html>", "--no-llm")
 chk("HTML очищается от тегов и стилей, находка — по тексту", code == 1 and "адвайзер" in out)
 code, out = run("Отвезти решение", "--no-llm", env=dict(ENV, PROVERKA_STIL=os.path.join(T, "нет.md")))
-chk("нет словаря владельца — слой пропущен с заметкой, правила работают", code == 0 and "словарь владельца не найден" in out)
+chk("нет личного словаря — слой пропущен с заметкой, правила работают", code == 0 and "личный словарь не найден" in out)
 code, out = run(LIVE)
 chk("нет OPENROUTER_API_KEY — заметка «пропущено», не падение", code == 0 and "нет OPENROUTER_API_KEY" in out)
 # модель: подменный сервер

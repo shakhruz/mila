@@ -13,7 +13,7 @@ import argparse, datetime, glob, json, os, re, sys
 
 MARK = {"done": "🟢", "now": "🟡", "queue": "⚪", "wait": "🟡", "dropped": "⚪"}
 
-# Личные данные на слайд не попадают (Качество 23.10): WEEK.md и MONEY.md — свободный текст. Как пульт дня (pult-dnya):
+# Личные данные на слайд не попадают: WEEK.md и MONEY.md — свободный текст. Как пульт дня (pult-dnya):
 # карта → ****1234 (окно 13–19 цифр с Луной), телефон в форме телефона → ⟦тел⟧, почта → ⟦почта⟧.
 CARD_RE = re.compile(r"(?<![\d+])(?:\d[ -]?){12,}\d(?!\d)")
 PHONE_RE = re.compile(r"(?<![\w(])(?:\+|\()?\d[\d ()\-]{7,}\d(?!\w)")
@@ -122,7 +122,7 @@ def main():
     week = monday.isocalendar()[1]
     dates = "%s–%s" % (monday.strftime("%d.%m"), (monday + datetime.timedelta(days=4)).strftime("%d.%m"))
     boards = sum(os.path.isfile(os.path.join(a.work, "state", "day-%s.json" % d)) for d in days)
-    # Качество 23.10: нет пультов — не «0 сделано» (ноль читается как факт), а «нет данных»
+    # нет пультов — не «0 сделано» (ноль читается как факт), а «нет данных»
     tiles = money or ([[str(len(done)), "сделано за неделю<br>с уликой", ""], [str(len(wait)), "ждут ответа", "sand"],
                        [str(len(open_)), "переходят<br>на следующую", ""]] if boards else [["—", "нет данных:<br>пультов дня за неделю нет", "sand"]])
     slides = []

@@ -40,14 +40,14 @@ json.dump([["-1002", "-1001"]], open(os.path.join(home, ".claude/hooks/same-case
 chk("со списком одного дела (Acme + Agency Work) — уходит", {"tool_name": R, "tool_input": {"chat_id": "-1001", "text": T}}, "pass")
 chk("третий клиент — по-прежнему чужое дело: стоп", {"tool_name": R, "tool_input": {"chat_id": "-1001", "text": "Как у Zina дела? @zina_c писала"}}, "deny")
 chk("и в обратную сторону одного дела: из Agency Work в Acme — уходит", {"tool_name": R, "tool_input": {"chat_id": "-1002", "text": "Agency Work подтвердил: билеты будут к вечеру"}}, "pass")
-# SELFHOST-1018: без OWNER_ID адресат проверяется по access.json (allowFrom + группы); без access.json — не проверяется
+# без OWNER_ID адресат проверяется по access.json (allowFrom + группы); без access.json — не проверяется
 env.pop("OWNER_ID", None)
 json.dump({"groups": {"-1001": {}}, "allowFrom": ["555"]}, open(os.path.join(home, ".claude/channels/telegram/access.json"), "w"))
 chk("без OWNER_ID: чужой чат — стоп по access.json", {"tool_name": R, "tool_input": {"chat_id": "999", "text": "привет"}}, "deny")
 chk("без OWNER_ID: допущенный из allowFrom — уходит", {"tool_name": R, "tool_input": {"chat_id": "555", "text": "Готово."}}, "pass")
 os.remove(os.path.join(home, ".claude/channels/telegram/access.json"))
 chk("без OWNER_ID и без access.json — адресат не проверяется", {"tool_name": R, "tool_input": {"chat_id": "999", "text": "Готово."}}, "pass")
-# CARD-MASK-1019: номер карты собираем в коде (Луна), чтобы в репо не лежал «номер»
+# номер карты собираем в коде (Луна), чтобы в репо не лежал «номер»
 import random
 def _pan(prefix="8600", L=16):
     d = [int(c) for c in prefix] + [random.randint(0, 9) for _ in range(L - len(prefix) - 1)]
@@ -73,7 +73,7 @@ chk("CARD-ALLOW: чужая карта при заданном cardAllow — в�
 n += 1; code, dec, out = run({"tool_name": R, "tool_input": {"chat_id": "111", "text": "Карта " + PS + " 100 USD"}})
 good = dec == "allow" and (json.loads(out)["hookSpecificOutput"]["updatedInput"]["text"] == "Карта ****" + P[-4:] + " 100 USD")
 ok += good; print(("✅ " if good else "❌ ") + "сумма сразу после номера («… 100 USD») — номер всё равно маской" + ("" if good else "  " + out[:200]))
-# ALBUM-2610: подпись к фото (caption) проверяется так же, как текст; маска — в своём поле, текст не смешивается
+# подпись к фото (caption) проверяется так же, как текст; маска — в своём поле, текст не смешивается
 chk("ключ провайдера в caption — стоп", {"tool_name": R, "tool_input": {"chat_id": "111", "text": "Готово", "caption": "ключ " + "sk-" + "abcdefghijklmnopqrstuv"}}, "deny")
 chk("серверный путь в caption — стоп", {"tool_name": R, "tool_input": {"chat_id": "111", "text": "Альбом", "caption": "файлы в " + "/srv/" + "mila/x"}}, "deny")
 n += 1; code, dec, out = run({"tool_name": R, "tool_input": {"chat_id": "111", "text": "Альбом", "caption": "Карта " + PS + " к оплате", "files": ["/tmp/a.png", "/tmp/b.png"]}})

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# UPDATE-PLAN-2810 (владелец 37034): читаемый план обновления — что получит (все версии между), что изменится, что не тронется, риск.
+# читаемый план обновления — что получит (все версии между), что изменится, что не тронется, риск.
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"
 T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
@@ -24,7 +24,7 @@ import re,sys; c=open('$T/rel/CHANGELOG.md').read(); sec=re.split(r'^## ', c, fl
 own=v.split('**Для хозяина**')[1].split('**')[0]; L=[l[2:].strip().replace('\\x60','') for l in own.splitlines() if l.startswith('- ')]
 first=open('$T/p.txt').read().split('Что получите:')[1].strip().splitlines()[0][2:].strip()
 f=first.rstrip('.…'); sys.exit(0 if L and any(x.startswith(f) for x in L) else 1)\""
-chk "в 900 знаков — строки пользы не меньше чем 3 версий (Качество 19:10), каждая ≤ 90" "python3 -c \"
+chk "в 900 знаков — строки пользы не меньше чем 3 версий, каждая ≤ 90" "python3 -c \"
 import json,sys; t=open('$T/p.txt').read(); d=json.load(open('$T/p.json')); g=t.split('Что получите:')[1].split('Что изменится')[0]
 L=[l[2:] for l in g.strip().splitlines() if l.startswith('· ')]; vs={v for v,l in zip(d['get_order'], d['get']) if l in L}
 sys.exit(0 if len(vs) >= 3 and all(len(l) <= 90 for l in L) else 1)\""

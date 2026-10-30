@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""iniciativa_check (слово владельца 28.10): вопрос без варианта и рекомендации → отказ; предложение с «если не против» → можно;
+"""iniciativa_check: вопрос без варианта и рекомендации → отказ; предложение с «если не против» → можно;
 карточка cards.py (вопрос + «⭐ Советую») → можно; вариантов меньше двух → отказ. Пробы — как в SKILL.md."""
 import os, subprocess, sys
 H = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, H)

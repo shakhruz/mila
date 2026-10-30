@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SPEND-TAP-2810 (Качество 28.10 17:00): одобрение траты и смена лимита — только по нажатию хозяина, записанному плагином
+"""одобрение траты и смена лимита — только по нажатию хозяина, записанному плагином
 в cards.jsonl, а не по --by из аргумента. Чужой --by, нет нажатия, карточка не про эту трату, старая карточка, повтор — отказ."""
 import json, os, subprocess, sys, tempfile, time
 H = os.path.dirname(os.path.abspath(__file__)); ok = n = 0
@@ -13,7 +13,7 @@ ENV = dict(os.environ, RASHOD_HOME=R, TELEGRAM_CARDS_FILE=CF)
 def s(*a):
     p = subprocess.run([sys.executable, os.path.join(H, "spend.py"), *a], capture_output=True, text=True, env=ENV)
     return p.returncode, (p.stdout + p.stderr).strip()
-def iso(dt=0):   # CI-TZ-2810: время с настоящим поясом машины — «+05:00» к местным часам в CI (UTC) сдвигал карточку на 5 ч назад
+def iso(dt=0):   # время с настоящим поясом машины — «+05:00» к местным часам в CI (UTC) сдвигал карточку на 5 ч назад
     import datetime as _d
     return (_d.datetime.now().astimezone() + _d.timedelta(seconds=dt)).isoformat(timespec="seconds")
 def card(cid, text, buttons=(("✅ Делаем", "ok"),), ts=None, tapped_by=None, data=None):

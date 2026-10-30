@@ -1,14 +1,14 @@
-# Mila
+# Mila Agent
 
-**Telegram 里的开源数字员工。使用你自己的 Claude 订阅运行，记得住你的业务，只有经你同意才会以你的名义行事。**
+**面向 Telegram 的开源商业智能体。使用你自己的 Claude 订阅运行，记得住你的业务，只有经你同意才会以你的名义行事。**
 
 *Warm by design.*
 
 [English](README.md) · **中文** · [Русский](README.ru.md) · [Oʻzbekcha](README.uz.md)
 
-[![tests](https://github.com/shakhruz/mila/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila?sort=semver&label=release)](https://github.com/shakhruz/mila/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila)](LICENSE)
+[![tests](https://github.com/shakhruz/mila-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/shakhruz/mila-agent/actions/workflows/tests.yml) [![Latest release](https://img.shields.io/github/v/release/shakhruz/mila-agent?sort=semver&label=release)](https://github.com/shakhruz/mila-agent/releases/latest) [![License](https://img.shields.io/github/license/shakhruz/mila-agent)](LICENSE)
 
-**当前版本：[v1.5.3](https://github.com/shakhruz/mila/releases/latest)** · [更新内容](CHANGELOG.md)
+**当前版本：[v1.6.6](https://github.com/shakhruz/mila-agent/releases/latest)** · [更新内容](CHANGELOG.md)
 
 Mila 是更大愿景的一部分 —— 阅读我们的宣言（英文）：[milagpt.io/en/manifest](https://milagpt.io/en/manifest/)
 
@@ -31,7 +31,7 @@ Mila 是更大愿景的一部分 —— 阅读我们的宣言（英文）：[mil
 约需 5 分钟。你需要：Claude Code（以及 Claude 订阅）、[Bun](https://bun.sh)、从 `@BotFather` 获取的 Telegram 机器人 token。
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
+curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-agent/main/install/get.sh | bash
 ```
 
 该命令会检查 Claude Code、Bun 和 git，把套件克隆到 `~/mila`，并安装 Telegram 插件 `mila-telegram`。
@@ -53,6 +53,6 @@ mila onboard
 ## 社区
 
 <!-- Discord: badge + invite link go here when the invite is ready -->
-提问、分享想法、展示你的 Mila 在做什么：[GitHub Discussions](https://github.com/shakhruz/mila/discussions)。问题反馈：[Issues](https://github.com/shakhruz/mila/issues)。
+提问、分享想法、展示你的 Mila 在做什么：[GitHub Discussions](https://github.com/shakhruz/mila-agent/discussions)。问题反馈：[Issues](https://github.com/shakhruz/mila-agent/issues)。
 
 完整说明见 [English README](README.md)（英文）和 [docs/REFERENCE.md](docs/REFERENCE.md)（英文）。

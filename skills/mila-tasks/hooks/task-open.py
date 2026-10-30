@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 
-TASK_PY = os.environ.get("MILA_TASK_PY") or next((p for p in (os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "task.py"), os.path.expanduser("~/milagpt/ops/task.py")) if os.path.exists(p)), os.path.expanduser("~/milagpt/ops/task.py"))
+TASK_PY = os.environ.get("MILA_TASK_PY") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "task.py")   # другой — env MILA_TASK_PY
 try:
     if not os.path.exists(TASK_PY):
         print("task-open: нет %s" % TASK_PY)

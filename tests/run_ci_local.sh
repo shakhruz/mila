@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Прогон «как GitHub Actions» одной командой (CI-TZ-2810: у нас зелено, в CI красно — пояс и пустой HOME):
-# чистый HOME, CI=true, пояс UTC и ещё один с летним временем, пакеты Python — из workflow (CI-PIP-3010).
+# Прогон «как GitHub Actions» одной командой (у нас зелено, в CI красно — пояс и пустой HOME):
+# чистый HOME, CI=true, пояс UTC и ещё один с летним временем, пакеты Python — из workflow.
 # Usage: bash tests/run_ci_local.sh [пояс …]   (по умолчанию UTC America/Los_Angeles)
 cd "$(dirname "$0")/.." || exit 1
-# CI-PIP-3010 (Качество 30.10: test_folders зелёный тут, красный в GitHub — telethon стоял у пользователя, в CI его нет):
+# (test_folders зелёный тут, красный в GitHub — telethon стоял у пользователя, в CI его нет):
 # Python-пакеты — ровно из строки «pip install» в .github/workflows/tests.yml, в своём venv (кэш по строке). Нет сети — громко
 # предупреждаю и беру пакеты пользователя, как раньше.
 PIPLINE="$(grep -m1 -oE 'pip install [^#]*' .github/workflows/tests.yml | sed 's/^pip install //; s/ *$//')"

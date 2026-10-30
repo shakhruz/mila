@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Оглядка (слово владельца 28.10): поручения хозяина за окно, у которых нет задачи в журнале задач.
+"""Оглядка: поручения хозяина за окно, у которых нет задачи в журнале задач.
   oglyadka.py [--hours 12] [--owner ID] [--owner-user имя_в_Telegram] [--projects DIR] [--ledger FILE]
 Источник поручений — журналы разговоров Claude Code (~/.claude/projects/**/*.jsonl): входящие из канала Telegram от хозяина
 (OWNER_ID), похожие на поручение. Задача есть — если после поручения в журнале задач (mila-tasks, ledger.jsonl) завели
@@ -25,11 +25,11 @@ def words(s):
 def is_owner(attrs, owner, owner_user=""):
     """Хозяин: user_id = его id; или личка хозяина (chat_id = его id — туда пишет только он); или user = его имя в Telegram.
     Настоящий тег канала несёт user="<имя>", а не id (28.10: по живому журналу оглядка не видела ни одного поручения).
-    Для решений не годится: имя в теге может поставить кто угодно — для действий только user_id или личка (Качество 18:32).
+    Для решений не годится: имя в теге может поставить кто угодно — для действий только user_id или личка.
     Оглядке лишний шум в списке не вредит."""
     uid, chat, name = ATTR(attrs, "user_id"), ATTR(attrs, "chat_id"), (ATTR(attrs, "user") or "").lstrip("@")
     mid = ATTR(attrs, "message_id")
-    if mid and not mid.isdigit(): return False   # служебные входящие (тик маховика, записки, почта файлов) — не слова хозяина
+    if mid and not mid.isdigit(): return False   # служебные входящие (тик маховика, записки, почта файлов) — не согласия хозяина
     if uid: return str(uid) == str(owner)
     if owner_user and name and name.lower() != owner_user.lstrip("@").lower(): return False
     return str(chat) == str(owner) or bool(owner_user and name.lower() == owner_user.lstrip("@").lower())
@@ -84,7 +84,7 @@ def lost(projects, ledger, owner, hours, now=None, owner_user=""):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--hours", type=float, default=12); ap.add_argument("--owner", default=os.environ.get("OWNER_ID", "")); ap.add_argument("--owner-user", default=os.environ.get("OWNER_USERNAME", ""))
     ap.add_argument("--projects", default=os.path.join(os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude"), "projects"))
-    ap.add_argument("--ledger", default=os.path.join(os.environ.get("MILA_TASKS_DIR") or os.path.expanduser("~/milagpt/tasks"), "ledger.jsonl"))
+    ap.add_argument("--ledger", default=os.path.join(os.environ.get("MILA_TASKS_DIR") or os.path.expanduser("~/work/tasks"), "ledger.jsonl"))
     a = ap.parse_args()
     rows = lost(a.projects, a.ledger, a.owner, a.hours, owner_user=a.owner_user)
     for r in rows:

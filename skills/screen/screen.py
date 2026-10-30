@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""screen.py — навык «Мила Экран» (SCREEN-1011): показывать на удалённом экране (ТВ/монитор) с tv.milagpt.io.
+"""screen.py — навык «Мила Экран»: показывать на удалённом экране (ТВ/монитор) с tv.milagpt.io.
   screen.py pair КОД [имя]          — привязать экран по коду с экрана (человек прислал «экран 123456»)
   screen.py list                    — мои экраны и онлайн ли
   screen.py play URL [--loop]       — YouTube-ссылка или прямой mp4/mp3 на весь экран
@@ -12,12 +12,12 @@
   screen.py unpair [screen]         — отвязать экран
 Ключ — ~/secrets/screen.key. Ответ — JSON сервера."""
 import json, os, re, sys, urllib.request, urllib.parse, urllib.error
-# SCREEN-HAIRPIN-2610 (старшая 26.10): из контейнера внешний адрес сервера (tv.milagpt.io) не отвечает — шпилька NAT, Connection refused.
+# из контейнера внешний адрес сервера (tv.milagpt.io) не отвечает — шпилька NAT, Connection refused.
 # Порядок: SCREEN_API из окружения → в контейнере (/run/.containerenv) — служба экрана на хосте напрямую → иначе публичный адрес.
 API = os.environ.get("SCREEN_API") or ("http://host.containers.internal:8949/api/screen/" if os.path.exists("/run/.containerenv") else "https://tv.milagpt.io/api/screen/")
-try: KEY = os.environ.get("SCREEN_KEY") or open(os.path.expanduser("~/secrets/screen.key")).read().strip()   # ключ — env SCREEN_KEY или файл, выдаёт старшая при рождении
+try: KEY = os.environ.get("SCREEN_KEY") or open(os.path.expanduser("~/secrets/screen.key")).read().strip()   # ключ — env SCREEN_KEY или файл, выдаёт администратор при рождении
 except OSError:
-    print(json.dumps({"error": "ключ экрана не выдан (~/secrets/screen.key) — экран не подключён, скажите хозяину и попросите ключ у старшей"}, ensure_ascii=False)); sys.exit(2)
+    print(json.dumps({"error": "ключ экрана не выдан (~/secrets/screen.key) — экран не подключён, скажите хозяину и попросите ключ у администратору"}, ensure_ascii=False)); sys.exit(2)
 
 
 def call(path, body):
@@ -35,14 +35,14 @@ def yt(u):
 
 
 a = sys.argv[1:] or ["list"]
-# USER-1011: у публичной Милы (Мила Ташкент, @mila_gpt_bot) экраны личные — user = Telegram id собеседника во ВСЕХ вызовах.
+# у публичной Милы (Мила Ташкент, @mila_gpt_bot) экраны личные — user = Telegram id собеседника во ВСЕХ вызовах.
 USER = ""
 if "--user" in a:
     i = a.index("--user"); USER = re.sub(r"\D", "", a[i + 1] if i + 1 < len(a) else ""); del a[i:i + 2]
 _call = call
 def call(path, body):
     if USER: body = dict(body, user=USER)
-    if path == "cmd": body = dict(body, wait_ack=True)   # ACK-1011: хаб ждёт подтверждения страницы до 6 с → shown:{ok,note}|null
+    if path == "cmd": body = dict(body, wait_ack=True)   # хаб ждёт подтверждения страницы до 6 с → shown:{ok,note}|null
     return _call(path, body)
 c = a[0]
 _W = {"ноль": 0, "один": 1, "одна": 1, "два": 2, "две": 2, "три": 3, "четыре": 4, "пять": 5, "шесть": 6, "семь": 7, "восемь": 8, "девять": 9,
@@ -51,7 +51,7 @@ _W = {"ноль": 0, "один": 1, "одна": 1, "два": 2, "две": 2, "т
       "восемьдесят": 80, "девяносто": 90, "сто": 100, "двести": 200, "триста": 300, "четыреста": 400, "пятьсот": 500, "шестьсот": 600, "семьсот": 700,
       "восемьсот": 800, "девятьсот": 900}
 def code6(words):
-    """SCREEN-PAIR-1017: «7 3 3 4 8 9», «733 489», «семь три три…», «семьсот тридцать три четыреста восемьдесят девять» → '733489' или None."""
+    """«7 3 3 4 8 9», «733 489», «семь три три…», «семьсот тридцать три четыреста восемьдесят девять» → '733489' или None."""
     import re as _re
     t = " ".join(words).lower()
     d = "".join(_re.findall(r"\d", t))
@@ -73,7 +73,7 @@ def code6(words):
 
 
 def split_pair(rest):
-    """Код и имя экрана из слов после «pair» (Качество 26.10): первое слово из 6 цифр — код; иначе САМЫЙ ДЛИННЫЙ префикс, который кончается
+    """Код и имя экрана из слов после «pair»: первое слово из 6 цифр — код; иначе САМЫЙ ДЛИННЫЙ префикс, который кончается
     числом (цифры или число словом) и даёт ровно 6 цифр; остальное — имя. «семьсот тридцать три четыреста восемьдесят девять Кухня» → 733489, «Кухня»."""
     import re as _re
     if rest and _re.fullmatch(r"\d{6}", rest[0]):
@@ -105,7 +105,7 @@ elif c == "top":  # самый просматриваемый ролик по з
     r = call("yt", {"q": " ".join(a[1:]), "sort": "views"}).get("results") or []
     out = {"error": "ничего не нашла"} if not r else dict(call("cmd", {"action": "play", "youtube": r[0]["youtube"], "title": r[0]["title"], "alt": [x["youtube"] for x in r[1:6]]}), picked=r[0])
 elif c in ("stop", "clear", "pause", "resume", "repeat", "next", "prev", "mute", "unmute"):
-    # MEDIA-1011: управление тем, что играет, и плейлистом
+    # управление тем, что играет, и плейлистом
     out = call("cmd", {"action": c})
 elif c == "seek":  # seek 600 — на 10-ю минуту; seek +30 / seek -30 — вперёд/назад
     v = a[1]
@@ -146,20 +146,20 @@ elif c == "app":  # app NAME [k=v …] — наше живое приложен�
         if "=" in kv:
             k, v = kv.split("=", 1); pr[k] = int(v) if v.isdigit() else v[:200]
     out = None
-    if a[1] == "milatv" and isinstance(pr.get("n"), int):   # CH-NUM-1014: номер канала сверяю со списком эфира — «Канала 25 нет — всего 18» человеку, не молча
+    if a[1] == "milatv" and isinstance(pr.get("n"), int):   # номер канала сверяю со списком эфира — «Канала 25 нет — всего 18» человеку, не молча
         try:
             idx = json.load(urllib.request.urlopen(re.sub(r"/api/screen/?$", "/", API) + "channels/index.json", timeout=10))
             total = len(idx.get("channels") or []) + (1 if pr.get("c") else 0)   # свой канал человека — первым номером
             if total and not 1 <= pr["n"] <= total: out = {"ok": False, "error": "Канала %d нет — всего %d" % (pr["n"], total), "kanalov": total}
         except Exception: pass   # список недоступен — плеер на экране сам скажет «Канала N нет»
     if out is None: out = call("cmd", {"action": "app", "app": a[1], "params": pr})
-elif c == "site":  # site https://… — живая страница на экране (SITE-1011; только хозяин экрана, только https)
+elif c == "site":  # site https://… — живая страница на экране (только хозяин экрана, только https)
     u = a[1] if len(a) > 1 else ""
     out = {"error": "только https-адрес"} if not re.match(r"^https://[^\s\"'<>]+$", u) else call("cmd", {"action": "site", "url": u})
 elif c == "snapshot":  # snapshot https://… [--every 300] — снимок страницы картинкой (рендер на сервере)
     u = a[1] if len(a) > 1 else ""; ev = int(a[a.index("--every") + 1]) if "--every" in a else 300
     out = {"error": "только https-адрес"} if not re.match(r"^https://[^\s\"'<>]+$", u) else call("cmd", {"action": "snapshot", "url": u, "every": max(60, ev)})
-elif c == "page":  # PAGES-2910 (№109): своя HTML-страница (игра, слайды) — page put ПАПКА ИМЯ | show ИМЯ | list | rm ИМЯ
+elif c == "page":  #: своя HTML-страница (игра, слайды) — page put ПАПКА ИМЯ | show ИМЯ | list | rm ИМЯ
     sub = a[1] if len(a) > 1 else ""
     if sub == "put":
         import io, tarfile
@@ -191,7 +191,7 @@ elif c == "page":  # PAGES-2910 (№109): своя HTML-страница (игр
         out = call("page-rm", {"name": a[2] if len(a) > 2 else ""})
     else:
         out = {"error": "page put ПАПКА ИМЯ [--show] | page show ИМЯ | page list | page rm ИМЯ"}
-elif c == "deck":  # deck FILE.json [--i 1] — колода Милы Сцены на экран (SCENA-1011): {title, slides:[{title,sub,points,big,bars,image,notes}]}
+elif c == "deck":  # deck FILE.json [--i 1] — колода Милы Сцены на экран: {title, slides:[{title,sub,points,big,bars,image,notes}]}
     d = json.load(open(a[1])); i0 = int(a[a.index("--i") + 1]) - 1 if "--i" in a else 0
     sl = [{k: v for k, v in x.items() if k != "notes"} for x in (d.get("slides") or [])][:20]   # заметки — пульту, не экрану
     out = call("cmd", {"action": "app", "app": "deck", "params": {"title": str(d.get("title", ""))[:80], "slides": sl, "i": max(0, i0)}})

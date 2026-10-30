@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""effect.py (UPDATE-EFFECT-2810): числа «до/после» из подложенных журналов; нет источника — «нет данных»; хуже — флаг."""
+"""effect.py: числа «до/после» из подложенных журналов; нет источника — «нет данных»; хуже — флаг."""
 import json, os, sys, tempfile, time
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import effect as E

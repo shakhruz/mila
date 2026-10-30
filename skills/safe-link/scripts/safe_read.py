@@ -17,9 +17,9 @@ def read_safe(name):
         raise SafeError("имя сейфа — латиница, цифры, - и _")
     p = os.path.join(SAFE_DIR, name + ".env")
     if not os.path.exists(p):
-        raise SafeError("сейфа «%s» нет — попросить ссылку сейфа у старшей" % name)
+        raise SafeError("сейфа «%s» нет — попросить ссылку сейфа у администратору" % name)
     if os.stat(p).st_mode & 0o077:
-        raise SafeError("сейф «%s» открыт для других (права не 600) — не читаю, сказать старшей" % name)
+        raise SafeError("сейф «%s» открыт для других (права не 600) — не читаю, сказать администратору" % name)
     out = {}
     for ln in open(p, encoding="utf-8"):
         m = re.match(r"^([A-Z][A-Z0-9_]*)=(.*)$", ln.rstrip("\n"))

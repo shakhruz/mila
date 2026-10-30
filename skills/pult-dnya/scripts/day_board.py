@@ -30,7 +30,7 @@ WORK = os.environ.get("MILA_WORK") or os.path.expanduser("~/work")
 STATE = os.path.join(WORK, "state")
 TZ = datetime.timezone(datetime.timedelta(hours=float(os.environ.get("MILA_TZ_HOURS", "5"))))
 MAX_NOW = 2
-WAIT_RED_MIN = 60   # «ждёт» дольше часа — 🔴 «переспросить или решить сам» (слово владельца 22.10, dev 2085)
+WAIT_RED_MIN = 60   # «ждёт» дольше часа — 🔴 «переспросить или решить сам»
 ASKED_RE = re.compile(r"^(https://t\.me/c/\d+/\d+|https://t\.me/[A-Za-z0-9_]{4,}/\d+|\d{1,12})$")
 CARD_RE = re.compile(r"(?<![\d+])(?:\d[ -]?){12,}\d(?!\d)")
 PHONE_RE = re.compile(r"(?<![\w(])(?:\+|\()?\d[\d ()\-]{7,}\d(?!\w)")
@@ -67,7 +67,7 @@ def mask(s):
 
 
 def _is_phone(m, s):
-    """Телефон — только в форме телефона (Качество 22.10): номер заявки, id чата и id человека — рабочие данные пульта.
+    """Телефон — только в форме телефона: номер заявки, id чата и id человека — рабочие данные пульта.
     «+» и 11–13 цифр; или 9–12 цифр с разделителями телефона; или 998… (12) / 7…, 8… (11) слитно.
     Не телефон: после «№», «-100…» (id чата), 16+ цифр, уже маска карты."""
     t = m.group(0)

@@ -61,7 +61,7 @@ chk("en: заголовки по-английски", "📋 Day board" in o["tex
 from importlib import util as _u
 _sp = _u.spec_from_file_location("db", os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts", "day_board.py")); _db = _u.module_from_spec(_sp); _sp.loader.exec_module(_db)
 KEEP = ["Заявка №1234567890123456", "ждёт ответа в чате -100" "1234567890", "id 123456789 спросил", "Заявка № 4567"]
-chk("маска телефона не ест номер заявки, id чата, id человека (Качество 22.10)", [_db.mask(x) for x in KEEP] == KEEP, [_db.mask(x) for x in KEEP])
+chk("маска телефона не ест номер заявки, id чата, id человека", [_db.mask(x) for x in KEEP] == KEEP, [_db.mask(x) for x in KEEP])
 PH = ["+998901234567", "+998 90 123 45 67", "90 123-45-67", "(90) 123 45 67", "998901234567", "89161234567", "+7 916 123-45-67"]
 chk("телефоны в форме телефона — ⟦тел⟧", all(_db.mask("звонить " + x) == "звонить ⟦тел⟧" for x in PH), [_db.mask(x) for x in PH])
 # /status: render отдаёт empty и «ждёт вас» и файл дня не меняет

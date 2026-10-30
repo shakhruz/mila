@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Будь готова: проверка инспекции перед событием (слово владельца 28.10).
+"""Будь готова: проверка инспекции перед событием.
   gotova.py check inspekciya.json [--now ISO]  → {"ready", "missing", "weak", "gaps", "owner_card"}; код 0 — готова, 1 — нет.
 Готова — только когда у всех семи пунктов инспекции есть улика (не «помню / вроде / должно») и у каждой нехватки
 есть «кто» и «к когда», и ни одна нехватка не просрочена. Хозяину — карточка только из нехваток с who=хозяин."""
@@ -18,7 +18,7 @@ def check(d, now=None):
     now = now or dt.datetime.now().astimezone()
     items = d.get("items") or {}
     missing = [k for k in ITEMS if k not in items]
-    weak = [k for k in ITEMS if k in items and (not isinstance(items[k], str) or WEAK.search(items[k]))]   # улика — строка (Качество 17:49: {} и {"x": ""} давали «готова»)
+    weak = [k for k in ITEMS if k in items and (not isinstance(items[k], str) or WEAK.search(items[k]))]   # улика — строка ({} и {"x": ""} давали «готова»)
     gaps, bad = [], []
     for g in d.get("gaps") or []:
         w, who, by = str(g.get("what") or "").strip(), str(g.get("who") or "").strip(), _t(g.get("by"))

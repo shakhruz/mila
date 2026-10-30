@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""LOGIN-2610 (ROLLOUT №41 «без повисших задач»): потерян вход («Not logged in») — входящие не теряются.
+""" «без повисших задач»: потерян вход («Not logged in») — входящие не теряются.
 Искусственный простой: 3 входящих съедены ходами «Not logged in» → кормилец возвращает курсор к ним, держит, шлёт пробу,
-🔴 строку старшей (один раз); вход вернулся → строка «пропущено за простой: 3» и все 3 снова к подаче.
+🔴 строку администратору (один раз); вход вернулся → строка «пропущено за простой: 3» и все 3 снова к подаче.
 Форма записи — улика одной Милы 28.09 (type=assistant, isApiErrorMessage=true, error=authentication_failed, model=<synthetic>).
 Всё во временной папке: HOME, журнал плагина, транскрипт, труба — подменены."""
 import importlib.util, json, os, sys, tempfile, time
@@ -43,7 +43,7 @@ cur, held = F.login_step(end, now=now)
 chk("простой обнаружен → курсор назад к первому входящему простоя (m1), раньше не трогаю (m0)", held and cur == off_m1 and int(open(F.CUR).read()) == off_m1)
 chk("ждут 3 входящих (m1–m3)", F.channel_events_after(cur) == 3)
 al = [json.loads(l) for l in open(os.environ["MILA_SENIOR_INBOX"])]
-chk("🔴 строка старшей: «Вход потерян … ждут 3 … Нужен /login»", len(al) == 1 and al[0]["kind"] == "alert" and "ждут 3" in al[0]["text"] and "/login" in al[0]["text"])
+chk("🔴 строка администратору: «Вход потерян … ждут 3 … Нужен /login»", len(al) == 1 and al[0]["kind"] == "alert" and "ждут 3" in al[0]["text"] and "/login" in al[0]["text"])
 cur2, held = F.login_step(cur, now=now + 30)
 chk("следующий шаг: держу, курсор не двигаю, повторной 🔴 нет, проба ещё рано", held and cur2 == cur and len(open(os.environ["MILA_SENIOR_INBOX"]).readlines()) == 1 and not fed)
 cur2, held = F.login_step(cur, now=now + F.PROBE_S + 1)
@@ -60,8 +60,8 @@ chk("состояние простоя очищено — второй раз «
 open(TR, "w").write(ok_rec(now - 10)); open(os.path.join(PROJ, "old.jsonl"), "w").write("")
 chk("входа никто не терял — кормилец не держит и курсор не трогает", F.login_step(end, now=now) == (end, False))
 os.environ["MILA_SENIOR_INBOX"] = os.path.join(T, "нет", "to-admin.jsonl"); F.SENIOR_INBOX = os.environ["MILA_SENIOR_INBOX"]
-chk("нет ящика старшей — 🔴 только в журнал кормильца, не падаю", F.alert_senior({"since": now}, 2) is False)
-# Качество 26.10: откат не раньше последнего удачного хода — на что ответ уже ушёл, второй раз не подаю
+chk("нет ящика администратору — 🔴 только в журнал кормильца, не падаю", F.alert_senior({"since": now}, 2) is False)
+# откат не раньше последнего удачного хода — на что ответ уже ушёл, второй раз не подаю
 sn = now - 600; open(EV, "w").write(ev(sn - 100, "a1") + ev(sn + 10, "a2")); first = len(ev(sn - 100, "a1").encode())
 chk("откат: входящее до последнего удачного хода (в запасе 3 мин) не подаю повторно, после — подаю", F.rewind_to(os.path.getsize(EV), sn, last_ok=sn - 50) == first)
 chk("без удачного хода рядом — запас 3 мин берёт и его", F.rewind_to(os.path.getsize(EV), sn, last_ok=sn - 3600) == 0)

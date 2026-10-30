@@ -55,7 +55,7 @@ SCANNERS = [
 KV = re.compile(r"""(?i)\b(?:password|passwd|pwd|api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret)["']?\s*[=:]\s*["']?([^\s"',;]{8,})""")
 # c: переменная окружения с секретным именем — OPENROUTER_API_KEY=…, PD_KEY=…, BOT_TOKEN=…, DB_PASSWORD=…
 ENV_KV = re.compile(r"""\b[A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|PWD)\b["']?\s*[=:]\s*["']?([^\s"'#]{8,})""")   # d: только ЗАГЛАВНОЕ имя (переменная окружения); idempotency_key=, sort_key= в коде — не секрет
-# e (Качество 25.10): ENV_KV — только литерал: код и заглушки (process.env…, secrets.token_…(), $VAR, {{…}}, «...», <…>) — не секрет
+# e: ENV_KV — только литерал: код и заглушки (process.env…, secrets.token_…(), $VAR, {{…}}, «...», <…>) — не секрет
 ENV_CODE = re.compile(r"""(?i)^(?:process\.env|os\.environ|os\.getenv|getenv|bun\.env|deno\.env|import\.meta|secrets\.|env\[|env\.|\$|\{\{|\(|\[|`)|\.\.\.|…|<|>|\(|\)|xxx|your|example|changeme|placeholder|dummy|fake""")
 RU_PASS = re.compile(r"(?i)(?:пароль|parol)\s*[:=—-]\s*(\S{8,})")
 
@@ -63,7 +63,7 @@ RU_PASS = re.compile(r"(?i)(?:пароль|parol)\s*[:=—-]\s*(\S{8,})")
 def scan_bytes(data, rel="", allow=()):
     """список (строка, вид) находок; значения в ответ не попадают."""
     if any(fnmatch.fnmatch(rel, g) for g in allow): return []
-    # g (Качество): сборки — *.min.js, *.umd.js, *.bundle.js, dist/ — сканирую, но только явные ключи (ключ, вшитый сборкой во фронт, — классическая утечка);
+    # g: сборки — *.min.js, *.umd.js, *.bundle.js, dist/ — сканирую, но только явные ключи (ключ, вшитый сборкой во фронт, — классическая утечка);
     # присвоения KV/ENV_KV/«пароль» в них не ищу — там тысячи ложных KEY_*
     built = bool(re.search(r"(?:\.min\.js|\.umd\.js|\.bundle\.js)$|(?:^|/)dist/", rel))
     text = data.decode("utf-8", "replace") if b"\0" not in data[:4096] else data.decode("latin-1")
@@ -80,7 +80,7 @@ def scan_bytes(data, rel="", allow=()):
                 for m in rx.finditer(line):
                     v = m.group(1); name = m.group(0)[:m.start(1) - m.start(0)]
                     if re.search(r"(?i)_?(?:FILE|PATH|DIR|NAME|URL|ENV)S?\b\W*$", name.rstrip(" =:\"'")): continue   # f: *_FILE/_PATH/_DIR — путь, не секрет
-                    # пароль короче ключа: присвоение пароля из 11 знаков раньше проходило (Качество 24.10) — для пароля порог 8
+                    # пароль короче ключа: присвоение пароля из 11 знаков раньше проходило — для пароля порог 8
                     short_ok = 8 if (kind == "пароль" or re.search(r"(?i)pass|pwd", m.group(0).split("=")[0].split(":")[0])) else 12
                     if PLACEHOLDER.match(v) or len(v) < short_ok or kind in found: continue
                     if ENV_CODE.search(v) or re.search(r"\.\w+\(|\w\(", v): continue   # f: выражение (pw.group(1), вызов, process.env…) — не литерал; для всех видов присвоений   # длина — общий порог: пароль 8, ключ 12
@@ -298,7 +298,7 @@ def restore_md(m):
 История переписки и транскрипты в архиве: {hist}.
 
 ## Шаги
-1. Поставьте открытое ядро: https://github.com/shakhruz/mila (`install/install.sh`, на сервере `deploy/bootstrap.sh`).
+1. Поставьте открытое ядро: https://github.com/shakhruz/mila-agent (`install/install.sh`, на сервере `deploy/bootstrap.sh`).
 2. Распакуйте архив во временную папку и проверьте: `mila export verify <архив>` (манифест и sha256).
 3. Разложите: `mila restore <архив>` (сначала `--dry-run`). Существующие файлы не перезаписываются: расхождения
    лежат в `~/.claude/mila-restore/<время>/conflicts/`; `--overwrite` заменяет их, оставляя копию.

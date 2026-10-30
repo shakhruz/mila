@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""LIMIT-PROBE-2610 (старшая 26.10: подписку обновили в 10:30, а кормилец держал до «resets 2pm»): при лимите — откат к съеденным
+"""(подписку обновили в 10:30, а кормилец держал до «resets 2pm»): при лимите — откат к съеденным
 ходами 429 входящим, проба раз в FEEDER_LOGIN_PROBE_S и сразу после рестарта; удачный ход раньше срока → «пропущено за простой: N»
 и все по порядку. Всё во временной папке: HOME, журнал плагина, транскрипт — подменены."""
 import importlib.util, json, os, sys, tempfile, time
@@ -17,7 +17,7 @@ spec = importlib.util.spec_from_file_location("feeder", os.path.join(HERE, "comp
 F._lw = LW; F.CLAUDE_DIR = os.path.join(T, ".claude"); fed = []; F.feed = lambda text: fed.append(text)
 def fresh(): LW.hold.__defaults__[2].clear()   # кэш датчика 5 с — в тесте время идёт скачками
 now = time.time(); t_ok, t_hit = now - 3600, now - 1800; resets = now + 4 * 3600
-# CI 27.10 (Качество): «resets 2pm» был зашит — с 14:00 до ≈14:35 по Ташкенту сброс «уже прошёл», и тест падал по часам.
+# CI 27.10: «resets 2pm» был зашит — с 14:00 до ≈14:35 по Ташкенту сброс «уже прошёл», и тест падал по часам.
 # Время сброса в тексте — от resets, как пишет сама подписка: «resets 6:26pm (Asia/Tashkent)».
 import datetime as _dt, zoneinfo as _zi
 RESET_TXT = _dt.datetime.fromtimestamp(resets, _zi.ZoneInfo("Asia/Tashkent")).strftime("%I:%M%p").lstrip("0").lower()

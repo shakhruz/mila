@@ -29,16 +29,8 @@ except Exception:  # pragma: no cover
 
 # ---------- пути (переопределяются env для тестов) ----------
 HOME = os.path.expanduser("~")
-BASE = os.environ.get("MILA_TASKS_DIR") or os.path.join(HOME, "milagpt", "tasks")
-LEDGER = os.path.join(BASE, "ledger.jsonl")
-OPEN_MD = os.path.join(BASE, "OPEN.md")
-PROOF_DIR = os.path.join(BASE, "proof")
-ESTIMATES = os.path.join(BASE, "estimates.json")
-SENT_LOG = os.path.join(BASE, "sent.jsonl")          # исходящие через reply-хук
-STATE = os.path.join(BASE, "state.json")              # last_run команд
-TG_SENT_DIR = os.environ.get("MILA_TG_SENT_DIR") or os.path.join(HOME, ".claude", "channels", "telegram", "sent")
-TG_FAILED_DIR = os.environ.get("MILA_TG_FAILED_DIR") or os.path.join(HOME, ".claude", "channels", "telegram", "failed")
-NOW_MD = os.environ.get("MILA_NOW_MD") or os.path.join(HOME, "milagpt", "NOW.md")
+BASE = os.environ.get("MILA_TASKS_DIR") or os.path.join(HOME, "work", "tasks")   # другая раскладка — env MILA_TASKS_DIR
+NOW_MD = os.environ.get("MILA_NOW_MD") or os.path.join(HOME, "work", "NOW.md")
 
 ACTIVE_MAX = 3
 ASK_MAX = 3
@@ -1033,7 +1025,7 @@ def cmd_report(a):
         spent = int((at - parse_ts(t["taken"])).total_seconds() // 60)
         print("   в работе %d мин из ≈%d (%s) · токенов ≈%dk%s" % (spent, m, src, k / 1000, " · 🟡 перерасход времени" if spent > m else ""))
     elif t["type"] == "ask":
-        print("   ждёт слова владельца · дефолт %s до %s%s" % (t["default"].upper(), fmt_dt(parse_ts(t["deadline"])), "" if t.get("delivered") else " · ⏳ не доставлено, таймер стоит"))
+        print("   ждёт решения владельца · дефолт %s до %s%s" % (t["default"].upper(), fmt_dt(parse_ts(t["deadline"])), "" if t.get("delivered") else " · ⏳ не доставлено, таймер стоит"))
     else:
         due = parse_ts(t.get("due") or t.get("deadline"))
         print("   в очереди · прогноз ≈%d мин · %dk ток (%s)%s" % (m, k / 1000, src, (" · срок " + fmt_dt(due)) if due else ""))

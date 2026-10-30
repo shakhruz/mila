@@ -4,7 +4,7 @@ description: "Use after a stream of 5+ assignments, at midday and in the evening
 ---
 > **When to use (full):** Look-back (owner's word 28.10): Mila remembers what she might have forgotten — rereads the day's dialogs, checks every assignment and promise against her tasks and proof, finds what was lost and moves it, like a person who sits down and thinks «so, what did I miss?». Morning, after a stream of assignments, evening before quiet hours. RU: Оглядка — Мила сама вспоминает, что могла забыть: перечитывает диалоги дня, сверяет каждое поручение и обещание с задачами и уликой, находит потерянное и двигает. Утром, днём после потока поручений, вечером до тихих часов.
 
-# Оглядка (слово владельца 28.10)
+# Оглядка
 «Как человек вспоминает: сиди, так, чего я забыла? Возвращаешься к диалогам, перепроверяешь себя — что могла упустить».
 
 ## Когда

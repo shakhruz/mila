@@ -26,7 +26,7 @@ def tier(hard=False, costly=False, rare=False, can_wait=False, valuable=False, i
     for flag, word in ((hard, "трудная"), (costly, "дорогая ошибка"), (rare, "редкая"), (can_wait, "можно подождать"), (valuable, "высокая ценность")):
         if flag:
             why.append(word)
-    t = "strong" if costly or score >= 3 else "light"   # дорогая ошибка — всегда сильная, даже на шаблоне (Качество 21.10)
+    t = "strong" if costly or score >= 3 else "light"   # дорогая ошибка — всегда сильная, даже на шаблоне
     if t == "light":
         why.append("шаблон, ошибку легко отменить, часто и быстро — лёгкая модель")
     return {"tier": t, "model": MODEL[t], "score": score, "why": why}

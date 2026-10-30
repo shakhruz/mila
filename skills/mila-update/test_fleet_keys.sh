@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# FLEET-KEYS-2810: version.json, записанный с хоста (пути хоста), изнутри дома узнаётся: стоящие файлы прошлого релиза — «обновится», не «отличается».
+# version.json, записанный с хоста (пути хоста), изнутри дома узнаётся: стоящие файлы прошлого релиза — «обновится», не «отличается».
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../.." && pwd)"
 T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"

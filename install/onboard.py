@@ -202,7 +202,7 @@ def step_pair(tok, me, check):
     wait = int(os.environ.get("MILA_PAIR_WAIT", "300"))
     say("…", "3/3 Send this code to @%s in Telegram (a private message):  %s" % (me.get("username", "your bot"), code))
     say(" ", "    waiting up to %d s; Ctrl-C to stop" % wait)
-    # Читаем без offset и ничего не подтверждаем: всё, что писали боту до и во время onboard, остаётся для Милы (Качество 22.10)
+    # Читаем без offset и ничего не подтверждаем: всё, что писали боту до и во время onboard, остаётся для Милы
     end = time.time() + wait
     while time.time() < end:
         r = tg(tok, "getUpdates", {"timeout": 20, "allowed_updates": json.dumps(["message"])}, timeout=30)
@@ -232,7 +232,7 @@ def step_pair(tok, me, check):
                 say(" ", "    Mila will see your code as your first message when she starts — that's normal.")
                 return True
         res = r.get("result", [])
-        if len(res) >= 100:   # глубже 100 без подтверждения не заглянуть: код может быть 101-м (Качество 22.10)
+        if len(res) >= 100:   # глубже 100 без подтверждения не заглянуть: код может быть 101-м
             say("…", "3/3 the bot has 100+ unread messages from before, so the code may be behind them.")
             try:
                 ans = input("    Mark those old messages as read so the code can get through? They will not reach Mila. [y/N] ").strip().lower()

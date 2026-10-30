@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""order_get (Качество 17:13): «Что получите» — по строке с каждой версии, сначала выпуск x.y.0, потом патчи от свежего; вторые строки — после."""
+"""order_get: «Что получите» — по строке с каждой версии, сначала выпуск x.y.0, потом патчи от свежего; вторые строки — после."""
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); os.environ.setdefault("MILA_HOME", "/nonexistent-home")
 import update as U

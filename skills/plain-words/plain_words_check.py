@@ -6,7 +6,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "iniciativa"))
 try:
-    from iniciativa_check import check as iniciativa   # INICIATIVA-2810: вопрос без предложения и рекомендации — замечание
+    from iniciativa_check import check as iniciativa   # вопрос без предложения и рекомендации — замечание
 except ImportError:   # навыка iniciativa нет рядом — проверяю только «Ясно»
     iniciativa = lambda text: []
 

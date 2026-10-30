@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""mila-cron — расписание Милы, которое не теряется при перезапуске сессии (Барабан, RASPISANIE-1025 v3).
+"""mila-cron — расписание Милы, которое не теряется при перезапуске сессии (Барабан v3).
 Вместо CronCreate: задача живёт в доме Милы (~/work/schedule/jobs.json), срок приходит событием через службу «Барабан»
 (вне сессии; в журнал плагина — так же, как ритуалы и тики). Этот скрипт только пишет и читает файл — сам ничего не запускает.
 
@@ -115,7 +115,7 @@ def add(jid, cron, text, by="mila", word="", expires="", no_expire=False, quiet=
     if quiet not in ("respect", "ignore") or catchup not in ("one", "skip"):
         raise Refuse("quiet — respect|ignore, catchup — one|skip")
     today = now().date()
-    if no_expire:   # Качество 26.10: «вечная» задача тратит подписку молча, а --word проверяется только по виду — без срока нет ни у кого
+    if no_expire:   # «вечная» задача тратит подписку молча, а --word проверяется только по виду — без срока нет ни у кого
         raise Refuse("без срока нельзя: максимум %d дней; нужно дольше — extend, когда придёт «продлить?»" % MAX_DAYS)
     exp = _date(expires) if expires else today + dt.timedelta(days=DEF_DAYS)
     if exp <= today or exp > today + dt.timedelta(days=MAX_DAYS):

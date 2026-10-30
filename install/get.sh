@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Mila — one-command install / установка одной командой:
-#   curl -fsSL https://raw.githubusercontent.com/shakhruz/mila/main/install/get.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/shakhruz/mila-agent/main/install/get.sh | bash
 # Checks what is needed (Claude Code, Bun, git), clones the kit to ~/mila (or updates it; an older ~/mila-companion is updated in place), runs install/install.sh.
 # Then installs the Telegram plugin: claude plugin marketplace add shakhruz/mila-telegram + claude plugin install mila-telegram@mila.
 # Env: MILA_DIR (where to clone), MILA_REF (branch/tag; default — latest stable tag vX.Y.Z, canary: MILA_REF=main), MILA_REPO, MILA_INSTALL_ARGS,
 #      MILA_PLUGIN_MARKET (default shakhruz/mila-telegram), MILA_SKIP_PLUGIN=1 — without the plugin step.
 set -euo pipefail
-REPO="${MILA_REPO:-https://github.com/shakhruz/mila}"
+REPO="${MILA_REPO:-https://github.com/shakhruz/mila-agent}"
 DIR="${MILA_DIR:-}"
 if [ -z "$DIR" ]; then [ -d "$HOME/mila-companion/.git" ] && DIR="$HOME/mila-companion" || DIR="$HOME/mila"; fi   # старая установка обновляется на месте
 REF="${MILA_REF:-}"   # пусто → последний стабильный тег vX.Y.Z (как в README: стабильная — Releases); main — только по MILA_REF=main
@@ -24,7 +24,7 @@ if [[ -z "$REF" ]]; then
   REF="${REF:-main}"
   echo "  version: $REF"
 fi
-# Папка занята чужим: не наш набор (нет install/get.sh и skills/mila-update) — не трогаем, честный отказ (Качество 21.10)
+# Папка занята чужим: не наш набор (нет install/get.sh и skills/mila-update) — не трогаем, честный отказ
 ours(){ [[ -f "$1/install/get.sh" && -d "$1/skills/mila-update" ]]; }
 if [[ -e "$DIR" ]] && ! ours "$DIR" && [[ -n "$(ls -A "$DIR" 2>/dev/null)" ]]; then
   echo "  $DIR is already used by something else (not the Mila kit) — I leave it untouched."
