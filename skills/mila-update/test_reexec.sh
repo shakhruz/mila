@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# SELF-UPDATE-3010: apply запускает update.py из РЕЛИЗА, если он новее моего (старый updater не узнаёт свои файлы — 30.10).
+# Один раз, только вперёд по версии, только обычный файл внутри релиза; тот же файл — свой.
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+T="$(mktemp -d)"; export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/home/.claude" MILA_WORK="$T/home/work"
+unset TELEGRAM_STATE_DIR MILA_OUTBOX MILA_OWNER_CHAT MILA_UPDATE_REEXEC
+mkdir -p "$MILA_WORK"; echo "знакомство: пройдено" > "$MILA_WORK/USER.md"
+ok=0; n=0
+chk() { n=$((n+1)); if eval "$2"; then ok=$((ok+1)); echo "✅ $1"; else echo "❌ $1"; fi; }
+J="$CLAUDE_CONFIG_DIR/mila-update/journal.jsonl"
+rel() {   # rel <папка> <версия> [метка в update.py релиза]
+  mkdir -p "$1/skills/mila-update" "$1/skills/demo"
+  printf '{"version":"%s","tag":"v%s","zones":[{"what":"навыки","src":"skills/*","dst":"{claude}/skills/*","kind":"dir"}]}\n' "$2" "$2" > "$1/release.json"
+  printf -- '---\nname: demo\ndescription: "демо %s"\n---\n# demo\n' "$2" > "$1/skills/demo/SKILL.md"
+  cp "$HERE/update.py" "$1/skills/mila-update/update.py"; cp "$HERE/SKILL.md" "$1/skills/mila-update/SKILL.md"
+  if [ -n "${3:-}" ]; then python3 - "$1/skills/mila-update/update.py" "$3" <<'PY'
+import sys; p, m = sys.argv[1], sys.argv[2]; t = open(p).read()
+t = t.replace("def cmd_apply(a):\n", "def cmd_apply(a):\n    print('%s', flush=True)\n" % m, 1); open(p, "w").write(t)
+PY
+  fi
+}
+rel "$T/r1" 1.0.0
+python3 "$HERE/update.py" apply --src "$T/r1" --yes "тест: старт" >/dev/null
+chk "старт: стоит 1.0.0" "grep -q '\"version\": \"1.0.0\"' $CLAUDE_CONFIG_DIR/mila-update/version.json"
+rel "$T/r2" 1.1.0 NEW-UPDATER-110
+out=$(python3 "$HERE/update.py" apply --src "$T/r2" --yes "тест: 1.1.0" 2>&1)
+chk "релиз 1.1.0 с другим update.py → apply выполняет ЕГО (метка NEW-UPDATER-110), журнал «reexec 1.0.0→1.1.0»" "printf '%s' \"\$out\" | grep -q NEW-UPDATER-110 && grep -q '\"event\": \"reexec\", \"from\": \"1.0.0\", \"to\": \"1.1.0\"' $J"
+chk "…и обновление прошло: стоит 1.1.0" "grep -q '\"version\": \"1.1.0\"' $CLAUDE_CONFIG_DIR/mila-update/version.json"
+chk "перезапуск ровно один (в журнале один reexec)" "[ \$(grep -c '\"event\": \"reexec\"' $J) -eq 1 ]"
+rel "$T/r0" 1.0.5 OLD-UPDATER-105
+out=$(python3 "$HERE/update.py" apply --src "$T/r0" --yes "тест: откат" 2>&1)
+chk "релиз СТАРШЕ моей версии (откат) → старый updater не запускаю" "! printf '%s' \"\$out\" | grep -q OLD-UPDATER-105"
+rel "$T/r3" 1.2.0
+out=$(python3 "$HERE/update.py" apply --src "$T/r3" --yes "тест: тот же файл" 2>&1)
+chk "update.py в релизе тот же, что мой → перезапуска нет" "[ \$(grep -c '\"event\": \"reexec\"' $J) -eq 1 ]"
+rel "$T/r4" 1.3.0 NEW-UPDATER-130
+out=$(MILA_UPDATE_REEXEC=1 python3 "$HERE/update.py" apply --src "$T/r4" --yes "тест: уже перезапущен" 2>&1)
+chk "MILA_UPDATE_REEXEC уже стоит → второй раз не перезапускаю" "! printf '%s' \"\$out\" | grep -q NEW-UPDATER-130"
+rel "$T/r5" 1.4.0; mv "$T/r5/skills/mila-update/update.py" "$T/evil.py"; printf "print('EVIL', flush=True)\n" >> "$T/evil.py"; ln -s "$T/evil.py" "$T/r5/skills/mila-update/update.py"
+out=$(python3 "$HERE/update.py" apply --src "$T/r5" --yes "тест: ссылка" 2>&1)
+chk "update.py релиза — ссылка наружу → не запускаю" "! printf '%s' \"\$out\" | grep -q EVIL && [ \$(grep -c '\"event\": \"reexec\"' $J) -eq 1 ]"
+rm -rf "$T"; echo "итог $ok/$n"; [ $ok -eq $n ]

@@ -607,6 +607,27 @@ def cmd_effect(a):
     print(json.dumps(r, ensure_ascii=False, indent=1))
 
 
+def reexec_release_updater(src, argv):
+    """SELF-UPDATE-3010 (30.10, мой дом: старый update.py 1.5.1 не узнал свои файлы в путях хоста, обновил 16 из 52 и записал 1.6.5):
+    apply делает update.py ИЗ РЕЛИЗА, если он новее моего, — тем же вызовом с --src <папка релиза>. Один раз (MILA_UPDATE_REEXEC),
+    только вперёд по версии (откат не запускает старый updater), только обычный файл внутри релиза. → не возвращается, если перезапустил."""
+    if os.environ.get("MILA_UPDATE_REEXEC"): return
+    rel = os.path.join(src, "skills", "mila-update", "update.py")
+    me = os.path.realpath(__file__)
+    if not os.path.isfile(rel) or os.path.islink(rel) or not _inside(rel, src) or os.path.realpath(rel) == me: return
+    try:
+        if open(rel, "rb").read() == open(me, "rb").read(): return
+        target = str(json.load(open(os.path.join(src, "release.json"))).get("version") or "")
+    except Exception as e: soft_err("reexec", e); return
+    mine = str(load_version().get("version") or "")
+    if not target or (mine and vkey(target) < vkey(mine)): return
+    args = [x for x in argv if not x.startswith("--src=")]
+    if "--src" in args:
+        i = args.index("--src"); del args[i:i + 2]
+    jlog({"event": "reexec", "from": mine, "to": target})
+    os.execve(sys.executable, [sys.executable, rel] + args + ["--src", src], dict(os.environ, MILA_UPDATE_REEXEC="1"))
+
+
 def cmd_apply(a):
     if not a.yes: sys.exit(json.dumps({"error": "нужно «да» хозяина: --yes \"<кто, где, когда>\" — без него не обновляюсь"}, ensure_ascii=False))
     off = load_version().get("offered")   # ONE-CARD (Качество 11:34): кнопка устаревшей карточки — не применяю, даже если модель вызвала apply
@@ -617,6 +638,7 @@ def cmd_apply(a):
     nb = newborn_block("apply")
     if nb and not a.newborn_ok: sys.exit(json.dumps({"error": nb, "hint": "--newborn-ok — только по слову администратора"}, ensure_ascii=False))
     src = source(a)
+    reexec_release_updater(src, sys.argv[1:])
     try: m, rows = compare(src)
     except ManifestRefused as e: sys.exit(json.dumps({"error": "манифест релиза отклонён целиком — зона вне дома или подозрительная ссылка", "detail": str(e)}, ensure_ascii=False))
     take = set((a.take or "").split(",")) - {""}
