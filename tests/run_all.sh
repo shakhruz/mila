@@ -4,7 +4,8 @@
 cd "$(dirname "$0")/.." || exit 1
 unset TELEGRAM_STATE_DIR MILA_OUTBOX MILA_OWNER_CHAT   # tests never write into a real send queue
 bad=(); n=0
-run() { n=$((n+1)); local out; out=$("$@" 2>&1 </dev/null); local rc=$?   # stdin closed: a test must not eat the file list of the while-read loop
+RUN_TMP="$(mktemp -d)"; trap 'chmod -R u+w "$RUN_TMP" 2>/dev/null; rm -rf "$RUN_TMP"' EXIT   # every test gets its own TMPDIR, removed after it: repeated runs leave nothing in /tmp
+run() { n=$((n+1)); local out td; td="$(mktemp -d "$RUN_TMP/t.XXXXXX")"; out=$(TMPDIR="$td" "$@" 2>&1 </dev/null); local rc=$?; chmod -R u+w "$td" 2>/dev/null; rm -rf "$td"   # stdin closed: a test must not eat the file list of the while-read loop
   local last; last=$(printf '%s\n' "$out" | grep -v '^\s*$' | tail -1)
   if printf '%s' "$last" | grep -Eq 'итог 0/0'; then   # test skipped itself (no font, no tool): visible, and a failure in CI
     if [ -n "$CI" ]; then printf '❌ %-55s %s (skipped in CI)\n' "$*" "$last"; bad+=("$*"); else printf '⚠️  %-55s %s\n' "$*" "$last"; fi; return; fi
