@@ -306,7 +306,7 @@ def watchdog(cfg, now=None, dry=False, send=None):
     age, off = queue_lag(now)
     st = load_state() if not dry else {}
     if age < after:
-        if st.get("watchdog_alerted") and not dry:
+        if st.get("watchdog_alerted") is not None and not dry:      # offset 0 is a real offset, not "no alert"
             st["watchdog_alerted"] = None; save_state(st)
         return None
     if st.get("watchdog_alerted") == off:

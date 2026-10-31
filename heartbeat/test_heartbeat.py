@@ -47,6 +47,11 @@ for broken, why in (([{"id": "X", "type": "think", "cron": "* * * * *", "prompt"
         hb.load_config(p); check("конфиг без %s — отказ" % why, False)
     except ValueError:
         check("конфиг без %s — отказ" % why, True)
+# quiet hours 22–08: границы
+qc = {"quiet_hours": "22-08"}
+check("тихие часы: 21:59 нет, 22:00 да, 07:59 да, 08:00 нет",
+      [hb.quiet(qc, today.replace(hour=h, minute=m)) for h, m in ((21, 59), (22, 0), (7, 59), (8, 0))] == [False, True, True, False])
+check("тихие часы внутри дня (13-15): 12:59 нет, 13:00 да, 15:00 нет", [hb.quiet({"quiet_hours": "13-15"}, today.replace(hour=h, minute=m)) for h, m in ((12, 59), (13, 0), (15, 0))] == [False, True, False])
 # think
 reset()
 C = cfg([{"id": "morning", "type": "think", "cron": "13 7 * * *", "prompt": "Утро: план дня", "quiet": False},   # 07:13 внутри 22–08: явно quiet: false
@@ -100,6 +105,14 @@ check("не берёт > 15 мин — одно сообщение на случ
 open(CUR, "w").write(str(os.path.getsize(EV))); hb.watchdog(W, at(9, 40), send=fake_send)
 open(EV, "a").write(json.dumps({"ts": int(at(9, 41) * 1000), "params": {}}) + "\n"); hb.watchdog(W, at(10, 0), send=fake_send)
 check("взяла, потом новый затор — новое сообщение", len(sent) == 2)
+# очередь начата заново (то же смещение 0): упало → ожило → упало снова — две тревоги
+st0 = hb.load_state(); st0["watchdog_alerted"] = None; hb.save_state(st0); k = len(sent)
+open(EV, "w").write(json.dumps({"ts": int(at(11, 0) * 1000), "params": {}}) + "\n"); open(CUR, "w").write("0")
+hb.watchdog(W, at(11, 20), send=fake_send)                                  # упало: смещение 0
+open(CUR, "w").write(str(os.path.getsize(EV))); hb.watchdog(W, at(11, 25), send=fake_send)   # ожило
+open(EV, "w").write(json.dumps({"ts": int(at(11, 30) * 1000), "params": {}}) + "\n"); open(CUR, "w").write("0")
+hb.watchdog(W, at(11, 50), send=fake_send)                                  # упало снова на том же смещении 0
+check("упало → ожило → упало снова на том же смещении — две тревоги", len(sent) == k + 2, sent[k:])
 check("в журнале — «alert sent», без токена", "alert sent" in open(os.path.join(T, "state", "heartbeat.log")).read() and "FAKE" not in open(os.path.join(T, "state", "heartbeat.log")).read())
 # detectors
 D = os.path.join(T, "dl.json"); now = dt.datetime.now(TZ)
