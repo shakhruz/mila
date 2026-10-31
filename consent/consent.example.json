@@ -1,0 +1,14 @@
+{
+ "owner_id_env": "MILA_OWNER_ID",
+ "bot_token_env": "BOT_TOKEN",
+ "home": "/home/<mila>",
+ "state_dir": "/var/lib/mila-io/<mila>",
+ "session_socket": "/run/mila-io/<mila>.sock",
+ "session_socket_mode": "660",
+ "io_socket": "/run/mila-io/<mila>.io.sock",
+ "ttl_min": 15,
+ "max_attachment_mb": 20,
+ "categories": {
+  "publish_zernio": {"enabled": true, "title": "публикация в соцсетях (Zernio)", "exec": ["python3", "/opt/mila-io/executors/zernio_post.py"]}
+ }
+}
