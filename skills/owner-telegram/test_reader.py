@@ -43,7 +43,10 @@ class Fake:
     async def get_entity(s, x):
         if x == "@demo_mila_bot": return MILA
         return {USER_ID: IVAN, USER_ID + 1: MARIA, 900: NEWS, 800: MILA, 801: OTHER_BOT}[int(x)]
-    async def get_messages(s, ent, ids=None): return MSGS.get((ent.id, ids))
+    async def get_messages(s, ent, ids=None):
+        if isinstance(ids, list):   # get <чат> <id> [N]: Telethon отдаёт список той же длины, None — нет такого
+            s.asked = list(ids); return [MSGS.get((ent.id, i)) for i in ids]
+        return MSGS.get((ent.id, ids))
     async def iter_dialogs(s, limit=0):
         for e in (IVAN, MARIA, NEWS): yield DL(e)
     async def get_me(s): return OWNER
@@ -139,4 +142,32 @@ os.remove(os.path.join(D, "mila_bot")); e = run(r.cmd_react(c, D, str(USER_ID), 
 check("бот Милы не настроен → отказ", e and "MILA_BOT" in e and len(f.calls) == n0, e)
 os.environ["MILA_BOT"] = "@demo_mila_bot"; e = run(r.cmd_react(c, D, str(USER_ID), 57, "👍", O, said()))
 check("бот Милы из env MILA_BOT (@ник) → реакция", e is None and last_call().msg_id == 57, e)
+# get <чат> <id> [N] — старое сообщение по номеру и соседи вокруг (задание в группе давно ушло за last 50)
+import contextlib, io
+for i in (459, 460, 461, 463):   # 462 удалено
+    MSGS[(900, i)] = types.SimpleNamespace(id=i, out=False, sender_id=USER_ID, message="задание %d" % i,
+                                           date=datetime.datetime(2026, 10, 1, 9, 0, tzinfo=datetime.timezone.utc))
+def get(chat, mid, n=0):
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        e = run(r.cmd_get(c, D, chat, mid, n))
+    return e, [json.loads(l) for l in out.getvalue().splitlines() if l.strip()]
+n0 = len(f.calls); e, rows = get("900", 461, 2)
+check("get группа 461 ±2: 459, 460, 461, 463 по порядку, 462 (нет) пропущено", e is None and [x["id"] for x in rows] == [459, 460, 461, 463] and rows[2]["text"] == "задание 461", (e, rows))
+check("get — только чтение: ни одного запроса-действия, спрошены id 459…463", len(f.calls) == n0 and f.asked == [459, 460, 461, 462, 463])
+j = jl()[-1]
+check("журнал get: чат, номер, n, найдено — без текста", j.get("op") == "get" and j.get("id") == 461 and j.get("found") == 4 and "задание" not in json.dumps(j, ensure_ascii=False), j)
+e, rows = get("900", 461)
+check("get без N — одно сообщение", e is None and [x["id"] for x in rows] == [461], rows)
+e, rows = get("900", 462, 0)
+check("get удалённого — понятный отказ «нет»", e and "нет" in e and not rows, e)
+e, rows = get("900", 30, 500)
+check("N больше 25 → 25 (спрошено ≤ 51 id), с 1 без нуля и минусов", f.asked[0] == 5 and f.asked[-1] == 55 and len(f.asked) == 51, f.asked[:3])
+e, rows = get(str(USER_ID + 1), 5, 1)
+check("get в личку не из allowed.json — отказ, ничего не прочитано", e and "разрешил владелец" in e and not rows, e)
+MSGS[(USER_ID, 7)] = types.SimpleNamespace(id=7, out=True, message="ок", date=None)
+e, rows = get(str(USER_ID), 7)
+check("get в разрешённую личку — читается", e is None and rows and rows[0]["text"] == "ок" and rows[0]["out"] is True, (e, rows))
+e, _ = get("900", 0); e2, _ = get("900", None)
+check("номер 0 или не указан — отказ", e and "номер" in e and e2 and "номер" in e2, (e, e2))
 print("итог %d/%d" % (ok, tot)); sys.exit(0 if ok == tot else 1)

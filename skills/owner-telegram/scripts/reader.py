@@ -7,6 +7,8 @@
   reader.py map            — карта: каналы и группы (без личных переписок), непрочитанное → map.json
   reader.py pulse          — пульс: число контактов и личных диалогов, каналы/группы со звуком → live.json
   reader.py last <чат> [N]            — последние N (≤50) сообщений; личный чат — только из списка allowed.json
+  reader.py get <чат> <id> [N]        — сообщение с этим номером и по N (≤25) до и после него — старое задание в группе,
+                           которого уже нет среди последних; личный чат — только из allowed.json; в drafts.jsonl — строка без текста
   reader.py draft <чат> --text «…» [--replace] — ЧЕРНОВИК в поле ввода чата владельца: не отправляется,
                            отправляет сам владелец; личный чат — только из allowed.json; свой черновик владельца в чате
                            не затираю без --replace (его «да» на замену). Журнал drafts.jsonl (без текста).
@@ -309,13 +311,34 @@ async def cmd_inbox(c, d, by, msg, n=15):
         if k >= n:
             break
 
+def row(m):
+    return json.dumps({"id": m.id, "date": m.date.isoformat() if getattr(m, "date", None) else None, "from": getattr(m, "sender_id", None),
+                       "out": bool(getattr(m, "out", False)), "text": (getattr(m, "message", None) or "")[:2000], "media": media_kind(m)}, ensure_ascii=False)
+
+
 async def cmd_last(c, d, chat, n):
     n = max(1, min(n, 50))
     ent = await resolve(c, chat)
     private_guard(d, ent, "читаю")
     for m in reversed(await c.get_messages(ent, limit=n)):
-        print(json.dumps({"id": m.id, "date": m.date.isoformat() if m.date else None,
-                          "from": m.sender_id, "out": bool(getattr(m, "out", False)), "text": (m.message or "")[:2000], "media": media_kind(m)}, ensure_ascii=False))
+        print(row(m))
+
+
+async def cmd_get(c, d, chat, msg_id, n=0):
+    """Сообщение по номеру и n вокруг: get_messages(ids=[…]) — только чтение, прочитанным не помечает."""
+    if not isinstance(msg_id, int) or msg_id < 1:
+        sys.exit("нужен номер сообщения: get <чат> <id> [N]")
+    n = max(0, min(int(n or 0), 25))
+    ent = await resolve(c, chat)
+    private_guard(d, ent, "читаю")
+    ids = list(range(max(1, msg_id - n), msg_id + n + 1))
+    got = await c.get_messages(ent, ids=ids)
+    got = [m for m in (got if isinstance(got, list) else [got]) if m is not None and getattr(m, "id", None) in ids]
+    journal(d, {"op": "get", "chat": getattr(ent, "id", None), "id": msg_id, "n": n, "found": len(got)})
+    if not any(m.id == msg_id for m in got):
+        sys.exit("сообщения %d в этом чате нет (удалено, служебное или не тот чат); рядом найдено: %d" % (msg_id, len(got)))
+    for m in sorted(got, key=lambda m: m.id):
+        print(row(m))
 
 
 async def cmd_draft(c, d, chat, text, replace=False):
@@ -397,9 +420,10 @@ async def cmd_draft_clear(c, d, chat, by, ref, replace=False):
 
 async def main():
     ap = argparse.ArgumentParser(description="Личный Telegram владельца — только чтение")
-    ap.add_argument("cmd", choices=["map", "pulse", "last", "draft", "draft-clear", "react", "allow", "disallow", "voice", "folders", "folders-apply", "inbox"])
+    ap.add_argument("cmd", choices=["map", "pulse", "last", "get", "draft", "draft-clear", "react", "allow", "disallow", "voice", "folders", "folders-apply", "inbox"])
     ap.add_argument("chat", nargs="?")
     ap.add_argument("n", nargs="?", type=int, default=None)
+    ap.add_argument("around", nargs="?", type=int, default=None)   # get <чат> <id> [N]
     ap.add_argument("--text")
     ap.add_argument("--emoji")
     ap.add_argument("--replace", action="store_true")
@@ -448,6 +472,10 @@ async def main():
             if a.n is None:
                 sys.exit("нужен id сообщения")
             await cmd_voice(c, d, a.chat, a.n)
+        elif a.cmd == "get":
+            if a.chat is None or a.n is None:
+                sys.exit("нужны чат и номер сообщения: get <чат> <id> [N]")
+            await cmd_get(c, d, a.chat, a.n, a.around or 0)
         elif a.cmd in ("allow", "disallow"):
             if a.chat is None:
                 sys.exit("нужен чат: id, @ник или часть имени")
