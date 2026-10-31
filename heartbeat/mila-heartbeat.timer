@@ -1,0 +1,10 @@
+[Unit]
+Description=Mila Heartbeat — every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:07
+AccuracySec=5s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

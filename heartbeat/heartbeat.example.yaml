@@ -1,0 +1,35 @@
+# Heartbeat (RU: «Пульс Милы») — copy to ~/work/heartbeat.yaml. No keys or tokens here: only names of env variables.
+timezone: Asia/Tashkent
+quiet_hours: "22-08"            # think jobs are skipped at night; beats too if they say quiet: true
+chat_id_env: MILA_OWNER_CHAT    # whose chat the queued messages belong to (the session answers there)
+watchdog:
+  after_min: 15                 # a queued message not taken for 15 min → one Telegram message
+  token_env: BOT_TOKEN
+  chat_env: MILA_ADMIN_CHAT
+jobs:
+  - id: morning
+    type: think
+    cron: "13 7 * * *"
+    prompt: "Morning: read NOW.md and BACKLOG.md, send the owner the day's plan."
+  - id: evening
+    type: think
+    cron: "29 21 * * *"
+    prompt: "Evening: wrap up the day for the owner — done, waiting, tomorrow."
+  - id: friday-report
+    type: think
+    cron: "3 16 * * 5"
+    prompt: "Friday: plan vs fact of the week."
+  - id: program-chats
+    type: beat
+    cron: "*/5 8-21 * * *"
+    check: "python3 ~/.claude/heartbeat/detectors/tg_unread.py --chat 'Program A' --chat 'Program B' --refresh 'python3 ~/.claude/skills/owner-telegram/scripts/reader.py map'"
+    prompt: "New messages in a program chat — read them and take the task:"
+  - id: deadlines
+    type: beat
+    cron: "*/10 * * * *"
+    check: "python3 ~/.claude/heartbeat/detectors/deadlines.py --file ~/work/deadlines.json --hours 2"
+    prompt: "A deadline is near:"
+  - id: call-reminder
+    type: once
+    at: "2026-11-02 10:00"
+    prompt: "Remind the owner about the call at 10:30."

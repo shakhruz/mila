@@ -1,0 +1,9 @@
+[Unit]
+Description=Mila Heartbeat — one pass of the schedule outside the session
+
+[Service]
+Type=oneshot
+# BOT_TOKEN, MILA_OWNER_CHAT, MILA_ADMIN_CHAT — from the Mila's env file, never from heartbeat.yaml
+EnvironmentFile=-%h/.config/mila/heartbeat.env
+ExecStart=/usr/bin/env python3 %h/.claude/heartbeat/heartbeat.py
+TimeoutStartSec=120

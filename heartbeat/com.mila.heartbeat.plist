@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.mila.heartbeat</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string><string>-c</string>
+    <string>[ -f "$HOME/.config/mila/heartbeat.env" ] &amp;&amp; set -a &amp;&amp; . "$HOME/.config/mila/heartbeat.env" &amp;&amp; set +a; exec /usr/bin/env python3 "$HOME/.claude/heartbeat/heartbeat.py"</string>
+  </array>
+  <key>StartInterval</key><integer>60</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardErrorPath</key><string>/tmp/mila-heartbeat.err</string>
+</dict>
+</plist>
