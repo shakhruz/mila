@@ -15,8 +15,8 @@ home = os.path.join(T, "homes", "acme", "home"); os.makedirs(os.path.join(home, 
 home2 = os.path.join(T, "homes", "fresh", "home"); os.makedirs(home2)   # новорождённая: нет ни work/secrets, ни work/inbox
 open(os.path.join(home, "work", "secrets", "acme.env"), "w").write("OLD_KEY='keep'\n")
 sys.path.insert(0, H); import seif
-r = subprocess.run([sys.executable, os.path.join(H, "seif.py"), "link", "acme", "SITE_LOGIN,SITE_PASSWORD,CARD_NUMBER,CARD_EXPIRY", "--to", "555"], capture_output=True, text=True, env=os.environ)
-j = json.loads(r.stdout); tok = j["url"].rstrip("/").split("/")[-1]
+r = subprocess.run([sys.executable, os.path.join(H, "seif.py"), "link", "acme", "SITE_LOGIN,SITE_PASSWORD,CARD_NUMBER,CARD_EXPIRY", "--to", "555", "--lang", "ru"], capture_output=True, text=True, env=os.environ)
+j = json.loads(r.stdout); tok = j["url"].split("?")[0].rstrip("/").split("/")[-1]
 check("ссылка: одноразовый токен, 4 поля, 30 мин", j["ok"] and len(tok) >= 30 and j["expires_min"] == 30 and len(j["fields"]) == 4)
 check("токен хранится только хешем", not any(tok in f for f in os.listdir(os.path.join(T, "seif", "tokens"))))
 srv = seif.ThreadingHTTPServer(("127.0.0.1", 0), seif.H); threading.Thread(target=srv.serve_forever, daemon=True).start()
@@ -44,7 +44,7 @@ ib = open(os.path.join(home, "work", "inbox", "senior.jsonl")).read()
 check("записка компаньону: «в сейфе появились …», без значений", "В сейфе появились" in ib and "SITE_LOGIN" in ib and PW not in ib)
 check("повтор ссылки — 410 (одноразовая)", get(U)[0] == 410 and post(U, {"SITE_LOGIN": "x"})[0] == 410)
 r = subprocess.run([sys.executable, os.path.join(H, "seif.py"), "link", "acme", "API_KEY", "--ttl", "0"], capture_output=True, text=True, env=os.environ)
-t2 = json.loads(r.stdout)["url"].rstrip("/").split("/")[-1]; time.sleep(0.2)
+t2 = json.loads(r.stdout)["url"].split("?")[0].rstrip("/").split("/")[-1]; time.sleep(0.2)
 check("просроченная ссылка — 410", get("http://127.0.0.1:%d/v/%s/" % (srv.server_port, t2))[0] == 410)
 check("чужой путь/мусорный токен — 410", get("http://127.0.0.1:%d/v/abc/" % srv.server_port)[0] == 410)
 r = subprocess.run([sys.executable, os.path.join(H, "seif.py"), "link", "nobody", "API_KEY"], capture_output=True, text=True, env=os.environ)
@@ -53,11 +53,11 @@ check("ссылка в несуществующий дом — отказ", r.re
 import pwd
 chowned = []
 _orig = os.chown
-def spy(path, uid, gid): chowned.append(os.path.relpath(path, home2)); return _orig(path, uid, gid)
+def spy(path, uid, gid, **kw): chowned.append(os.path.relpath(path, home2)); return _orig(path, uid, gid, **kw)
 os.chown = spy; seif.os.chown = spy
 r = subprocess.run([sys.executable, os.path.join(H, "seif.py"), "link", "fresh", "API_KEY"], capture_output=True, text=True, env=os.environ)
-t3 = json.loads(r.stdout)["url"].rstrip("/").split("/")[-1]
+t3 = json.loads(r.stdout)["url"].split("?")[0].rstrip("/").split("/")[-1]
 s3, b3 = post("http://127.0.0.1:%d/v/%s/" % (srv.server_port, t3), {"API_KEY": "k-" + os.urandom(4).hex()})
 os.chown = _orig
 check("новый дом: work, work/secrets, work/inbox, .env и senior.jsonl — chown хозяину", s3 == 200 and {"work", "work/secrets", "work/inbox", "work/secrets/fresh.env", "work/inbox/senior.jsonl"} <= set(chowned), chowned)
-srv.shutdown(); print(f"итог {ok}/{n}"); sys.exit(0 if ok == n else 1)
+import shutil; srv.shutdown(); shutil.rmtree(T, ignore_errors=True); print(f"итог {ok}/{n}"); sys.exit(0 if ok == n else 1)

@@ -1,0 +1,33 @@
+{
+ "_name": "中文",
+ "_order": "4",
+ "_also": [
+  "zh-cn",
+  "zh-hans",
+  "zh-sg",
+  "zh-tw",
+  "zh-hk",
+  "zh-hant"
+ ],
+ "seif.title": "Mila 保险箱",
+ "seif.h1": "🔒 Mila 保险箱",
+ "seif.intro": "请为您的 Mila 填写资料。资料直接存入她的私密文件，不经过聊天和邮件。任何人都看不到；Mila 只在执行任务时通过自己的工具使用。",
+ "seif.save": "保存",
+ "seif.once": "链接仅可使用一次，有效期 {min} 分钟。",
+ "seif.gone.h1": "链接已失效",
+ "seif.gone.p": "链接仅可使用一次，有效期 30 分钟。请向 Mila 索取新链接。",
+ "seif.toobig": "数据过多",
+ "seif.saved.h1": "已保存",
+ "seif.saved.p": "可以关闭此页面。Mila 已经知道资料已就位。",
+ "seif.err.empty": "未填写",
+ "seif.err.line": "仅限一行，不超过 512 个字符",
+ "seif.err.card": "请检查卡号",
+ "seif.err.expiry": "有效期格式为 月/年，例如 08/28",
+ "seif.f.CARD_NUMBER": "卡号（16 位数字）",
+ "seif.f.CARD_EXPIRY": "卡片有效期（月/年）",
+ "seif.bad.h1": "无法保存",
+ "seif.bad.p": "Mila 的文件夹结构异常。链接仍然有效，请告诉 Mila。",
+ "seif.f.SITE_LOGIN": "网站登录名（手机号或邮箱）",
+ "seif.f.SITE_PASSWORD": "网站密码",
+ "seif.f.API_KEY": "API 密钥"
+}
