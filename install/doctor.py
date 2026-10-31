@@ -20,6 +20,9 @@ BotFather, забыт флаг запуска, умер демон, мост н�
 
   doctor.py            # проверить всё
   doctor.py --json     # для машины
+
+Язык вывода — язык владельца: MILA_LANG, иначе "lang" из ~/work/owner.json, иначе LANG, иначе английский.
+Строки — locales/<код>.json рядом (ru, en; нет строки — английская), новый язык — один файл.
 """
 import argparse
 import json
@@ -29,6 +32,30 @@ import subprocess
 import sys
 import time
 import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mila_i18n  # noqa: E402 — рядом (install.sh кладёт в hooks вместе с locales/)
+
+LOC = mila_i18n.load(os.environ.get("MILA_LOCALES") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "locales"))
+
+
+def _lang():
+    """Язык вывода: MILA_LANG → язык владельца (~/work/owner.json) → LANG/LC_ALL → en."""
+    owner = None
+    try:
+        with open(os.environ.get("OWNER_JSON") or os.path.expanduser("~/work/owner.json"), encoding="utf-8") as f:
+            owner = json.load(f).get("lang")
+    except (OSError, ValueError, AttributeError):
+        pass
+    env = [(os.environ.get(k) or "").split(".")[0] for k in ("LC_ALL", "LANG")]
+    return mila_i18n.pick(LOC, os.environ.get("MILA_LANG"), owner if isinstance(owner, str) else None, [e for e in env if e and e not in ("C", "POSIX")])
+
+
+LANG = _lang()
+
+
+def T(key):
+    return mila_i18n.t(LOC, LANG, key)
 
 STATE = os.environ.get("TELEGRAM_STATE_DIR",
                        os.path.expanduser("~/.claude/channels/telegram"))
@@ -62,7 +89,7 @@ def read_token():
     """Токен из окружения важнее файла — так же, как его читает сервер."""
     tok = os.environ.get("TELEGRAM_BOT_TOKEN")
     if tok:
-        return tok.strip(), "переменная окружения"
+        return tok.strip(), T("doctor.read_token.1")
     try:
         for line in open(ENV_FILE, encoding="utf-8"):
             if line.startswith("TELEGRAM_BOT_TOKEN="):
@@ -113,12 +140,12 @@ def running(pattern):
 def check_token(rep):
     token, src = read_token()
     if not token:
-        rep.add(BAD, "токен", "не найден",
-                "получи токен у @BotFather и выполни: mila onboard")
+        rep.add(BAD, T("doctor.token.1"), T("doctor.token.2"),
+                T("doctor.token.3"))
         return None
     if not re.match(r"^\d{8,12}:[A-Za-z0-9_-]{30,}$", token):
-        rep.add(BAD, "токен", "не похож на токен Telegram (%d символов)" % len(token),
-                "скопируй токен целиком, вместе с цифрами и двоеточием в начале")
+        rep.add(BAD, T("doctor.token.1"), T("doctor.token.5") % len(token),
+                T("doctor.token.6"))
         return None
 
     me = api(token, "getMe")
@@ -128,12 +155,12 @@ def check_token(rep):
         # никогда, а на живом отказе печаталось «None». «Unauthorized» и
         # «Conflict: terminated by other getUpdates» лечатся противоположно —
         # клиент выпускал новый токен там, где надо было убить второй процесс.
-        rep.add(BAD, "токен", "Telegram не принял: %s"
-                % (me.get("description") or me.get("error") or "без объяснения"),
-                "токен отозван или неверен — выпусти новый у @BotFather")
+        rep.add(BAD, T("doctor.token.1"), T("doctor.token.8")
+                % (me.get("description") or me.get("error") or T("doctor.token.9")),
+                T("doctor.token.10"))
         return None
     u = me["result"]
-    rep.add(OK, "бот", "@%s (%s), источник: %s"
+    rep.add(OK, T("doctor.token.11"), T("doctor.token.12")
             % (u.get("username"), u.get("first_name"), src))
     return token
 
@@ -144,27 +171,25 @@ def check_privacy(rep, token):
     u = me.get("result") or {}
     can_read = u.get("can_read_all_group_messages")
     if can_read is True:
-        rep.add(OK, "режим приватности", "выключен — бот видит все сообщения группы")
+        rep.add(OK, T("doctor.privacy.1"), T("doctor.privacy.2"))
     elif can_read is False:
-        rep.add(WARN, "режим приватности",
-                "включён — из групп доходят только упоминания и ответы",
-                "это нормально для режима «по упоминанию». Для «отвечать всем» "
-                "выключи: @BotFather → /setprivacy → выбери бота → Disable")
+        rep.add(WARN, T("doctor.privacy.1"),
+                T("doctor.privacy.4"),
+                T("doctor.privacy.5"))
     else:
-        rep.add(WARN, "режим приватности", "Telegram не сообщил состояние", "")
+        rep.add(WARN, T("doctor.privacy.1"), T("doctor.privacy.7"), "")
 
 
 def check_access(rep):
     try:
         a = json.load(open(ACCESS, encoding="utf-8"))
     except FileNotFoundError:
-        rep.add(WARN, "доступ", "access.json ещё нет",
-                "напиши боту в личку — он ответит кодом для сопряжения")
+        rep.add(WARN, T("doctor.access.1"), T("doctor.access.2"),
+                T("doctor.access.3"))
         return
     except json.JSONDecodeError as e:
-        rep.add(BAD, "доступ", "access.json не разбирается: %s" % e,
-                "исправь синтаксис JSON — пока файл битый, канал работает "
-                "на настройках по умолчанию")
+        rep.add(BAD, T("doctor.access.1"), T("doctor.access.5") % e,
+                T("doctor.access.6"))
         return
 
     allow = a.get("allowFrom") or []
@@ -173,35 +198,32 @@ def check_access(rep):
     policy = a.get("dmPolicy", "pairing")
 
     if not allow:
-        rep.add(WARN, "личка", "никто не допущен",
-                "напиши боту и выполни /mila-telegram:access pair <код>")
+        rep.add(WARN, T("doctor.access.7"), T("doctor.access.8"),
+                T("doctor.access.9"))
     else:
-        rep.add(OK, "личка", "допущено %d, политика «%s»" % (len(allow), policy))
+        rep.add(OK, T("doctor.access.7"), T("doctor.access.11") % (len(allow), policy))
 
     if policy == "pairing" and allow:
-        rep.add(WARN, "личка", "режим сопряжения всё ещё открыт",
-                "любой, кто найдёт бота, получит код. Закрой: "
-                "/mila-telegram:access policy allowlist")
+        rep.add(WARN, T("doctor.access.7"), T("doctor.access.13"),
+                T("doctor.access.14"))
 
     if len(allow) > 1 and not owners:
-        rep.add(WARN, "владельцы", "в личку допущены %d, список owners пуст" % len(allow),
-                "решать сможет каждый из них — включая одобрение запуска "
-                "инструментов. Задай owners в access.json")
+        rep.add(WARN, T("doctor.access.15"), T("doctor.access.16") % len(allow),
+                T("doctor.access.17"))
     elif owners:
-        rep.add(OK, "владельцы", "решают %d из %d допущенных" % (len(owners), len(allow)))
+        rep.add(OK, T("doctor.access.15"), T("doctor.access.19") % (len(owners), len(allow)))
 
-    rep.add(OK if groups else WARN, "группы",
-            "подключено %d" % len(groups),
-            "" if groups else "добавь бота в группу и отправь /channel_join")
+    rep.add(OK if groups else WARN, T("doctor.access.20"),
+            T("doctor.access.21") % len(groups),
+            "" if groups else T("doctor.access.22"))
 
     loud = [g for g, p in groups.items()
             if isinstance(p, dict) and p.get("requireMention") is False
             and not p.get("readOnly") and not p.get("observe")]
     if loud:
-        rep.add(WARN, "группы",
-                "%d в режиме «отвечать всем»" % len(loud),
-                "в них каждое сообщение любого участника попадает в сессию — "
-                "оставляй так только там, где доверяешь всем")
+        rep.add(WARN, T("doctor.access.20"),
+                T("doctor.access.24") % len(loud),
+                T("doctor.access.25"))
 
 
 def own_receivers(lines):
@@ -232,28 +254,26 @@ def check_daemon(rep):
     """Демон и сессия не должны опрашивать Telegram одновременно."""
     lines = own_receivers(running("receiver.ts"))
     if not lines:
-        rep.add(WARN, "демон", "не запущен",
-                "без него сообщения, пришедшие при выключенной сессии, теряются. "
-                "Запусти receiver.ts как службу с RECEIVER_DAEMON=1")
+        rep.add(WARN, T("doctor.daemon.1"), T("doctor.daemon.2"),
+                T("doctor.daemon.3"))
         return
     if len(lines) > 1:
-        rep.add(BAD, "демон", "запущено %d копий" % len(lines),
-                "две копии дерутся за один токен, Telegram отвечает 409 и "
-                "сообщения теряются. Оставь одну")
+        rep.add(BAD, T("doctor.daemon.1"), T("doctor.daemon.5") % len(lines),
+                T("doctor.daemon.6"))
         return
     pid, cmd = lines[0]
     m = re.search(r"(\S+receiver\.ts)", cmd)
-    src = m.group(1) if m else "путь не разобран"
-    rep.add(OK, "демон", "работает (pid %s), код: %s" % (pid, src))
+    src = m.group(1) if m else T("doctor.daemon.7")
+    rep.add(OK, T("doctor.daemon.1"), T("doctor.daemon.9") % (pid, src))
 
 
 def check_journal(rep):
     if not os.path.exists(EVENTS):
-        rep.add(WARN, "журнал", "ещё пуст", "напиши боту — появится первая запись")
+        rep.add(WARN, T("doctor.journal.1"), T("doctor.journal.2"), T("doctor.journal.3"))
         return
     size = os.path.getsize(EVENTS)
     age = time.time() - os.path.getmtime(EVENTS)
-    rep.add(OK, "журнал", "%d байт, последняя запись %d мин назад"
+    rep.add(OK, T("doctor.journal.1"), T("doctor.journal.5")
             % (size, int(age // 60)))
 
     try:
@@ -262,11 +282,10 @@ def check_journal(rep):
         cur = 0
     behind = size - cur
     if behind > 0:
-        rep.add(WARN, "мост", "не дочитано %d байт" % behind,
-                "сессия не доиграла входящие. Перезапусти сессию с флагом канала "
-                "— всё, что накопилось, придёт")
+        rep.add(WARN, T("doctor.journal.6"), T("doctor.journal.7") % behind,
+                T("doctor.journal.8"))
     else:
-        rep.add(OK, "мост", "журнал прочитан целиком")
+        rep.add(OK, T("doctor.journal.6"), T("doctor.journal.10"))
 
 
 def check_perms(rep):
@@ -288,16 +307,15 @@ def check_perms(rep):
         # миру оно разрешает. Смотреть надо на биты, которых быть не должно.
         extra = mode & ~want
         if extra:
-            rep.add(BAD, "права", "%s — %o (лишние биты %o)" % (name, mode, extra),
-                    "chmod %o %s — иначе чужой процесс на этой машине может "
-                    "подделать входящее или прочитать токен" % (want, path))
+            rep.add(BAD, T("doctor.perms.1"), T("doctor.perms.2") % (name, mode, extra),
+                    T("doctor.perms.3") % (want, path))
         elif st.st_uid != os.getuid():
-            rep.add(BAD, "права", "%s принадлежит другому пользователю (uid %d)"
+            rep.add(BAD, T("doctor.perms.1"), T("doctor.perms.5")
                     % (name, st.st_uid),
-                    "chown $(id -un) %s — иначе агент не сможет туда писать"
+                    T("doctor.perms.6")
                     % path)
         else:
-            rep.add(OK, "права", "%s — %o" % (name, mode))
+            rep.add(OK, T("doctor.perms.1"), "%s — %o" % (name, mode))
 
 
 TURNS_LABEL = "com.milagpt.turns-collect"
@@ -327,12 +345,10 @@ def check_turns_timer(rep):
     """
     on, how = timer_installed()
     if on:
-        rep.add(OK, "учёт · таймер", "стоит (%s)" % how)
+        rep.add(OK, T("doctor.turns_timer.1"), T("doctor.turns_timer.2") % how)
     else:
-        rep.add(WARN, "учёт · таймер", "не стоит",
-                "без него таблица наполняется только руками. Поставь: "
-                "install/install.sh — таймер идёт вместе с китом, раз в час "
-                "со смещением от ровного часа")
+        rep.add(WARN, T("doctor.turns_timer.1"), T("doctor.turns_timer.4"),
+                T("doctor.turns_timer.5"))
 
     try:
         import records
@@ -341,23 +357,21 @@ def check_turns_timer(rep):
             last = json.load(f)
     except (OSError, ValueError, ImportError):
         if on:
-            rep.add(WARN, "учёт · сбор", "ни разу не отрабатывал",
-                    "таймер стоит, но следа работы нет — запусти руками "
-                    "`mila turns` и посмотри %s/turns-collect.log"
+            rep.add(WARN, T("doctor.turns_timer.6"), T("doctor.turns_timer.7"),
+                    T("doctor.turns_timer.8")
                     % os.path.expanduser("~/.claude"))
         return
 
     age_h = (time.time() - (last.get("finished_ts") or 0)) / 3600.0
-    detail = ("последний %s, за %.0f с · найдено %d, записано %d"
+    detail = (T("doctor.turns_timer.9")
               % (str(last.get("finished_at"))[:19].replace("T", " "),
                  last.get("took_sec") or 0, last.get("seen") or 0,
                  last.get("written") or 0))
     if age_h > 2:
-        rep.add(WARN, "учёт · сбор", "%.0f ч назад — %s" % (age_h, detail),
-                "должен отрабатывать раз в час. Смотри "
-                "~/.claude/turns-collect.log; на выключенной машине это норма")
+        rep.add(WARN, T("doctor.turns_timer.6"), T("doctor.turns_timer.11") % (age_h, detail),
+                T("doctor.turns_timer.12"))
     else:
-        rep.add(OK, "учёт · сбор", detail)
+        rep.add(OK, T("doctor.turns_timer.6"), detail)
 
 
 def check_records(rep):
@@ -377,69 +391,62 @@ def check_records(rep):
                 import records
                 st = records.state()
             except Exception as e:
-                rep.add(BAD, "учёт", "модуль не читается: %s" % e,
-                        "проверь install/records.py — без него ни разговоры, "
-                        "ни внешние траты не записываются")
+                rep.add(BAD, T("doctor.records.1"), T("doctor.records.2") % e,
+                        T("doctor.records.3"))
                 return
             break
     if st is None:
-        rep.add(WARN, "учёт", "records.py не найден",
-                "переустанови кит: install/install.sh — учёт разговоров и "
-                "трат ставится вместе с остальными инструментами")
+        rep.add(WARN, T("doctor.records.1"), T("doctor.records.5"),
+                T("doctor.records.6"))
         return
 
     t, e = st["turns"], st["external"]
 
     if not t["exists"]:
-        rep.add(WARN, "учёт · разговоры", "базы ещё нет",
-                "запусти `mila turns` — соберёт ходы за сегодня и заведёт базу")
+        rep.add(WARN, T("doctor.records.7"), T("doctor.records.8"),
+                T("doctor.records.9"))
     elif t["error"]:
-        rep.add(BAD, "учёт · разговоры", t["error"],
-                "база не открывается — восстанови из бэкапа")
+        rep.add(BAD, T("doctor.records.7"), t["error"],
+                T("doctor.records.11"))
     elif t["missing_columns"]:
-        rep.add(BAD, "учёт · разговоры",
-                "нет колонок: %s" % ", ".join(t["missing_columns"]),
-                "открой базу через records.py — недостающие колонки "
-                "добавляются сами, руками ничего пересоздавать не надо")
+        rep.add(BAD, T("doctor.records.7"),
+                T("doctor.records.13") % ", ".join(t["missing_columns"]),
+                T("doctor.records.14"))
     else:
         age = ""
         if t["last_ts"]:
             hours = (time.time() - t["last_ts"]) / 3600.0
-            age = ", последний ход %.0f ч назад" % hours
-        rep.add(OK, "учёт · разговоры", "%d %s%s"
-                % (t["rows"], records.plural(t["rows"], "ход", "хода", "ходов"), age))
+            age = T("doctor.records.15") % hours
+        rep.add(OK, T("doctor.records.7"), "%d %s%s"
+                % (t["rows"], records.plural(t["rows"], T("doctor.records.17"), T("doctor.records.18"), T("doctor.records.19")), age))
         if t["rows"] and t["last_ts"] and time.time() - t["last_ts"] > 36 * 3600:
-            rep.add(WARN, "учёт · разговоры", "полтора дня ничего не пишется",
-                    "сборщик не запускался: `mila turns --days 3`. Пустая "
-                    "таблица выглядит как спокойный день, а не как поломка")
+            rep.add(WARN, T("doctor.records.7"), T("doctor.records.21"),
+                    T("doctor.records.22"))
         if t["mode"] and t["mode"] & ~0o600:
-            rep.add(BAD, "учёт · разговоры", "права %o" % t["mode"],
-                    "chmod 600 %s — в базе тексты переписки" % t["path"])
+            rep.add(BAD, T("doctor.records.7"), T("doctor.records.24") % t["mode"],
+                    T("doctor.records.25") % t["path"])
 
     if not e["exists"]:
-        rep.add(WARN, "учёт · внешние траты", "леджера ещё нет",
-                "заведи: `records.py init`. Пока его нет, первая же генерация "
-                "картинки или голоса потратит деньги молча")
+        rep.add(WARN, T("doctor.records.26"), T("doctor.records.27"),
+                T("doctor.records.28"))
     elif e["error"]:
-        rep.add(BAD, "учёт · внешние траты", e["error"], "база не открывается")
+        rep.add(BAD, T("doctor.records.26"), e["error"], T("doctor.records.30"))
     else:
-        rep.add(OK, "учёт · внешние траты",
+        rep.add(OK, T("doctor.records.26"),
                 "%d %s%s" % (e["rows"],
-                             records.plural(e["rows"], "вызов", "вызова", "вызовов"),
-                             "" if e["rows"] else " — наружу пока не ходим"))
+                             records.plural(e["rows"], T("doctor.records.32"), T("doctor.records.33"), T("doctor.records.34")),
+                             "" if e["rows"] else T("doctor.records.35")))
 
     check_turns_timer(rep)
 
     if st["shrunk"]:
-        rep.add(BAD, "учёт", "база усохла: %s" % "; ".join(st["shrunk"]),
-                "строки пропали между проверками. Восстанови из бэкапа и "
-                "найди, кто удаляет: учёт задним числом не восстановишь")
+        rep.add(BAD, T("doctor.records.1"), T("doctor.records.37") % "; ".join(st["shrunk"]),
+                T("doctor.records.38"))
 
     if st["text_policy"] != "full":
-        rep.add(WARN, "учёт · тексты",
-                "политика «%s» — тексты разговоров не пишутся" % st["text_policy"],
-                "так задумано, если это чужие данные. Вернуть: "
-                "MILA_RECORD_TEXT=full")
+        rep.add(WARN, T("doctor.records.39"),
+                T("doctor.records.40") % st["text_policy"],
+                T("doctor.records.41"))
 
     # Эталон обновляем ПОСЛЕ проверки: иначе усохшая база тут же становится
     # новой нормой и претензии больше никогда не будет.
@@ -473,38 +480,38 @@ def check_switches(rep, daemon_env="auto", home=None):
             lines = running("receiver.ts")
             daemon_env = _proc_env(lines[0][0]) if lines else None
         if daemon_env is None:
-            rep.add(WARN, "гостевой контур", "включён в access, флаг окружения проверить не удалось (демон не найден или окружение закрыто)",
-                    "у демона должен быть MILAT_GUEST_CC=1 — без него гости молча идут прежним путём")
+            rep.add(WARN, T("doctor.switches.1"), T("doctor.switches.2"),
+                    T("doctor.switches.3"))
         elif daemon_env.get("MILAT_GUEST_CC") != "1":
-            rep.add(BAD, "гостевой контур", "включён в access.json, но у демона нет MILAT_GUEST_CC=1 — контур выключен",
-                    "добавь Environment=MILAT_GUEST_CC=1 в юнит демона и перезапусти")
+            rep.add(BAD, T("doctor.switches.1"), T("doctor.switches.5"),
+                    T("doctor.switches.6"))
         else:
-            rep.add(OK, "гостевой контур", "включён, флаг окружения есть")
-        for key, what in (("keyFile", "ключ гостей"), ("systemPromptFile", "промпт гостя")):
+            rep.add(OK, T("doctor.switches.1"), T("doctor.switches.8"))
+        for key, what in (("keyFile", T("doctor.switches.9")), ("systemPromptFile", T("doctor.switches.10"))):
             f = cc.get(key)
             if not f or not os.path.isfile(f):
-                rep.add(BAD, "гостевой контур", "%s не найден: %s" % (what, f or "не задан"), "без него гостевой контур не отвечает — задай путь в guestDm.cc.%s" % key)
+                rep.add(BAD, T("doctor.switches.1"), T("doctor.switches.12") % (what, f or T("doctor.switches.13")), T("doctor.switches.14") % key)
         if cc.get("knowledgeDir") and not os.path.isdir(cc["knowledgeDir"]):
-            rep.add(WARN, "гостевой контур", "папки знаний нет: %s" % cc["knowledgeDir"], "создай её или убери knowledgeDir")
+            rep.add(WARN, T("doctor.switches.1"), T("doctor.switches.16") % cc["knowledgeDir"], T("doctor.switches.17"))
         if cc.get("cardToRazbor") and not cc.get("handoffFile"):
-            rep.add(BAD, "гостевой контур", "заявки на разбор включены, а handoffFile не задан — заявки уходят только в лог",
-                    "задай guestDm.cc.handoffFile — файл, куда приходят события")
+            rep.add(BAD, T("doctor.switches.1"), T("doctor.switches.19"),
+                    T("doctor.switches.20"))
         st = cc.get("students")
         if isinstance(st, dict) and not (st.get("systemPromptFile") and st.get("knowledgeDir")):
-            rep.add(WARN, "ученики", "профиль учеников задан без промпта или папки — он выключен", "задай students.systemPromptFile и students.knowledgeDir")
+            rep.add(WARN, T("doctor.switches.21"), T("doctor.switches.22"), T("doctor.switches.23"))
     try:
         j = json.load(open(os.path.join(home, ".claude", "jev.json"), encoding="utf-8"))
     except (OSError, ValueError):
         j = {}
     if j.get("mode") in ("shadow", "main") and not j.get("url"):
-        rep.add(WARN, "Jev", "режим %s, а адреса шлюза нет — решает только правило" % j["mode"], "jev.py config --set url=… или mode=off")
+        rep.add(WARN, "Jev", T("doctor.switches.24") % j["mode"], T("doctor.switches.25"))
     try:
         u = json.load(open(os.path.join(home, ".claude", "mila-update.json"), encoding="utf-8"))
     except (OSError, ValueError):
         u = None
     if u is not None and u.get("channel", "stable") != "manual" and not u.get("owner_chat"):
-        rep.add(WARN, "обновления", "карточки обновлений не доходят до хозяина — owner_chat не задан, лежат файлом",
-                "update.py config --set owner_chat=<id хозяина>")
+        rep.add(WARN, T("doctor.switches.26"), T("doctor.switches.27"),
+                T("doctor.switches.28"))
 
 
 def check_flag(rep):
@@ -524,21 +531,20 @@ def check_flag(rep):
     servers += [cmd for pid, cmd in running("--cwd")
                 if "telegram" in cmd and "start" in cmd and own_home(pid)]
     if servers:
-        rep.add(OK, "канал в сессии", "MCP-сервер плагина запущен")
+        rep.add(OK, T("doctor.flag.1"), T("doctor.flag.2"))
         return
     sessions = [cmd for pid, cmd in running("claude")
                 if re.search(r"/(claude)(\s|$)", cmd) and own_home(pid)]
     if sessions:
-        rep.add(BAD, "канал в сессии", "сессия работает, сервер канала не запущен",
-                "перезапусти через `mila` — без флага канала плагин не "
-                "подключается, и входящие остаются в журнале")
+        rep.add(BAD, T("doctor.flag.1"), T("doctor.flag.4"),
+                T("doctor.flag.5"))
     else:
-        rep.add(WARN, "канал в сессии", "сессия не найдена",
-                "запусти `mila`")
+        rep.add(WARN, T("doctor.flag.1"), T("doctor.flag.7"),
+                T("doctor.flag.8"))
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Диагностика канала Telegram")
+    ap = argparse.ArgumentParser(description=T("doctor.main.1"))
     ap.add_argument("--json", action="store_true", dest="as_json")
     args = ap.parse_args()
 
@@ -561,7 +567,7 @@ def main():
         return 1 if rep.bad else 0
 
     mark = {OK: "🟢", WARN: "🟡", BAD: "🔴"}
-    print("Диагностика канала · %s" % STATE)
+    print(T("doctor.main.2") % STATE)
     print()
     for r in rep.rows:
         print("%s %-18s %s" % (mark[r["level"]], r["name"], r["detail"]))
@@ -570,11 +576,11 @@ def main():
                 print("   %s %s" % ("→" if i == 0 else " ", chunk))
     print()
     if rep.bad:
-        print("Сломано: %d. Канал не работает, пока это не починено." % len(rep.bad))
+        print(T("doctor.main.3") % len(rep.bad))
     elif rep.warn:
-        print("Замечаний: %d. Канал работает, но не так, как мог бы." % len(rep.warn))
+        print(T("doctor.main.4") % len(rep.warn))
     else:
-        print("🟢 Всё звенья на месте.")
+        print(T("doctor.main.5"))
     return 1 if rep.bad else 0
 
 

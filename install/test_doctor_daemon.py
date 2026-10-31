@@ -4,6 +4,7 @@
 import importlib.util, os, sys, tempfile
 H = os.path.dirname(os.path.abspath(__file__)); T = tempfile.mkdtemp(); ST = os.path.join(T, "mine"); os.makedirs(ST)
 os.environ["TELEGRAM_STATE_DIR"] = ST
+os.environ["MILA_LANG"] = "ru"   # тексты проверок сверяются по-русски; язык вывода doctor — MILA_LANG
 spec = importlib.util.spec_from_file_location("doc", os.path.join(H, "doctor.py")); D = importlib.util.module_from_spec(spec); spec.loader.exec_module(D)
 ok = n = 0
 def chk(m, c, x=""):

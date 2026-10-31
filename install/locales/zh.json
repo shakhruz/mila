@@ -1,0 +1,11 @@
+{
+ "_name": "中文",
+ "_order": "4",
+ "_also": [
+  "zh-cn",
+  "zh-hans",
+  "zh-tw",
+  "zh-hk",
+  "zh-hant"
+ ]
+}

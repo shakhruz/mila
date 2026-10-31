@@ -7,6 +7,7 @@ def chk(m, c, x=""):
     global ok, n
     n += 1; ok += bool(c); print(("✅ " if c else "❌ ") + m + ("" if c else "  ← " + str(x)[:300]))
 T = tempfile.mkdtemp(); ST = os.path.join(T, "state"); os.makedirs(ST); os.environ["TELEGRAM_STATE_DIR"] = ST
+os.environ["MILA_LANG"] = "ru"   # тексты проверок сверяются по-русски; язык вывода doctor — MILA_LANG
 spec = importlib.util.spec_from_file_location("doctor", os.path.join(HERE, "doctor.py")); D = importlib.util.module_from_spec(spec); spec.loader.exec_module(D)
 key = os.path.join(T, "key"); open(key, "w").write("k"); pr = os.path.join(T, "p.md"); open(pr, "w").write("x")
 def acc(cc): json.dump({"allowFrom": ["1"], "guestDm": {"enabled": True, "cc": cc}}, open(os.path.join(ST, "access.json"), "w"))
