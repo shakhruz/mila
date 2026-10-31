@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """owner-telegram reader.py без сети (поддельный telethon): отправка запрещена; черновик и реакция — только в разрешённом
 личном чате и с согласия владельца; реакция — белый список; draft-clear стирает только мой черновик. Запуск: python3 test_reader.py"""
-import asyncio, datetime, json, os, sys, tempfile, time, types
+import asyncio, contextlib, datetime, io, json, os, sys, tempfile, time, types
 H = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(H, "..", "..", "tests", "fixtures"))
 try:
     from fake_people import OWNER_ID, USER_ID, PEOPLE
@@ -15,7 +15,10 @@ class ReactionEmoji:
     def __init__(s, emoticon): s.emoticon = emoticon
 class SendMessageRequest:
     def __init__(s, **k): pass
+class GetForumTopicsRequest:
+    def __init__(s, peer, offset_date, offset_id, offset_topic, limit, q=None): s.peer, s.limit = peer, limit
 fm = types.ModuleType("telethon.tl.functions.messages"); fm.SaveDraftRequest = SaveDraftRequest; fm.SendReactionRequest = SendReactionRequest
+fm.GetForumTopicsRequest = GetForumTopicsRequest
 tt = types.ModuleType("telethon.tl.types"); tt.ReactionEmoji = ReactionEmoji
 for k, m in (("telethon", types.ModuleType("telethon")), ("telethon.tl", types.ModuleType("telethon.tl")), ("telethon.tl.functions", types.ModuleType("telethon.tl.functions")),
              ("telethon.tl.functions.messages", fm), ("telethon.tl.types", tt)): sys.modules[k] = m
@@ -43,7 +46,11 @@ class Fake:
     async def get_entity(s, x):
         if x == "@demo_mila_bot": return MILA
         return {USER_ID: IVAN, USER_ID + 1: MARIA, 900: NEWS, 800: MILA, 801: OTHER_BOT}[int(x)]
-    async def get_messages(s, ent, ids=None):
+    async def get_messages(s, ent, ids=None, limit=None, reply_to=None):
+        if limit is not None:   # last: последние сообщения чата или темы (reply_to = id темы), новые первыми
+            s.last_kw = {"limit": limit, "reply_to": reply_to}
+            rows = sorted((m for (cid, i), m in MSGS.items() if cid == ent.id and (reply_to is None or getattr(m, "topic", None) == reply_to)), key=lambda m: -m.id)
+            return rows[:limit]
         if isinstance(ids, list):   # get <чат> <id> [N]: Telethon отдаёт список той же длины, None — нет такого
             s.asked = list(ids); return [MSGS.get((ent.id, i)) for i in ids]
         return MSGS.get((ent.id, ids))
@@ -53,6 +60,10 @@ class Fake:
     async def __call__(s, req):
         s.calls.append(req)
         if isinstance(req, SaveDraftRequest): DRAFTS[req.peer.id] = req.message
+        if isinstance(req, GetForumTopicsRequest):
+            return types.SimpleNamespace(topics=[types.SimpleNamespace(id=1, title="General", unread_count=0, top_message=470, closed=False),
+                                                 type("ForumTopicDeleted", (), {"id": 9})(),
+                                                 types.SimpleNamespace(id=12, title="Анонсы", unread_count=3, top_message=468, closed=False)])
         return True
 os.umask(0o022)   # проверка 600 не должна держаться на umask окружения
 f = Fake(); c = r.ReadOnly(f); D = tempfile.mkdtemp(); O, REF = str(OWNER_ID), "%d/1" % OWNER_ID
@@ -170,4 +181,35 @@ e, rows = get(str(USER_ID), 7)
 check("get в разрешённую личку — читается", e is None and rows and rows[0]["text"] == "ок" and rows[0]["out"] is True, (e, rows))
 e, _ = get("900", 0); e2, _ = get("900", None)
 check("номер 0 или не указан — отказ", e and "номер" in e and e2 and "номер" in e2, (e, e2))
+# форумы: темы и last по теме; богатая строка сообщения
+FORUM = Channel(950, "Акселератор"); FORUM.forum = True
+_ge = Fake.get_entity
+async def ge2(s, x): return FORUM if str(x) == "950" else await _ge(s, x)
+Fake.get_entity = ge2
+def msg(i, text="", topic=None, **kw):
+    m = types.SimpleNamespace(id=i, out=False, sender_id=USER_ID, message=text, date=datetime.datetime(2026, 10, 2, 9, 0, tzinfo=datetime.timezone.utc),
+                              reply_to=types.SimpleNamespace(reply_to_msg_id=topic, reply_to_top_id=None, forum_topic=True) if topic else None, topic=topic, **kw)
+    MSGS[(950, i)] = m; return m
+msg(465, "общий вопрос")
+msg(466, "Слоты на демо-день", topic=12, reactions=types.SimpleNamespace(results=[types.SimpleNamespace(reaction=types.SimpleNamespace(emoticon="🔥"), count=4)]))
+msg(467, "презентация", topic=12, document=True, file=types.SimpleNamespace(name="deck.pdf", size=2048000, duration=None))
+msg(468, "", topic=12, video_note=True, file=types.SimpleNamespace(name=None, size=900000, duration=12))
+msg(469, "переслано", fwd_from=types.SimpleNamespace(from_name=None, from_id=types.SimpleNamespace(channel_id=777)))
+def out_of(coro):
+    o = io.StringIO()
+    with contextlib.redirect_stdout(o):
+        e = run(coro)
+    return e, [json.loads(l) for l in o.getvalue().splitlines() if l.strip()]
+n0 = len(f.calls); e, tops = out_of(r.cmd_topics(c, D, "950"))
+check("topics: темы с id, названием и непрочитанным; удалённая пропущена", e is None and [(t["id"], t["title"], t["unread"]) for t in tops] == [(1, "General", 0), (12, "Анонсы", 3)], (e, tops))
+check("topics — один запрос GetForumTopicsRequest (в белом списке), больше ничего", [type(x).__name__ for x in f.calls[n0:]] == ["GetForumTopicsRequest"] and "GetForumTopicsRequest" in r.ReadOnly.ALLOWED_REQUESTS)
+e, _ = out_of(r.cmd_topics(c, D, "900"))
+check("topics не у форума — понятный отказ", e and "не форум" in e, e)
+e, rows = out_of(r.cmd_last(c, D, "950", 10, topic=12))
+check("last --topic 12: только сообщения темы, по порядку, reply_to=12 ушло в запрос", e is None and [x["id"] for x in rows] == [466, 467, 468] and f.last_kw == {"limit": 10, "reply_to": 12}, (e, rows))
+check("реакции: эмодзи и число", rows[0].get("reactions") == [{"emoji": "🔥", "count": 4}], rows[0])
+check("файл: вид doc, имя и размер; подпись — в text", rows[1]["media"] == "doc" and rows[1]["file"] == {"name": "deck.pdf", "size": 2048000} and rows[1]["text"] == "презентация", rows[1])
+check("кругляшок: media round:12s, тема в строке", rows[2]["media"] == "round:12s" and rows[2].get("topic") == 12, rows[2])
+e, rows = out_of(r.cmd_last(c, D, "950", 50))
+check("last без темы — весь чат; переслано: forward_from = id канала", e is None and len(rows) == 5 and rows[-1].get("forward_from") == 777 and f.last_kw["reply_to"] is None, rows[-1:])
 print("итог %d/%d" % (ok, tot)); sys.exit(0 if ok == tot else 1)

@@ -7,6 +7,9 @@
   reader.py map            — карта: каналы и группы (без личных переписок), непрочитанное → map.json
   reader.py pulse          — пульс: число контактов и личных диалогов, каналы/группы со звуком → live.json
   reader.py last <чат> [N]            — последние N (≤50) сообщений; личный чат — только из списка allowed.json
+  reader.py last <чат> N --topic <id>  — последние N сообщений темы форума (супергруппа с темами)
+  reader.py topics <чат>               — темы форума: id, название, непрочитано
+  reader.py media <чат> <id>           — скачать вложение (голосовое, кружок, аудио, видео, фото, файл) в media/ — путь для расшифровки
   reader.py get <чат> <id> [N]        — сообщение с этим номером и по N (≤25) до и после него — старое задание в группе,
                            которого уже нет среди последних; личный чат — только из allowed.json; в drafts.jsonl — строка без текста
   reader.py draft <чат> --text «…» [--replace] — ЧЕРНОВИК в поле ввода чата владельца: не отправляется,
@@ -57,7 +60,7 @@ class ReadOnly:
     """Белая обёртка: наружу только чтение диалогов, сообщений и списка контактов."""
     ALLOWED = {"connect", "disconnect", "is_user_authorized", "get_me",
                "iter_dialogs", "get_dialogs", "iter_messages", "get_messages", "get_entity", "download_media"}   # скачать голосовое — тоже чтение
-    ALLOWED_REQUESTS = {"GetContactsRequest", "SaveDraftRequest", "GetDialogFiltersRequest", "SendReactionRequest"}   # чтение папок   # черновик — да; отправка/правка/удаление — нет
+    ALLOWED_REQUESTS = {"GetContactsRequest", "SaveDraftRequest", "GetDialogFiltersRequest", "SendReactionRequest", "GetForumTopicsRequest"}   # темы форума — чтение   # чтение папок   # черновик — да; отправка/правка/удаление — нет
 
     def __init__(self, client):
         object.__setattr__(self, "_c", client)
@@ -265,9 +268,11 @@ async def own_draft(c, ent):
 
 
 def media_kind(m):
-    """что вложено — voice/audio/video_note/video/photo/doc (+секунды), чтобы видеть голосовые в last."""
+    """что вложено — voice/round/audio/video/photo/sticker/poll/doc (+секунды), чтобы видеть голосовые и кругляшки в last."""
     if getattr(m, "voice", None): k = "voice"
-    elif getattr(m, "video_note", None): k = "video_note"
+    elif getattr(m, "video_note", None): k = "round"
+    elif getattr(m, "sticker", None): k = "sticker"
+    elif getattr(m, "poll", None): k = "poll"
     elif getattr(m, "audio", None): k = "audio"
     elif getattr(m, "video", None): k = "video"
     elif getattr(m, "photo", None): k = "photo"
@@ -283,7 +288,7 @@ async def cmd_voice(c, d, chat, msg_id):
     private_guard(d, ent, "слушаю")
     m = await c.get_messages(ent, ids=int(msg_id))
     mk = media_kind(m) if m else None
-    if not mk or mk.split(":")[0] not in ("voice", "video_note", "audio", "video", "doc"):   # файлы (шаблоны) — тоже чтение
+    if not mk or mk.split(":")[0] not in ("voice", "round", "audio", "video", "doc", "photo"):   # файлы (шаблоны), фото — тоже чтение
         sys.exit("в сообщении %s нет голосового/аудио" % msg_id)
     md = os.path.join(d, "media")
     os.makedirs(md, mode=0o700, exist_ok=True)
@@ -311,17 +316,57 @@ async def cmd_inbox(c, d, by, msg, n=15):
         if k >= n:
             break
 
+def _peer_id(p):
+    return getattr(p, "user_id", None) or getattr(p, "channel_id", None) or getattr(p, "chat_id", None)
+
+
 def row(m):
-    return json.dumps({"id": m.id, "date": m.date.isoformat() if getattr(m, "date", None) else None, "from": getattr(m, "sender_id", None),
-                       "out": bool(getattr(m, "out", False)), "text": (getattr(m, "message", None) or "")[:2000], "media": media_kind(m)}, ensure_ascii=False)
+    """Строка сообщения: текст (у вложения — подпись), вложение (вид, файл, размер), реакции, ответ на, переслано от."""
+    d = {"id": m.id, "date": m.date.isoformat() if getattr(m, "date", None) else None, "from": getattr(m, "sender_id", None),
+         "out": bool(getattr(m, "out", False)), "text": (getattr(m, "message", None) or "")[:2000], "media": media_kind(m)}
+    f = getattr(m, "file", None)
+    if d["media"] and f is not None and (getattr(f, "name", None) or getattr(f, "size", None)):
+        d["file"] = {"name": getattr(f, "name", None), "size": getattr(f, "size", None)}
+    poll = getattr(getattr(m, "poll", None), "poll", None)
+    if poll is not None:
+        q = getattr(poll, "question", "")
+        d["poll"] = getattr(q, "text", q) if not isinstance(q, str) else q
+    res = getattr(getattr(m, "reactions", None), "results", None) or []
+    reac = [{"emoji": getattr(r.reaction, "emoticon", None) or "custom", "count": r.count} for r in res if getattr(r, "reaction", None) is not None]
+    if reac:
+        d["reactions"] = reac
+    rt = getattr(m, "reply_to", None)
+    if rt is not None and getattr(rt, "reply_to_msg_id", None):
+        d["reply_to"] = rt.reply_to_msg_id
+        if getattr(rt, "forum_topic", False):
+            d["topic"] = getattr(rt, "reply_to_top_id", None) or rt.reply_to_msg_id
+    fw = getattr(m, "fwd_from", None)
+    if fw is not None:
+        d["forward_from"] = getattr(fw, "from_name", None) or _peer_id(getattr(fw, "from_id", None))
+    return json.dumps(d, ensure_ascii=False)
 
 
-async def cmd_last(c, d, chat, n):
+async def cmd_last(c, d, chat, n, topic=None):
     n = max(1, min(n, 50))
     ent = await resolve(c, chat)
     private_guard(d, ent, "читаю")
-    for m in reversed(await c.get_messages(ent, limit=n)):
+    kw = {"reply_to": int(topic)} if topic else {}   # тема форума: сообщения внутри темы
+    for m in reversed(await c.get_messages(ent, limit=n, **kw)):
         print(row(m))
+
+
+async def cmd_topics(c, d, chat):
+    """Темы форума: id, название, непрочитано, последнее сообщение. Не форум — понятный отказ."""
+    from telethon.tl.functions.messages import GetForumTopicsRequest
+    ent = await resolve(c, chat)
+    if not getattr(ent, "forum", False):
+        sys.exit("это не форум (нет тем) — читай last <чат> N")
+    r = await c(GetForumTopicsRequest(peer=ent, offset_date=None, offset_id=0, offset_topic=0, limit=100))
+    for t in getattr(r, "topics", None) or []:
+        if type(t).__name__ == "ForumTopicDeleted":
+            continue
+        print(json.dumps({"id": t.id, "title": t.title, "unread": getattr(t, "unread_count", 0),
+                          "top_message": getattr(t, "top_message", None), "closed": bool(getattr(t, "closed", False))}, ensure_ascii=False))
 
 
 async def cmd_get(c, d, chat, msg_id, n=0):
@@ -420,7 +465,7 @@ async def cmd_draft_clear(c, d, chat, by, ref, replace=False):
 
 async def main():
     ap = argparse.ArgumentParser(description="Личный Telegram владельца — только чтение")
-    ap.add_argument("cmd", choices=["map", "pulse", "last", "get", "draft", "draft-clear", "react", "allow", "disallow", "voice", "folders", "folders-apply", "inbox"])
+    ap.add_argument("cmd", choices=["map", "pulse", "last", "get", "topics", "media", "draft", "draft-clear", "react", "allow", "disallow", "voice", "folders", "folders-apply", "inbox"])
     ap.add_argument("chat", nargs="?")
     ap.add_argument("n", nargs="?", type=int, default=None)
     ap.add_argument("around", nargs="?", type=int, default=None)   # get <чат> <id> [N]
@@ -430,6 +475,7 @@ async def main():
     ap.add_argument("--by")
     ap.add_argument("--msg")
     ap.add_argument("--dir")
+    ap.add_argument("--topic", type=int)   # last <чат> N --topic <id>: тема форума
     ap.add_argument("--yes", action="store_true")   # folders-apply: применить (без него — только дифф)
     a = ap.parse_args()
     d = session_dir(a.dir)
@@ -466,12 +512,16 @@ async def main():
             if a.chat is None:
                 sys.exit("нужен чат: id, @ник или часть имени")
             await cmd_draft(c, d, a.chat, a.text, a.replace)
-        elif a.cmd == "voice":
+        elif a.cmd in ("voice", "media"):
             if a.chat is None:
                 sys.exit("нужен чат и id сообщения")
             if a.n is None:
                 sys.exit("нужен id сообщения")
             await cmd_voice(c, d, a.chat, a.n)
+        elif a.cmd == "topics":
+            if a.chat is None:
+                sys.exit("нужен чат: id, @ник или часть названия")
+            await cmd_topics(c, d, a.chat)
         elif a.cmd == "get":
             if a.chat is None or a.n is None:
                 sys.exit("нужны чат и номер сообщения: get <чат> <id> [N]")
@@ -483,7 +533,7 @@ async def main():
         else:
             if a.chat is None:
                 sys.exit("нужен чат: id, @ник или часть имени")
-            await cmd_last(c, d, a.chat, 20 if a.n is None else a.n)
+            await cmd_last(c, d, a.chat, 20 if a.n is None else a.n, a.topic)
     finally:
         await c.disconnect()
 
