@@ -46,6 +46,15 @@ px.callback(btn(), OWNER, OWNER); NOW[0] += 16 * 60
 check("согласие старше 15 мин — не исполняет, спрашивает снова", px.request("publish_zernio", dict(P, text=P["text"] + "!"))["status"] == "asked" and len(RUNS) == 1)
 px.callback(btn(yes=False), OWNER, OWNER)
 check("«Нет» — declined, повтор того же — новая карточка, не исполнено", px.request("publish_zernio", dict(P, text=P["text"] + "!"))["status"] == "asked" and len(RUNS) == 1)
+# a decided card stays decided
+r = px.request("publish_zernio", {"text": "решено один раз", "targets": ["a"]}); no_btn, yes_btn = btn(yes=False), btn()
+check("«Нет», потом «Да» на той же карточке — второе ignored, не исполнено",
+      px.callback(no_btn, OWNER, OWNER)["status"] == "declined" and px.callback(yes_btn, OWNER, OWNER)["status"] == "ignored"
+      and px.request("publish_zernio", {"text": "решено один раз", "targets": ["a"]})["status"] == "asked")
+r = px.request("publish_zernio", {"text": "один раз", "targets": ["a"]}); y = btn(); px.callback(y, OWNER, OWNER); k = len(RUNS)
+px.request("publish_zernio", {"text": "один раз", "targets": ["a"]})
+check("повторное «Да» после исполнения — ignored, повтор не исполняется", px.callback(y, OWNER, OWNER)["status"] == "ignored"
+      and px.request("publish_zernio", {"text": "один раз", "targets": ["a"]})["status"] == "asked" and len(RUNS) == k + 1)
 # card content
 long = "Начало поста. " + "середина " * 80 + "Конец поста и ссылка."
 open(os.path.join(HOME, "work", "cover.png"), "wb").write(b"\x89PNG" + b"0" * 3000)
@@ -72,10 +81,10 @@ open(os.path.join(HOME, "work", "big.bin"), "wb").write(b"0" * (1024 * 1024 + 10
 check("вложение больше лимита — denied", "larger" in px.request("publish_zernio", {"text": "x", "targets": ["a"], "attachments": ["work/big.bin"]})["why"])
 # file replaced after yes → different hash
 A = {"text": "с картинкой", "targets": ["a"], "attachments": ["work/cover.png"]}
-r = px.request("publish_zernio", A); px.callback(btn(), OWNER, OWNER)
+r = px.request("publish_zernio", A); px.callback(btn(), OWNER, OWNER); runs0 = len(RUNS)
 open(os.path.join(HOME, "work", "cover.png"), "wb").write(b"\x89PNG" + b"1" * 3000)
 r2 = px.request("publish_zernio", A)
-check("файл подменили после «да» — новый hash: карточка, не исполнено", r2["status"] == "asked" and len(RUNS) == 1, r2)
+check("файл подменили после «да» — новый hash: карточка, не исполнено", r2["status"] == "asked" and len(RUNS) == runs0, r2)
 px.callback(btn(), OWNER, OWNER); r3 = px.request("publish_zernio", A)
 check("исполнителю — проверенная копия файла, не путь сессии", r3["status"] == "done" and RUNS[-1]["attachments"][0] != os.path.join(HOME, "work", "cover.png") and not os.path.exists(RUNS[-1]["attachments"][0]))
 # categories
