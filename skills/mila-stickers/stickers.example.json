@@ -1,0 +1,5 @@
+{
+ "packs": {"ru": "example_pack_ru_by_example_bot", "uz": "example_pack_uz_by_example_bot", "en": "example_pack_en_by_example_bot"},
+ "default": "ru",
+ "no_chats": []
+}
