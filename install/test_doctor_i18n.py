@@ -12,6 +12,9 @@ check("en: те же ключи doctor.*, что ru", keys["en"] == keys["ru"] a
 fmt = lambda s: sorted(re.findall(r"%[-0-9.]*[sdof]", s))
 bad = [k for k in keys["ru"] & keys["en"] if fmt(loc["ru"][k]) != fmt(loc["en"][k])]
 check("подстановки %s/%d/%o/%.0f совпадают", not bad, bad)
+uz = json.load(open(os.path.join(H, "locales", "uz.json"), encoding="utf-8")); uzk = {k for k in uz if not k.startswith("_")}
+check("uz: те же ключи, те же подстановки, латиница (без кириллицы)", uzk == keys["ru"] and not [k for k in uzk if fmt(uz[k]) != fmt(loc["ru"][k])]
+      and not [k for k in uzk if re.search("[А-Яа-яЁё]", uz[k])], uzk ^ keys["ru"])
 check("в en.json нет кириллицы", not [k for k in keys["en"] if re.search("[А-Яа-яЁё]", loc["en"][k])])
 src = open(os.path.join(H, "doctor.py"), encoding="utf-8").read()
 used = set(re.findall(r'T\("(doctor\.[a-z_]+\.\d+)"\)', src))
@@ -33,5 +36,5 @@ os.remove(os.path.join(T, "owner.json"))
 check("без MILA_LANG и owner.json — LANG=ru_RU.UTF-8 → ru", "токен" in txt(run({"LANG": "ru_RU.UTF-8"})))
 check("LANG=C → en", "token" in txt(run({"LANG": "C"})) and "токен" not in txt(run({"LANG": "C"})))
 open(os.path.join(T, "owner.json"), "w").write('{"lang": "uz"}')
-check("owner.json uz (строк uz ещё нет) → английские строки, без ошибок", "token" in txt(run({})) and "токен" not in txt(run({})))
+check("owner.json uz → узбекские строки (maxfiylik / kirish)", "kirish" in txt(run({})) and "токен" not in txt(run({})), txt(run({}))[:200])
 shutil.rmtree(T, ignore_errors=True); print("итог %d/%d" % (ok, n)); sys.exit(0 if ok == n else 1)
