@@ -9,6 +9,8 @@
   reader.py last <чат> [N]            — последние N (≤50) сообщений; личный чат — только из списка allowed.json
   reader.py last <чат> N --topic <id>  — последние N сообщений темы форума (супергруппа с темами)
   reader.py topics <чат>               — темы форума: id, название, непрочитано
+  reader.py channels-digest <часы>     — посты всех каналов из map.json за N часов (≤72): канал, id, дата, текст ≤500, просмотры,
+                           реакции — для ежедневной подборки владельцу; map.json — от reader.py map
   reader.py media <чат> <id>           — скачать вложение (голосовое, кружок, аудио, видео, фото, файл) в media/ — путь для расшифровки
   reader.py get <чат> <id> [N]        — сообщение с этим номером и по N (≤25) до и после него — старое задание в группе,
                            которого уже нет среди последних; личный чат — только из allowed.json; в drafts.jsonl — строка без текста
@@ -355,6 +357,34 @@ async def cmd_last(c, d, chat, n, topic=None):
         print(row(m))
 
 
+async def cmd_digest(c, d, hours):
+    """Посты каналов из map.json за последние hours часов, по одному JSON на пост; каналы без постов — молча."""
+    import datetime as _dt
+    hours = max(1, min(int(hours), 72))
+    try:
+        rows = json.load(open(os.path.join(d, "map.json"), encoding="utf-8"))
+    except (OSError, ValueError):
+        sys.exit("нет map.json — сначала reader.py map")
+    since = _dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(hours=hours)
+    n = 0
+    for ch in [r for r in rows if isinstance(r, dict) and r.get("kind") == "channel"]:
+        try:
+            ent = await c.get_entity(int(ch["id"]))
+        except Exception:
+            continue
+        for m in await c.get_messages(ent, limit=30):
+            if not getattr(m, "date", None) or m.date < since:
+                break
+            reac = [{"emoji": getattr(r.reaction, "emoticon", None) or "custom", "count": r.count}
+                    for r in (getattr(getattr(m, "reactions", None), "results", None) or []) if getattr(r, "reaction", None) is not None]
+            print(json.dumps({"channel": ch.get("title"), "channel_id": ch["id"], "username": ch.get("username"), "id": m.id,
+                              "date": m.date.isoformat(), "text": (getattr(m, "message", None) or "")[:500], "media": media_kind(m),
+                              "views": getattr(m, "views", None), "reactions": reac}, ensure_ascii=False))
+            n += 1
+        await asyncio.sleep(0.05)
+    print(json.dumps({"total": n, "hours": hours}), file=sys.stderr)
+
+
 async def cmd_topics(c, d, chat):
     """Темы форума: id, название, непрочитано, последнее сообщение. Не форум — понятный отказ."""
     from telethon.tl.functions.messages import GetForumTopicsRequest
@@ -465,7 +495,7 @@ async def cmd_draft_clear(c, d, chat, by, ref, replace=False):
 
 async def main():
     ap = argparse.ArgumentParser(description="Личный Telegram владельца — только чтение")
-    ap.add_argument("cmd", choices=["map", "pulse", "last", "get", "topics", "media", "draft", "draft-clear", "react", "allow", "disallow", "voice", "folders", "folders-apply", "inbox"])
+    ap.add_argument("cmd", choices=["map", "pulse", "last", "get", "topics", "media", "channels-digest", "draft", "draft-clear", "react", "allow", "disallow", "voice", "folders", "folders-apply", "inbox"])
     ap.add_argument("chat", nargs="?")
     ap.add_argument("n", nargs="?", type=int, default=None)
     ap.add_argument("around", nargs="?", type=int, default=None)   # get <чат> <id> [N]
@@ -518,6 +548,8 @@ async def main():
             if a.n is None:
                 sys.exit("нужен id сообщения")
             await cmd_voice(c, d, a.chat, a.n)
+        elif a.cmd == "channels-digest":
+            await cmd_digest(c, d, 24 if a.chat is None else a.chat)
         elif a.cmd == "topics":
             if a.chat is None:
                 sys.exit("нужен чат: id, @ник или часть названия")

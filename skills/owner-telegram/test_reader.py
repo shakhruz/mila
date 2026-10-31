@@ -212,4 +212,19 @@ check("файл: вид doc, имя и размер; подпись — в text"
 check("кругляшок: media round:12s, тема в строке", rows[2]["media"] == "round:12s" and rows[2].get("topic") == 12, rows[2])
 e, rows = out_of(r.cmd_last(c, D, "950", 50))
 check("last без темы — весь чат; переслано: forward_from = id канала", e is None and len(rows) == 5 and rows[-1].get("forward_from") == 777 and f.last_kw["reply_to"] is None, rows[-1:])
+# channels-digest: посты каналов из map.json за N часов
+now = datetime.datetime.now(datetime.timezone.utc)
+CH = Channel(900, "Новости")
+for i, ago in ((603, 1), (602, 5), (601, 30)):   # номера новее прежних сообщений канала: Telegram отдаёт новые первыми
+    MSGS[(900, i)] = types.SimpleNamespace(id=i, out=False, message="пост %d " % i + "x" * 600, date=now - datetime.timedelta(hours=ago), views=1000 + i,
+                                           reactions=types.SimpleNamespace(results=[types.SimpleNamespace(reaction=types.SimpleNamespace(emoticon="👍"), count=7)]))
+json.dump([{"id": 900, "title": "Новости", "kind": "channel", "username": "news_demo"}, {"id": 950, "title": "Акселератор", "kind": "group"}],
+          open(os.path.join(D, "map.json"), "w"), ensure_ascii=False)
+n0 = len(f.calls); e, posts = out_of(r.cmd_digest(c, D, 24))
+check("digest 24 ч: посты канала за сутки (603, 602), старее — нет; группы не трогает", e is None and [p["id"] for p in posts] == [603, 602] and all(p["channel_id"] == 900 for p in posts), (e, posts))
+check("digest: текст ≤500, просмотры, реакции; ни одного запроса-действия", len(posts[0]["text"]) == 500 and posts[0]["views"] == 1603 and posts[0]["reactions"] == [{"emoji": "👍", "count": 7}] and len(f.calls) == n0)
+e, posts = out_of(r.cmd_digest(c, D, 500))
+check("digest: больше 72 ч не берём (500 → 72)", e is None and [p["id"] for p in posts] == [603, 602, 601])
+os.remove(os.path.join(D, "map.json")); e, _ = out_of(r.cmd_digest(c, D, 24))
+check("digest без map.json — понятный отказ", e and "map.json" in e)
 print("итог %d/%d" % (ok, tot)); sys.exit(0 if ok == tot else 1)
